@@ -34,6 +34,7 @@ Fester è un'applicazione per la gestione di eventi implementata secondo i requi
 - [x] Ottimizzazioni di performance con costruttori const
 - [x] Sistema di logging strutturato
 - [x] Gestione sicura di BuildContext in operazioni asincrone
+- [x] Supporto web abilitato
 - [ ] Test del frontend
 
 ### Database (Supabase)
@@ -54,6 +55,7 @@ Fester è un'applicazione per la gestione di eventi implementata secondo i requi
 - Cors (gestione CORS)
 - Morgan (logging)
 - dotenv (gestione variabili di ambiente)
+- uuid (generazione ID univoci)
 
 ### Frontend
 - Flutter (framework UI)
@@ -78,6 +80,7 @@ Fester è un'applicazione per la gestione di eventi implementata secondo i requi
 - [x] Dashboard con riepilogo eventi e dati
 - [x] Interfaccia utente reattiva
 - [x] Configurazione multi-ambiente (dev, staging, prod)
+- [x] Supporto multi-piattaforma (web, Android, iOS)
 
 ## Ottimizzazioni e Correzioni Recenti
 - [x] Aggiunta di costruttori `const` per migliorare le prestazioni
@@ -87,6 +90,8 @@ Fester è un'applicazione per la gestione di eventi implementata secondo i requi
 - [x] Rimozione di codice e file non utilizzati
 - [x] Prevenzione di errori di BuildContext in operazioni asincrone
 - [x] Correzione della configurazione Supabase con credenziali reali
+- [x] Installazione del pacchetto `uuid` mancante nel backend
+- [x] Abilitazione del supporto web per l'applicazione Flutter
 
 ## Da completare
 - [ ] Gestione delle notifiche
@@ -106,4 +111,59 @@ Fester è un'applicazione per la gestione di eventi implementata secondo i requi
 - Il servizio API centralizzato gestisce tutte le chiamate HTTP con Dio
 - Gli elementi dell'interfaccia mostrano informazioni di debug in ambiente di sviluppo 
 - Il sistema di logging centralizzato consente di monitorare l'applicazione in diversi ambienti
-- Le credenziali Supabase sono state configurate correttamente per consentire l'autenticazione 
+- Le credenziali Supabase sono state configurate correttamente per consentire l'autenticazione
+- L'applicazione è disponibile sia come app mobile che come applicazione web 
+
+# Fester - Resoconto Interventi
+
+## Risoluzione Problemi di Connessione Backend
+
+### Problemi Risolti
+- **Rotte API errate**: Corretta la rotta da `/api/events` a `/api/eventi` per allineamento con il frontend
+- **Gestione token autenticazione**: Migliorato il middleware di autenticazione JWT con migliore validazione e messaggi di errore
+- **Endpoints mancanti**: Aggiunta rotta di test `/api/test` per diagnostica
+
+### File Modificati
+- `fester/backend/src/index.js` - Corretto i percorsi delle API e aggiunto rotta di test
+- `fester/backend/src/middlewares/auth.js` - Migliorato il middleware di autenticazione
+- `fester/frontend/lib/services/api_service.dart` - Aggiornato per utilizzare gli endpoint corretti
+- `fester/frontend/lib/blocs/auth/auth_bloc.dart` - Rimossa dipendenza da Supabase e migliorata l'integrazione con l'API
+- `fester/frontend/lib/blocs/auth/auth_event.dart` - Aggiornati gli eventi di autenticazione
+- `fester/frontend/lib/blocs/auth/auth_state.dart` - Aggiornati gli stati di autenticazione
+
+### Miglioramenti dell'API Service
+- Aggiunta funzionalità di test della connessione
+- Migliorata gestione dei token JWT
+- Aggiunti metodi per gestire eventi e ospiti
+
+## Note per il Testing
+
+Prima di avviare il frontend, assicurarsi che:
+1. Il backend sia in esecuzione sulla porta corretta (3000)
+2. Le variabili d'ambiente siano configurate correttamente
+3. La connessione a Internet sia attiva
+
+Per testare la connessione API, utilizzare la rotta `/api/test` per verificare che il backend risponda correttamente.
+
+### Correzioni Specifiche
+
+- Ripristinato il parametro `cognome` nella registrazione utente:
+  - Aggiunto nuovamente il campo nella classe `AuthRegisterRequested`
+  - Aggiornato il metodo di registrazione nel servizio API
+  - Riabilitato il campo nel form di registrazione
+
+Queste modifiche garantiscono che il cognome dell'utente venga correttamente salvato durante la registrazione, completando così il profilo utente con tutti i dati necessari.
+
+### Correzioni di Sicurezza
+
+- Implementata configurazione SSL con certificato personalizzato:
+  - Aggiunto certificato `prod-ca-2021.crt` in `assets/certificates`
+  - Configurato Dio HTTP client per utilizzare il certificato SSL
+  - Aggiornato pubspec.yaml per includere la cartella dei certificati negli assets
+
+- Corretti problemi di linting in `auth_bloc.dart`:
+  - Rimosso import non utilizzato di SharedPreferences
+  - Aggiunto `const` per migliorare le prestazioni
+  - Ottimizzato l'uso di literals costanti
+
+Queste modifiche migliorano la sicurezza delle comunicazioni con il server e risolvono i problemi di qualità del codice segnalati dal linter. 

@@ -6,17 +6,18 @@ require('dotenv').config();
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
-    return next(createError(401, 'Token di autenticazione mancante'));
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return next(createError(401, 'Token di autenticazione mancante o formato non valido'));
   }
 
   const token = authHeader.split(' ')[1];
 
   try {
-    const user = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = user;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
   } catch (error) {
+    console.error('Errore di autenticazione JWT:', error.message);
     return next(createError(403, 'Token non valido o scaduto'));
   }
 };

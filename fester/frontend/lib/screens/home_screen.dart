@@ -94,6 +94,42 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           
+          // Guida Rapida
+          const Text(
+            'Guida Rapida',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  'Crea Evento',
+                  'Crea un nuovo evento e gestiscilo',
+                  Icons.add_box,
+                  Colors.blue,
+                  () => context.push('/events/create'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildActionCard(
+                  'Partecipa ad Evento',
+                  'Unisciti allo staff di un evento esistente',
+                  Icons.group_add,
+                  Colors.green,
+                  () => _showJoinEventDialog(),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+          
           // Stats Cards
           _buildStatsRow(),
           const SizedBox(height: 24),
@@ -156,40 +192,94 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           
           const SizedBox(height: 24),
-          
-          // Guida rapida
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Guida Rapida',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  ListTile(
-                    leading: Icon(Icons.add_circle, color: Colors.green),
-                    title: Text('Crea un nuovo evento'),
-                    subtitle: Text('Vai alla sezione Eventi e premi il pulsante "+"'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.person_add, color: Colors.blue),
-                    title: Text('Aggiungi ospiti'),
-                    subtitle: Text('Seleziona un evento e vai alla sezione "Ospiti"'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.qr_code_scanner, color: Colors.purple),
-                    title: Text('Scansiona QR Code'),
-                    subtitle: Text('Dai dettagli evento, scegli "Scansiona QR"'),
-                  ),
-                ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard(
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 48),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showJoinEventDialog() {
+    final codeController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Partecipa ad Evento'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Inserisci il codice dell\'evento per unirti come staff',
+              style: TextStyle(fontSize: 14),
             ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: codeController,
+              decoration: const InputDecoration(
+                labelText: 'Codice Evento',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.key),
+              ),
+              textCapitalization: TextCapitalization.characters,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('ANNULLA'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final code = codeController.text.trim();
+              if (code.isNotEmpty) {
+                context.read<EventBloc>().add(JoinEventRequested(code: code));
+                Navigator.of(context).pop();
+              }
+            },
+            child: const Text('PARTECIPA'),
           ),
         ],
       ),

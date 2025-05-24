@@ -79,4 +79,14 @@ class EventDeleteRequested extends EventEvent {
 
   @override
   List<Object?> get props => [eventId];
+}
+
+/// Evento per partecipare a un evento tramite codice
+class JoinEventRequested extends EventEvent {
+  final String code;
+
+  const JoinEventRequested({required this.code});
+
+  @override
+  List<Object?> get props => [code];
 } 

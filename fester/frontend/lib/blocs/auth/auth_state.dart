@@ -9,23 +9,32 @@ abstract class AuthState extends Equatable {
 }
 
 /// Stato iniziale dell'autenticazione
-class AuthInitial extends AuthState {
-  const AuthInitial();
-}
+class AuthInitial extends AuthState {}
 
 /// Stato durante il caricamento dell'autenticazione
-class AuthLoading extends AuthState {
-  const AuthLoading();
-}
+class AuthLoading extends AuthState {}
 
 /// Stato quando l'utente è autenticato
 class AuthAuthenticated extends AuthState {
-  const AuthAuthenticated();
+  final Map<String, dynamic> user;
+
+  const AuthAuthenticated({required this.user});
+
+  @override
+  List<Object?> get props => [user];
 }
 
 /// Stato quando l'utente non è autenticato
-class AuthUnauthenticated extends AuthState {
-  const AuthUnauthenticated();
+class AuthUnauthenticated extends AuthState {}
+
+/// Stato quando la registrazione è completata con successo
+class AuthRegistrationSuccess extends AuthState {
+  final String message;
+
+  const AuthRegistrationSuccess({required this.message});
+
+  @override
+  List<Object?> get props => [message];
 }
 
 /// Stato di errore dell'autenticazione

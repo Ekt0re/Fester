@@ -8,7 +8,7 @@ class EnvConfig {
   }
 
   /// Restituisce l'URL base per le chiamate API
-  static String get apiUrl => dotenv.env['API_URL'] ?? 'http://localhost:5000/api';
+  static String get apiUrl => 'http://localhost:3000';
 
   /// Restituisce l'URL di Supabase
   static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';

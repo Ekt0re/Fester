@@ -51,6 +51,6 @@ class AuthLogoutRequested extends AuthEvent {
 }
 
 /// Evento per verificare lo stato di autenticazione
-class AuthCheckStatusRequested extends AuthEvent {
-  const AuthCheckStatusRequested();
+class AuthCheckRequested extends AuthEvent {
+  const AuthCheckRequested();
 } 

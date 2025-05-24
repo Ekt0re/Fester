@@ -18,6 +18,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     on<EventCreateRequested>(_onEventCreateRequested);
     on<EventUpdateRequested>(_onEventUpdateRequested);
     on<EventDeleteRequested>(_onEventDeleteRequested);
+    on<JoinEventRequested>(_onJoinEventRequested);
   }
   
   /// Gestisce l'evento di recupero di tutti gli eventi
@@ -27,15 +28,15 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(const EventLoading());
     try {
-      final response = await _apiService.get('/eventi');
+      final result = await _apiService.getEvents();
       
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'];
+      if (result['success']) {
+        final List<dynamic> data = result['data']['data'];
         final events = data.map((e) => Map<String, dynamic>.from(e)).toList();
         
         emit(EventsLoadSuccess(events: events));
       } else {
-        emit(const EventError(message: 'Errore nel caricamento degli eventi'));
+        emit(EventError(message: result['message'] ?? 'Errore nel caricamento degli eventi'));
       }
     } catch (e) {
       emit(EventError(message: 'Errore nel caricamento degli eventi: $e'));
@@ -154,18 +155,21 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(const EventLoading());
     try {
-      final response = await _apiService.post(
-        '/eventi',
-        data: event.eventData,
-      );
+      // Aggiungi i campi mancanti
+      final eventData = {
+        ...event.eventData,
+        'stato': 'attivo',
+      };
       
-      if (response.statusCode == 201) {
+      final result = await _apiService.createEvent(eventData);
+      
+      if (result['success']) {
         // Emetti lo stato di successo
         emit(const EventOperationSuccess(message: 'Evento creato con successo'));
         // Aggiorna la lista degli eventi
         add(const EventsFetchRequested());
       } else {
-        emit(const EventError(message: 'Errore nella creazione dell\'evento'));
+        emit(EventError(message: result['message'] ?? 'Errore nella creazione dell\'evento'));
       }
     } catch (e) {
       emit(EventError(message: 'Errore nella creazione dell\'evento: $e'));
@@ -216,6 +220,30 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       }
     } catch (e) {
       emit(EventError(message: 'Errore nell\'eliminazione dell\'evento: $e'));
+    }
+  }
+  
+  /// Gestisce l'evento di partecipazione a un evento tramite codice
+  Future<void> _onJoinEventRequested(
+    JoinEventRequested event,
+    Emitter<EventState> emit,
+  ) async {
+    emit(const EventLoading());
+    try {
+      final response = await _apiService.post(
+        '/eventi/join',
+        data: {'codice': event.code},
+      );
+      
+      if (response.statusCode == 200) {
+        emit(const EventOperationSuccess(message: 'Partecipazione all\'evento confermata'));
+        // Aggiorna la lista degli eventi
+        add(const EventsFetchRequested());
+      } else {
+        emit(const EventError(message: 'Codice evento non valido'));
+      }
+    } catch (e) {
+      emit(EventError(message: 'Errore durante la partecipazione all\'evento: $e'));
     }
   }
 } 
