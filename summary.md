@@ -93,4 +93,24 @@ Fester è un'applicazione per la gestione di eventi implementata secondo i requi
 - Il frontend implementa form reattivi con validazione in tempo reale
 - L'applicazione utilizza variabili di ambiente (.env) per la configurazione in diversi ambienti
 - Il servizio API centralizzato gestisce tutte le chiamate HTTP con Dio
-- Gli elementi dell'interfaccia mostrano informazioni di debug in ambiente di sviluppo 
+- Gli elementi dell'interfaccia mostrano informazioni di debug in ambiente di sviluppo
+
+# Riepilogo Modifiche
+
+## Gestione ID Utente nella Creazione Eventi
+
+### Modifiche Effettuate
+- Rimosso il campo `creato_da` dai dati dell'evento nel frontend
+- L'ID dell'utente viene ora gestito automaticamente dal backend attraverso il token JWT
+
+### Motivazione
+La modifica migliora la sicurezza dell'applicazione poiché:
+1. Non espone l'ID dell'utente nel frontend
+2. Previene la manipolazione dell'ID utente da parte del client
+3. Garantisce che l'evento sia sempre associato all'utente autenticato
+
+### Implementazione Backend
+Il backend già implementa correttamente questa logica:
+- Utilizza il middleware `authenticateJWT` per tutte le rotte degli eventi
+- Estrae l'ID utente dal token JWT con `req.user.id`
+- Applica policy di sicurezza a livello di database per garantire che solo l'utente autenticato possa creare eventi 

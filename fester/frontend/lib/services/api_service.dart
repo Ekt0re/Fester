@@ -12,7 +12,9 @@ class ApiService {
   late final Dio _dio;
   final String _baseUrl = EnvConfig.apiUrl;
   final _logger = Logger('ApiService');
-  final _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  
+  FlutterSecureStorage get storage => _storage;
 
   ApiService() {
     _dio = Dio(BaseOptions(

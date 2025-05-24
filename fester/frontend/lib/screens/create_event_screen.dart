@@ -163,19 +163,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                                   final nome = form.control('nome').value as String;
                                   final luogo = form.control('luogo').value as String;
                                   
-                                  // Converte la lista di regole in mappa
-                                  final Map<String, dynamic> regoleMap = {};
-                                  for (var regola in regoleList) {
-                                    regoleMap[regola['nome']] = regola['valore'];
-                                  }
-                                  
                                   context.read<EventBloc>().add(
                                     EventCreateRequested(
                                       eventData: {
                                         'nome': nome,
                                         'luogo': luogo,
                                         'data_ora': selectedDateTime.toIso8601String(),
-                                        'regole': regoleMap,
+                                        'regole': regoleList,
                                       },
                                     ),
                                   );
@@ -216,13 +210,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    regola['nome'],
+                    regola['descrizione'],
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(regola['valore']),
+                  Text(regola['valore'].toString()),
                 ],
               ),
             ),
@@ -290,6 +284,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Nome Regola',
                     hintText: 'Es. Dress Code',
+                    border: OutlineInputBorder(),
                   ),
                   validationMessages: {
                     'required': (error) => 'Questo campo è obbligatorio',
@@ -301,6 +296,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Valore',
                     hintText: 'Es. Elegante',
+                    border: OutlineInputBorder(),
                   ),
                   validationMessages: {
                     'required': (error) => 'Questo campo è obbligatorio',
@@ -311,32 +307,29 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('ANNULLA'),
             ),
-            ReactiveFormConsumer(
-              builder: (dialogContext, form, child) {
-                return TextButton(
-                  onPressed: form.valid
-                      ? () {
-                          final nome = formDialog.control('nome').value as String;
-                          final valore = formDialog.control('valore').value as String;
-                          
-                          setState(() {
-                            regoleList.add({
-                              'nome': nome,
-                              'valore': valore,
-                            });
-                          });
-                          
-                          Navigator.of(dialogContext).pop();
-                        }
-                      : null,
-                  child: const Text('AGGIUNGI'),
-                );
+            ElevatedButton(
+              onPressed: () {
+                if (formDialog.valid) {
+                  final nome = formDialog.control('nome').value as String;
+                  final valore = formDialog.control('valore').value as String;
+                  
+                  setState(() {
+                    regoleList.add({
+                      'tipo': nome.toLowerCase().replaceAll(' ', '_'),
+                      'valore': valore,
+                      'descrizione': nome
+                    });
+                  });
+                  
+                  Navigator.of(context).pop();
+                } else {
+                  formDialog.markAllAsTouched();
+                }
               },
+              child: const Text('AGGIUNGI'),
             ),
           ],
         ),

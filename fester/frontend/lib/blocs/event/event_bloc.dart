@@ -1,14 +1,15 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fester_frontend/services/api_service.dart';
+import 'package:logging/logging.dart';
 
 part 'event_event.dart';
 part 'event_state.dart';
 
-/// Bloc per la gestione degli eventi
 class EventBloc extends Bloc<EventEvent, EventState> {
   final ApiService _apiService = ApiService();
-  
+  final _logger = Logger('EventBloc');
+
   /// Costruttore che inizializza lo stato iniziale
   EventBloc() : super(const EventInitial()) {
     on<EventsFetchRequested>(_onEventsFetched);
@@ -20,7 +21,65 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     on<EventDeleteRequested>(_onEventDeleteRequested);
     on<JoinEventRequested>(_onJoinEventRequested);
   }
-  
+
+
+  /// Gestisce l'evento di creazione di un nuovo evento
+  Future<void> _onEventCreateRequested(
+    EventCreateRequested event,
+    Emitter<EventState> emit,
+  ) async {
+    emit(const EventLoading());
+    try {
+      // Regole di default per ogni nuovo evento
+      final defaultRules = [
+        {
+          'tipo': 'limite_eta',
+          'valore': 18,
+          'descrizione': 'Età minima per partecipare'
+        },
+        {
+          'tipo': 'dress_code',
+          'valore': 'casual',
+          'descrizione': 'Abbigliamento consigliato'
+        },
+        {
+          'tipo': 'max_partecipanti',
+          'valore': 100,
+          'descrizione': 'Numero massimo di partecipanti'
+        }
+      ];
+
+      // Prepara i dati dell'evento
+      final eventData = {
+        ...event.eventData,
+        'stato': 'attivo',
+        'data_ora': event.eventData['data_ora'] != null 
+            ? DateTime.parse(event.eventData['data_ora']).toLocal().toIso8601String()
+            : null,
+        'regole': defaultRules.map((rule) => {
+          'tipo': rule['tipo'],
+          'valore': rule['valore'],
+          'descrizione': rule['descrizione']
+        }).toList()
+      };
+
+      // Usa il metodo POST diretto invece di createEvent()
+      final response = await _apiService.post('/api/eventi', data: eventData);
+      
+      if (response.statusCode == 200 && response.data['success']) {
+        emit(const EventOperationSuccess(message: 'Evento creato con successo'));
+        // Aggiorna la lista degli eventi
+        add(const EventsFetchRequested());
+      } else {
+        final errorMessage = response.data['error']?['message'] ?? 'Errore nella creazione dell\'evento';
+        emit(EventError(message: errorMessage));
+      }
+    } catch (e) {
+      _logger.severe('Errore nella creazione dell\'evento: $e');
+      emit(EventError(message: 'Errore nella creazione dell\'evento: $e'));
+    }
+  }
+
   /// Gestisce l'evento di recupero di tutti gli eventi
   Future<void> _onEventsFetched(
     EventsFetchRequested event,
@@ -28,21 +87,24 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(const EventLoading());
     try {
-      final result = await _apiService.getEvents();
+      // Usa il metodo GET diretto invece di getEvents()
+      final response = await _apiService.get('/api/eventi');
       
-      if (result['success']) {
-        final List<dynamic> data = result['data']['data'];
+      if (response.statusCode == 200 && response.data['success']) {
+        final List<dynamic> data = response.data['data'];
         final events = data.map((e) => Map<String, dynamic>.from(e)).toList();
         
         emit(EventsLoadSuccess(events: events));
       } else {
-        emit(EventError(message: result['message'] ?? 'Errore nel caricamento degli eventi'));
+        final errorMessage = response.data['error']?['message'] ?? 'Errore nel caricamento degli eventi';
+        emit(EventError(message: errorMessage));
       }
     } catch (e) {
+      _logger.severe('Errore nel caricamento degli eventi: $e');
       emit(EventError(message: 'Errore nel caricamento degli eventi: $e'));
     }
   }
-  
+
   /// Gestisce l'evento di recupero dei dettagli di un evento
   Future<void> _onEventDetailsRequested(
     EventDetailsRequested event,
@@ -50,20 +112,22 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(const EventLoading());
     try {
-      final response = await _apiService.get('/eventi/${event.eventId}');
+      final response = await _apiService.get('/api/eventi/${event.eventId}');
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success']) {
         final Map<String, dynamic> data = response.data['data'];
         
         emit(EventDetailsLoaded(event: data));
       } else {
-        emit(const EventError(message: 'Errore nel caricamento dei dettagli dell\'evento'));
+        final errorMessage = response.data['error']?['message'] ?? 'Errore nel caricamento dei dettagli dell\'evento';
+        emit(EventError(message: errorMessage));
       }
     } catch (e) {
+      _logger.severe('Errore nel caricamento dei dettagli dell\'evento: $e');
       emit(EventError(message: 'Errore nel caricamento dei dettagli dell\'evento: $e'));
     }
   }
-  
+
   /// Gestisce l'evento di recupero degli ospiti di un evento
   Future<void> _onEventGuestsRequested(
     EventGuestsRequested event,
@@ -71,9 +135,9 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(const EventLoading());
     try {
-      final response = await _apiService.get('/eventi/${event.eventId}/ospiti');
+      final response = await _apiService.get('/api/eventi/${event.eventId}/ospiti');
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success']) {
         final List<dynamic> data = response.data['data'];
         
         final guests = data.map((item) {
@@ -91,13 +155,15 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         
         emit(EventGuestsLoaded(guests: guests));
       } else {
-        emit(const EventError(message: 'Errore nel caricamento degli ospiti'));
+        final errorMessage = response.data['error']?['message'] ?? 'Errore nel caricamento degli ospiti';
+        emit(EventError(message: errorMessage));
       }
     } catch (e) {
+      _logger.severe('Errore nel caricamento degli ospiti: $e');
       emit(EventError(message: 'Errore nel caricamento degli ospiti: $e'));
     }
   }
-  
+
   /// Gestisce l'evento di check-in di un ospite
   Future<void> _onEventGuestCheckinRequested(
     EventGuestCheckinRequested event,
@@ -115,10 +181,10 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       }
       
       final response = await _apiService.put(
-        '/eventi/${event.eventId}/ospiti/${event.guestId}/checkin',
+        '/api/eventi/${event.eventId}/ospiti/${event.guestId}/checkin',
       );
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success']) {
         if (currentGuests.isNotEmpty) {
           // Aggiorna solo l'ospite che ha fatto il check-in
           final updatedGuests = currentGuests.map((guest) {
@@ -141,41 +207,15 @@ class EventBloc extends Bloc<EventEvent, EventState> {
           add(EventGuestsRequested(eventId: event.eventId));
         }
       } else {
-        emit(const EventError(message: 'Errore durante il check-in dell\'ospite'));
+        final errorMessage = response.data['error']?['message'] ?? 'Errore durante il check-in dell\'ospite';
+        emit(EventError(message: errorMessage));
       }
     } catch (e) {
+      _logger.severe('Errore durante il check-in dell\'ospite: $e');
       emit(EventError(message: 'Errore durante il check-in dell\'ospite: $e'));
     }
   }
-  
-  /// Gestisce l'evento di creazione di un nuovo evento
-  Future<void> _onEventCreateRequested(
-    EventCreateRequested event,
-    Emitter<EventState> emit,
-  ) async {
-    emit(const EventLoading());
-    try {
-      // Aggiungi i campi mancanti
-      final eventData = {
-        ...event.eventData,
-        'stato': 'attivo',
-      };
-      
-      final result = await _apiService.createEvent(eventData);
-      
-      if (result['success']) {
-        // Emetti lo stato di successo
-        emit(const EventOperationSuccess(message: 'Evento creato con successo'));
-        // Aggiorna la lista degli eventi
-        add(const EventsFetchRequested());
-      } else {
-        emit(EventError(message: result['message'] ?? 'Errore nella creazione dell\'evento'));
-      }
-    } catch (e) {
-      emit(EventError(message: 'Errore nella creazione dell\'evento: $e'));
-    }
-  }
-  
+
   /// Gestisce l'evento di aggiornamento di un evento
   Future<void> _onEventUpdateRequested(
     EventUpdateRequested event,
@@ -184,23 +224,25 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     emit(const EventLoading());
     try {
       final response = await _apiService.put(
-        '/eventi/${event.eventId}',
+        '/api/eventi/${event.eventId}',
         data: event.eventData,
       );
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success']) {
         // Emetti lo stato di successo
         emit(const EventOperationSuccess(message: 'Evento aggiornato con successo'));
         // Aggiorna i dettagli dell'evento
         add(EventDetailsRequested(eventId: event.eventId));
       } else {
-        emit(const EventError(message: 'Errore nell\'aggiornamento dell\'evento'));
+        final errorMessage = response.data['error']?['message'] ?? 'Errore nell\'aggiornamento dell\'evento';
+        emit(EventError(message: errorMessage));
       }
     } catch (e) {
+      _logger.severe('Errore nell\'aggiornamento dell\'evento: $e');
       emit(EventError(message: 'Errore nell\'aggiornamento dell\'evento: $e'));
     }
   }
-  
+
   /// Gestisce l'evento di eliminazione di un evento
   Future<void> _onEventDeleteRequested(
     EventDeleteRequested event,
@@ -208,17 +250,19 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     emit(const EventLoading());
     try {
-      final response = await _apiService.delete('/eventi/${event.eventId}');
+      final response = await _apiService.delete('/api/eventi/${event.eventId}');
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success']) {
         // Emetti lo stato di successo
         emit(const EventOperationSuccess(message: 'Evento eliminato con successo'));
         // Aggiorna la lista degli eventi
         add(const EventsFetchRequested());
       } else {
-        emit(const EventError(message: 'Errore nell\'eliminazione dell\'evento'));
+        final errorMessage = response.data['error']?['message'] ?? 'Errore nell\'eliminazione dell\'evento';
+        emit(EventError(message: errorMessage));
       }
     } catch (e) {
+      _logger.severe('Errore nell\'eliminazione dell\'evento: $e');
       emit(EventError(message: 'Errore nell\'eliminazione dell\'evento: $e'));
     }
   }
@@ -231,19 +275,21 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     emit(const EventLoading());
     try {
       final response = await _apiService.post(
-        '/eventi/join',
+        '/api/eventi/join',
         data: {'codice': event.code},
       );
       
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data['success']) {
         emit(const EventOperationSuccess(message: 'Partecipazione all\'evento confermata'));
         // Aggiorna la lista degli eventi
         add(const EventsFetchRequested());
       } else {
-        emit(const EventError(message: 'Codice evento non valido'));
+        final errorMessage = response.data['error']?['message'] ?? 'Codice evento non valido';
+        emit(EventError(message: errorMessage));
       }
     } catch (e) {
+      _logger.severe('Errore durante la partecipazione all\'evento: $e');
       emit(EventError(message: 'Errore durante la partecipazione all\'evento: $e'));
     }
   }
-} 
+}
