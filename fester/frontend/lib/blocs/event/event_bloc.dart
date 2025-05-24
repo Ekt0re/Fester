@@ -1,230 +1,221 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:fester_frontend/services/api_service.dart';
 
-// Eventi
-abstract class EventEvent {}
+part 'event_event.dart';
+part 'event_state.dart';
 
-class EventsFetchRequested extends EventEvent {}
-
-class EventDetailRequested extends EventEvent {
-  final String eventId;
-
-  EventDetailRequested({required this.eventId});
-}
-
-class EventCreateRequested extends EventEvent {
-  final String nome;
-  final String luogo;
-  final DateTime dataOra;
-  final Map<String, dynamic>? regole;
-
-  EventCreateRequested({
-    required this.nome,
-    required this.luogo,
-    required this.dataOra,
-    this.regole,
-  });
-}
-
-class EventUpdateRequested extends EventEvent {
-  final String eventId;
-  final String nome;
-  final String luogo;
-  final DateTime dataOra;
-  final Map<String, dynamic>? regole;
-  final String? stato;
-
-  EventUpdateRequested({
-    required this.eventId,
-    required this.nome,
-    required this.luogo,
-    required this.dataOra,
-    this.regole,
-    this.stato,
-  });
-}
-
-class EventDeleteRequested extends EventEvent {
-  final String eventId;
-
-  EventDeleteRequested({required this.eventId});
-}
-
-// Stati
-abstract class EventState {}
-
-class EventInitial extends EventState {}
-
-class EventLoading extends EventState {}
-
-class EventsLoadSuccess extends EventState {
-  final List<Map<String, dynamic>> events;
-
-  EventsLoadSuccess({required this.events});
-}
-
-class EventDetailLoadSuccess extends EventState {
-  final Map<String, dynamic> event;
-
-  EventDetailLoadSuccess({required this.event});
-}
-
-class EventOperationSuccess extends EventState {
-  final String message;
-
-  EventOperationSuccess({required this.message});
-}
-
-class EventFailure extends EventState {
-  final String message;
-
-  EventFailure({required this.message});
-}
-
-// BLoC
+/// Bloc per la gestione degli eventi
 class EventBloc extends Bloc<EventEvent, EventState> {
-  final supabase = Supabase.instance.client;
-  final dio = Dio();
-  final secureStorage = const FlutterSecureStorage();
-  final String apiBaseUrl = 'http://localhost:5000/api';
-
-  EventBloc() : super(EventInitial()) {
-    on<EventsFetchRequested>(_onEventsFetchRequested);
-    on<EventDetailRequested>(_onEventDetailRequested);
+  final ApiService _apiService = ApiService();
+  
+  /// Costruttore che inizializza lo stato iniziale
+  EventBloc() : super(const EventInitial()) {
+    on<EventsFetchRequested>(_onEventsFetched);
+    on<EventDetailsRequested>(_onEventDetailsRequested);
+    on<EventGuestsRequested>(_onEventGuestsRequested);
+    on<EventGuestCheckinRequested>(_onEventGuestCheckinRequested);
     on<EventCreateRequested>(_onEventCreateRequested);
     on<EventUpdateRequested>(_onEventUpdateRequested);
     on<EventDeleteRequested>(_onEventDeleteRequested);
-    
-    // Inizializza i headers per Dio
-    _setupDioHeaders();
   }
-
-  Future<void> _setupDioHeaders() async {
-    final token = await secureStorage.read(key: 'auth_token');
-    if (token != null) {
-      dio.options.headers['Authorization'] = 'Bearer $token';
-    }
-  }
-
-  Future<void> _onEventsFetchRequested(
+  
+  /// Gestisce l'evento di recupero di tutti gli eventi
+  Future<void> _onEventsFetched(
     EventsFetchRequested event,
     Emitter<EventState> emit,
   ) async {
-    emit(EventLoading());
-
+    emit(const EventLoading());
     try {
-      await _setupDioHeaders();
-      final response = await dio.get('$apiBaseUrl/events');
-
+      final response = await _apiService.get('/eventi');
+      
       if (response.statusCode == 200) {
-        final data = response.data['data'] as List;
-        final events = data.map((event) => event as Map<String, dynamic>).toList();
+        final List<dynamic> data = response.data['data'];
+        final events = data.map((e) => Map<String, dynamic>.from(e)).toList();
+        
         emit(EventsLoadSuccess(events: events));
       } else {
-        emit(EventFailure(message: 'Errore durante il caricamento degli eventi'));
+        emit(const EventError(message: 'Errore nel caricamento degli eventi'));
       }
-    } catch (error) {
-      emit(EventFailure(message: 'Errore durante il caricamento degli eventi: ${error.toString()}'));
+    } catch (e) {
+      emit(EventError(message: 'Errore nel caricamento degli eventi: $e'));
     }
   }
-
-  Future<void> _onEventDetailRequested(
-    EventDetailRequested event,
+  
+  /// Gestisce l'evento di recupero dei dettagli di un evento
+  Future<void> _onEventDetailsRequested(
+    EventDetailsRequested event,
     Emitter<EventState> emit,
   ) async {
-    emit(EventLoading());
-
+    emit(const EventLoading());
     try {
-      await _setupDioHeaders();
-      final response = await dio.get('$apiBaseUrl/events/${event.eventId}');
-
+      final response = await _apiService.get('/eventi/${event.eventId}');
+      
       if (response.statusCode == 200) {
-        final eventData = response.data['data'] as Map<String, dynamic>;
-        emit(EventDetailLoadSuccess(event: eventData));
+        final Map<String, dynamic> data = response.data['data'];
+        
+        emit(EventDetailsLoaded(event: data));
       } else {
-        emit(EventFailure(message: 'Errore durante il caricamento dei dettagli dell\'evento'));
+        emit(const EventError(message: 'Errore nel caricamento dei dettagli dell\'evento'));
       }
-    } catch (error) {
-      emit(EventFailure(message: 'Errore durante il caricamento dei dettagli dell\'evento: ${error.toString()}'));
+    } catch (e) {
+      emit(EventError(message: 'Errore nel caricamento dei dettagli dell\'evento: $e'));
     }
   }
-
+  
+  /// Gestisce l'evento di recupero degli ospiti di un evento
+  Future<void> _onEventGuestsRequested(
+    EventGuestsRequested event,
+    Emitter<EventState> emit,
+  ) async {
+    emit(const EventLoading());
+    try {
+      final response = await _apiService.get('/eventi/${event.eventId}/ospiti');
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'];
+        
+        final guests = data.map((item) {
+          return Guest(
+            id: item['id'],
+            nome: item['nome'],
+            cognome: item['cognome'],
+            email: item['email'],
+            isPresent: item['presente'] ?? false,
+            checkinTime: item['check_in_time'] != null 
+                ? DateTime.parse(item['check_in_time']) 
+                : null,
+          );
+        }).toList();
+        
+        emit(EventGuestsLoaded(guests: guests));
+      } else {
+        emit(const EventError(message: 'Errore nel caricamento degli ospiti'));
+      }
+    } catch (e) {
+      emit(EventError(message: 'Errore nel caricamento degli ospiti: $e'));
+    }
+  }
+  
+  /// Gestisce l'evento di check-in di un ospite
+  Future<void> _onEventGuestCheckinRequested(
+    EventGuestCheckinRequested event,
+    Emitter<EventState> emit,
+  ) async {
+    try {
+      // Ottieni lo stato attuale per conservare i dati degli ospiti
+      final currentState = state;
+      List<Guest> currentGuests = [];
+      
+      if (currentState is EventGuestsLoaded) {
+        currentGuests = [...currentState.guests];
+      } else {
+        emit(const EventLoading());
+      }
+      
+      final response = await _apiService.put(
+        '/eventi/${event.eventId}/ospiti/${event.guestId}/checkin',
+      );
+      
+      if (response.statusCode == 200) {
+        if (currentGuests.isNotEmpty) {
+          // Aggiorna solo l'ospite che ha fatto il check-in
+          final updatedGuests = currentGuests.map((guest) {
+            if (guest.id == event.guestId) {
+              return Guest(
+                id: guest.id,
+                nome: guest.nome,
+                cognome: guest.cognome,
+                email: guest.email,
+                isPresent: true,
+                checkinTime: DateTime.now(),
+              );
+            }
+            return guest;
+          }).toList();
+          
+          emit(EventGuestsLoaded(guests: updatedGuests));
+        } else {
+          // Se non abbiamo ancora gli ospiti, li carichiamo di nuovo
+          add(EventGuestsRequested(eventId: event.eventId));
+        }
+      } else {
+        emit(const EventError(message: 'Errore durante il check-in dell\'ospite'));
+      }
+    } catch (e) {
+      emit(EventError(message: 'Errore durante il check-in dell\'ospite: $e'));
+    }
+  }
+  
+  /// Gestisce l'evento di creazione di un nuovo evento
   Future<void> _onEventCreateRequested(
     EventCreateRequested event,
     Emitter<EventState> emit,
   ) async {
-    emit(EventLoading());
-
+    emit(const EventLoading());
     try {
-      await _setupDioHeaders();
-      final response = await dio.post(
-        '$apiBaseUrl/events',
-        data: {
-          'nome': event.nome,
-          'luogo': event.luogo,
-          'data_ora': event.dataOra.toIso8601String(),
-          'regole': event.regole ?? {},
-        },
+      final response = await _apiService.post(
+        '/eventi',
+        data: event.eventData,
       );
-
+      
       if (response.statusCode == 201) {
-        emit(EventOperationSuccess(message: 'Evento creato con successo'));
+        // Emetti lo stato di successo
+        emit(const EventOperationSuccess(message: 'Evento creato con successo'));
+        // Aggiorna la lista degli eventi
+        add(const EventsFetchRequested());
       } else {
-        emit(EventFailure(message: 'Errore durante la creazione dell\'evento'));
+        emit(const EventError(message: 'Errore nella creazione dell\'evento'));
       }
-    } catch (error) {
-      emit(EventFailure(message: 'Errore durante la creazione dell\'evento: ${error.toString()}'));
+    } catch (e) {
+      emit(EventError(message: 'Errore nella creazione dell\'evento: $e'));
     }
   }
-
+  
+  /// Gestisce l'evento di aggiornamento di un evento
   Future<void> _onEventUpdateRequested(
     EventUpdateRequested event,
     Emitter<EventState> emit,
   ) async {
-    emit(EventLoading());
-
+    emit(const EventLoading());
     try {
-      await _setupDioHeaders();
-      final response = await dio.put(
-        '$apiBaseUrl/events/${event.eventId}',
-        data: {
-          'nome': event.nome,
-          'luogo': event.luogo,
-          'data_ora': event.dataOra.toIso8601String(),
-          'regole': event.regole,
-          'stato': event.stato,
-        },
+      final response = await _apiService.put(
+        '/eventi/${event.eventId}',
+        data: event.eventData,
       );
-
+      
       if (response.statusCode == 200) {
-        emit(EventOperationSuccess(message: 'Evento aggiornato con successo'));
+        // Emetti lo stato di successo
+        emit(const EventOperationSuccess(message: 'Evento aggiornato con successo'));
+        // Aggiorna i dettagli dell'evento
+        add(EventDetailsRequested(eventId: event.eventId));
       } else {
-        emit(EventFailure(message: 'Errore durante l\'aggiornamento dell\'evento'));
+        emit(const EventError(message: 'Errore nell\'aggiornamento dell\'evento'));
       }
-    } catch (error) {
-      emit(EventFailure(message: 'Errore durante l\'aggiornamento dell\'evento: ${error.toString()}'));
+    } catch (e) {
+      emit(EventError(message: 'Errore nell\'aggiornamento dell\'evento: $e'));
     }
   }
-
+  
+  /// Gestisce l'evento di eliminazione di un evento
   Future<void> _onEventDeleteRequested(
     EventDeleteRequested event,
     Emitter<EventState> emit,
   ) async {
-    emit(EventLoading());
-
+    emit(const EventLoading());
     try {
-      await _setupDioHeaders();
-      final response = await dio.delete('$apiBaseUrl/events/${event.eventId}');
-
+      final response = await _apiService.delete('/eventi/${event.eventId}');
+      
       if (response.statusCode == 200) {
-        emit(EventOperationSuccess(message: 'Evento eliminato con successo'));
+        // Emetti lo stato di successo
+        emit(const EventOperationSuccess(message: 'Evento eliminato con successo'));
+        // Aggiorna la lista degli eventi
+        add(const EventsFetchRequested());
       } else {
-        emit(EventFailure(message: 'Errore durante l\'eliminazione dell\'evento'));
+        emit(const EventError(message: 'Errore nell\'eliminazione dell\'evento'));
       }
-    } catch (error) {
-      emit(EventFailure(message: 'Errore durante l\'eliminazione dell\'evento: ${error.toString()}'));
+    } catch (e) {
+      emit(EventError(message: 'Errore nell\'eliminazione dell\'evento: $e'));
     }
   }
 } 

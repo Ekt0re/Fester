@@ -1,103 +1,85 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fester_frontend/config/env_config.dart';
+import 'package:fester_frontend/services/api_service.dart';
+import 'package:fester_frontend/utils/logger.dart';
 
-// Eventi
-abstract class AuthEvent {}
+part 'auth_event.dart';
+part 'auth_state.dart';
 
-class AuthLoginRequested extends AuthEvent {
-  final String email;
-  final String password;
-
-  AuthLoginRequested({required this.email, required this.password});
-}
-
-class AuthRegisterRequested extends AuthEvent {
-  final String email;
-  final String password;
-  final String nome;
-  final String cognome;
-
-  AuthRegisterRequested({
-    required this.email, 
-    required this.password,
-    required this.nome,
-    required this.cognome
-  });
-}
-
-class AuthLogoutRequested extends AuthEvent {}
-
-class AuthCheckRequested extends AuthEvent {}
-
-// Stati
-abstract class AuthState {}
-
-class AuthInitial extends AuthState {}
-
-class AuthLoading extends AuthState {}
-
-class AuthAuthenticated extends AuthState {
-  final User user;
-  
-  AuthAuthenticated({required this.user});
-}
-
-class AuthUnauthenticated extends AuthState {}
-
-class AuthFailure extends AuthState {
-  final String message;
-  
-  AuthFailure({required this.message});
-}
-
-// BLoC
+/// Bloc per la gestione dell'autenticazione
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final supabase = Supabase.instance.client;
-  final secureStorage = const FlutterSecureStorage();
-
-  AuthBloc() : super(AuthInitial()) {
-    on<AuthLoginRequested>(_onLoginRequested);
-    on<AuthRegisterRequested>(_onRegisterRequested);
-    on<AuthLogoutRequested>(_onLogoutRequested);
-    on<AuthCheckRequested>(_onCheckRequested);
+  final ApiService _apiService = ApiService();
+  final Logger _logger = const Logger('AuthBloc');
+  
+  /// Costruttore che inizializza lo stato iniziale
+  AuthBloc() : super(const AuthInitial()) {
+    on<AuthInitializeRequested>(_onInitialize);
+    on<AuthLoginRequested>(_onLogin);
+    on<AuthRegisterRequested>(_onRegister);
+    on<AuthLogoutRequested>(_onLogout);
+    on<AuthCheckStatusRequested>(_onCheckStatus);
   }
-
-  Future<void> _onLoginRequested(
+  
+  /// Gestisce l'evento di inizializzazione
+  Future<void> _onInitialize(
+    AuthInitializeRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    try {
+      final hasToken = await _apiService.hasAuthToken();
+      if (hasToken) {
+        emit(const AuthAuthenticated());
+      } else {
+        emit(const AuthUnauthenticated());
+      }
+    } catch (e) {
+      emit(AuthError(message: 'Errore durante l\'inizializzazione: $e'));
+    }
+  }
+  
+  /// Gestisce l'evento di login
+  Future<void> _onLogin(
     AuthLoginRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
-
+    emit(const AuthLoading());
     try {
-      final response = await supabase.auth.signInWithPassword(
+      final response = await Supabase.instance.client.auth.signInWithPassword(
         email: event.email,
         password: event.password,
       );
-
-      if (response.user != null) {
-        // Salva il token JWT
-        await secureStorage.write(
-          key: 'auth_token',
-          value: response.session?.accessToken,
-        );
-        emit(AuthAuthenticated(user: response.user!));
+      
+      if (response.session != null) {
+        final token = response.session!.accessToken;
+        await _apiService.saveAuthToken(token);
+        
+        if (EnvConfig.isDebug) {
+          _logger.debug('Login effettuato con successo');
+        }
+        
+        emit(const AuthAuthenticated());
       } else {
-        emit(AuthFailure(message: 'Errore durante il login'));
+        emit(const AuthError(message: 'Errore durante il login'));
       }
-    } catch (error) {
-      emit(AuthFailure(message: 'Errore durante il login: ${error.toString()}'));
+    } on AuthException catch (e) {
+      emit(AuthError(message: e.message));
+    } catch (e) {
+      emit(AuthError(message: 'Errore durante il login: $e'));
     }
   }
-
-  Future<void> _onRegisterRequested(
+  
+  /// Gestisce l'evento di registrazione
+  Future<void> _onRegister(
     AuthRegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
-
+    emit(const AuthLoading());
     try {
-      final response = await supabase.auth.signUp(
+      // Registrazione utente su Supabase
+      final response = await Supabase.instance.client.auth.signUp(
         email: event.email,
         password: event.password,
         data: {
@@ -105,61 +87,72 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           'cognome': event.cognome,
         },
       );
-
+      
       if (response.user != null) {
-        // Salva il token JWT
-        await secureStorage.write(
-          key: 'auth_token',
-          value: response.session?.accessToken,
-        );
-        emit(AuthAuthenticated(user: response.user!));
+        final token = response.session?.accessToken;
+        if (token != null) {
+          await _apiService.saveAuthToken(token);
+        }
+        
+        // Registrazione dati aggiuntivi utente tramite API
+        await _apiService.post('/utenti', data: {
+          'nome': event.nome,
+          'cognome': event.cognome,
+          'email': event.email,
+        });
+        
+        if (EnvConfig.isDebug) {
+          _logger.debug('Registrazione effettuata con successo');
+        }
+        
+        emit(const AuthAuthenticated());
       } else {
-        emit(AuthFailure(message: 'Errore durante la registrazione'));
+        emit(const AuthError(message: 'Errore durante la registrazione'));
       }
-    } catch (error) {
-      emit(AuthFailure(message: 'Errore durante la registrazione: ${error.toString()}'));
+    } on AuthException catch (e) {
+      emit(AuthError(message: e.message));
+    } catch (e) {
+      emit(AuthError(message: 'Errore durante la registrazione: $e'));
     }
   }
-
-  Future<void> _onLogoutRequested(
+  
+  /// Gestisce l'evento di logout
+  Future<void> _onLogout(
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
-
+    emit(const AuthLoading());
     try {
-      await supabase.auth.signOut();
-      await secureStorage.delete(key: 'auth_token');
-      emit(AuthUnauthenticated());
-    } catch (error) {
-      emit(AuthFailure(message: 'Errore durante il logout: ${error.toString()}'));
+      await Supabase.instance.client.auth.signOut();
+      await _apiService.clearAuthToken();
+      
+      if (EnvConfig.isDebug) {
+        _logger.debug('Logout effettuato con successo');
+      }
+      
+      emit(const AuthUnauthenticated());
+    } catch (e) {
+      emit(AuthError(message: 'Errore durante il logout: $e'));
     }
   }
-
-  Future<void> _onCheckRequested(
-    AuthCheckRequested event,
+  
+  /// Gestisce l'evento di verifica dello stato di autenticazione
+  Future<void> _onCheckStatus(
+    AuthCheckStatusRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
-
     try {
-      final session = supabase.auth.currentSession;
+      final hasToken = await _apiService.hasAuthToken();
+      final session = Supabase.instance.client.auth.currentSession;
       
-      if (session != null) {
-        emit(AuthAuthenticated(user: session.user));
+      if (hasToken && session != null) {
+        emit(const AuthAuthenticated());
       } else {
-        // Prova a recuperare il token dal secure storage
-        final token = await secureStorage.read(key: 'auth_token');
-        
-        if (token != null) {
-          // TODO: Implementare refresh token
-          emit(AuthUnauthenticated());
-        } else {
-          emit(AuthUnauthenticated());
-        }
+        await _apiService.clearAuthToken();
+        emit(const AuthUnauthenticated());
       }
-    } catch (error) {
-      emit(AuthUnauthenticated());
+    } catch (e) {
+      emit(AuthError(message: 'Errore durante la verifica dello stato: $e'));
     }
   }
 } 
