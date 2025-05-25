@@ -16,17 +16,17 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   DateTime selectedDateTime = DateTime.now().add(const Duration(days: 1));
 
   late final FormGroup form = FormGroup({
-    'nome': FormControl<String>(
+    'name': FormControl<String>(
       validators: [Validators.required],
     ),
-    'luogo': FormControl<String>(
+    'place': FormControl<String>(
       validators: [Validators.required],
     ),
-    'data_ora': FormControl<DateTime>(
+    'date_time': FormControl<DateTime>(
       value: selectedDateTime,
       validators: [Validators.required],
     ),
-    'regole': FormControl<Map<String, dynamic>>(
+    'rules': FormControl<Map<String, dynamic>>(
       value: {},
     ),
   });
@@ -73,7 +73,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 
                 // Nome evento
                 ReactiveTextField<String>(
-                  formControlName: 'nome',
+                  formControlName: 'name',
                   decoration: const InputDecoration(
                     labelText: 'Nome Evento *',
                     hintText: 'Es. Festa di compleanno',
@@ -87,7 +87,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 
                 // Luogo
                 ReactiveTextField<String>(
-                  formControlName: 'luogo',
+                  formControlName: 'place',
                   decoration: const InputDecoration(
                     labelText: 'Luogo *',
                     hintText: 'Es. Sala Eventi, Via Roma 123',
@@ -160,16 +160,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                             ? null
                             : () {
                                 if (form.valid) {
-                                  final nome = form.control('nome').value as String;
-                                  final luogo = form.control('luogo').value as String;
+                                  final name = form.control('name').value as String;
+                                  final place = form.control('place').value as String;
                                   
                                   context.read<EventBloc>().add(
                                     EventCreateRequested(
                                       eventData: {
-                                        'nome': nome,
-                                        'luogo': luogo,
-                                        'data_ora': selectedDateTime.toIso8601String(),
-                                        'regole': regoleList,
+                                        'name': name,
+                                        'place': place,
+                                        'date_time': selectedDateTime.toIso8601String(),
+                                        'rules': regoleList,
                                       },
                                     ),
                                   );
@@ -210,13 +210,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    regola['descrizione'],
+                    regola['description'],
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(regola['valore'].toString()),
+                  Text(regola['value'].toString()),
                 ],
               ),
             ),
@@ -257,7 +257,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             pickedTime.hour,
             pickedTime.minute,
           );
-          form.control('data_ora').value = selectedDateTime;
+          form.control('date_time').value = selectedDateTime;
         });
       }
     }
@@ -265,8 +265,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
   void _showAddRegolaDialog() {
     final formDialog = FormGroup({
-      'nome': FormControl<String>(validators: [Validators.required]),
-      'valore': FormControl<String>(validators: [Validators.required]),
+      'type': FormControl<String>(validators: [Validators.required]),
+      'value': FormControl<String>(validators: [Validators.required]),
     });
     
     if (mounted) {
@@ -280,7 +280,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ReactiveTextField<String>(
-                  formControlName: 'nome',
+                  formControlName: 'type',
                   decoration: const InputDecoration(
                     labelText: 'Nome Regola',
                     hintText: 'Es. Dress Code',
@@ -292,7 +292,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 ),
                 const SizedBox(height: 16),
                 ReactiveTextField<String>(
-                  formControlName: 'valore',
+                  formControlName: 'value',
                   decoration: const InputDecoration(
                     labelText: 'Valore',
                     hintText: 'Es. Elegante',
@@ -313,14 +313,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
             ElevatedButton(
               onPressed: () {
                 if (formDialog.valid) {
-                  final nome = formDialog.control('nome').value as String;
-                  final valore = formDialog.control('valore').value as String;
+                  final type = formDialog.control('type').value as String;
+                  final value = formDialog.control('value').value as String;
                   
                   setState(() {
                     regoleList.add({
-                      'tipo': nome.toLowerCase().replaceAll(' ', '_'),
-                      'valore': valore,
-                      'descrizione': nome
+                      'type': type.toLowerCase().replaceAll(' ', '_'),
+                      'value': value,
+                      'description': type
                     });
                   });
                   

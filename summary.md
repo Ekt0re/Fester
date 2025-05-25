@@ -114,3 +114,43 @@ Il backend già implementa correttamente questa logica:
 - Utilizza il middleware `authenticateJWT` per tutte le rotte degli eventi
 - Estrae l'ID utente dal token JWT con `req.user.id`
 - Applica policy di sicurezza a livello di database per garantire che solo l'utente autenticato possa creare eventi 
+
+# Risoluzione Problema RLS per Tabella "event_users"
+
+## Problema
+L'errore "new row violates row-level security policy for table 'event_users'" si verificava durante il tentativo di aggiungere un nuovo ospite a un evento.
+
+## Modifiche Effettuate
+
+### 1. Modifica a `ApiService.addGuest()`
+- Aggiunto controllo per verificare che l'utente corrente abbia accesso all'evento:
+  ```dart
+  final eventAccess = await _supabase
+      .from('events')
+      .select()
+      .eq('id', eventId)
+      .eq('creato_da', user.id);
+  
+  if (eventAccess.isEmpty) {
+    return {
+      'success': false,
+      'message': 'Non hai i permessi per modificare questo evento'
+    };
+  }
+  ```
+- Rimosso il campo `is_present` che non era presente nello schema della tabella `event_users`
+- Strutturato correttamente i dati per rispettare le policy RLS di Supabase
+
+### 2. Già implementato correttamente
+- La funzione `updateGuestStatus` utilizza `check_in_time` invece di `is_present` per indicare lo stato di presenza di un ospite
+- Nel bloc, la funzione `_onEventGuestsRequested` determina correttamente `isPresent` basandosi sul valore di `check_in_time`
+
+## Come Funziona Ora
+- Prima di inserire o aggiornare un record nella tabella `event_users`, il sistema verifica che l'utente corrente sia il creatore dell'evento
+- Gli stati di presenza degli ospiti vengono gestiti attraverso il campo `check_in_time` invece di `is_present`
+- Le operazioni di upsert (insert o update) vengono gestite correttamente, verificando prima l'esistenza di record duplicati
+
+## Policy RLS Rispettate
+- insert_event_users
+- update_event_users
+- delete_event_users 

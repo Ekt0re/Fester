@@ -52,7 +52,8 @@ dependencies:
   # Networking
   dio: ^5.3.2
   connectivity_plus: ^4.0.2
-  supabase_flutter: ^1.10.25
+  #supabase_flutter: ^1.10.25
+  supabase_flutter: ^2.0.0
   
   # Storage
   flutter_secure_storage: ^9.0.0
@@ -71,12 +72,16 @@ dependencies:
   # Utils
   uuid: ^3.0.7
   logger: ^2.0.1
+  logging: ^1.2.0
   path_provider: ^2.1.1
   permission_handler: ^10.4.5
   device_info_plus: ^9.1.1
   url_launcher: ^6.1.14
   flutter_dotenv: ^5.1.0
   app_links: ^3.4.3
+  file_picker: ^10.1.9
+  csv: ^6.0.0
+
 
 dev_dependencies:
   flutter_test:

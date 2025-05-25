@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:fester_frontend/blocs/event/event_bloc.dart';
+import 'package:fester_frontend/models/event.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final String eventId;
@@ -41,7 +42,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
             icon: const Icon(Icons.edit),
             onPressed: () {
               // Navigazione alla pagina di modifica evento
-              // context.push('/events/${widget.eventId}/edit');
+              context.push('/events/${widget.eventId}/edit');
             },
           ),
           PopupMenuButton<String>(
@@ -117,15 +118,15 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
               return FloatingActionButton(
                 onPressed: () {
                   // Navigazione alla pagina di aggiunta ospiti
-                  context.push('/events/${widget.eventId}/guests/add');
+                  context.push('/events/${state.event.id}/guests/add');
                 },
                 child: const Icon(Icons.person_add),
               );
-            } else if (_tabController.index == 0 && state.event['stato'] == 'attivo') {
+            } else if (_tabController.index == 0 && state.event.state == 'active') {
               // Nella tab delle informazioni, se l'evento è attivo mostra il pulsante per il check-in
               return FloatingActionButton(
                 onPressed: () {
-                  context.push('/events/${widget.eventId}/qr-scanner');
+                  context.push('/events/${state.event.id}/qr-scanner');
                 },
                 backgroundColor: Colors.deepPurple,
                 child: const Icon(Icons.qr_code_scanner),
@@ -139,10 +140,9 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildInfoTab(Map<String, dynamic> event) {
+  Widget _buildInfoTab(Event event) {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
-    final dateTime = DateTime.parse(event['data_ora']);
-    final formattedDate = dateFormat.format(dateTime);
+    final formattedDate = dateFormat.format(event.dateTime);
     
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -151,7 +151,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
         children: [
           // Intestazione evento
           Text(
-            event['nome'],
+            event.name,
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -173,20 +173,20 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
                 ),
               ),
               const SizedBox(width: 8),
-              _buildStatusChip(event['stato']),
+              _buildStatusChip(event.state),
             ],
           ),
           
           const SizedBox(height: 16),
           
           // Dettagli principali
-          _buildInfoItem(Icons.location_on, 'Luogo', event['luogo']),
+          _buildInfoItem(Icons.location_on, 'Luogo', event.place),
           _buildInfoItem(Icons.calendar_today, 'Data e ora', formattedDate),
           
           const Divider(height: 32),
           
           // Regole e informazioni aggiuntive
-          if (event['regole'] != null) ...[
+          if (event.rules.isNotEmpty) ...[
             const Text(
               'Regole dell\'evento',
               style: TextStyle(
@@ -200,31 +200,24 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (event['regole'] is Map) ...[
-                      for (var entry in (event['regole'] as Map).entries)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.check, size: 18, color: Colors.green),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  '${entry.key}: ${entry.value}',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                            ],
+                  children: event.rules.map((rule) => 
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.check, size: 18, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              rule.text,
+                              style: const TextStyle(fontSize: 16),
+                            ),
                           ),
-                        ),
-                    ] else
-                      Text(
-                        event['regole'].toString(),
-                        style: const TextStyle(fontSize: 16),
+                        ],
                       ),
-                  ],
+                    ),
+                  ).toList(),
                 ),
               ),
             ),
@@ -233,7 +226,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
           const SizedBox(height: 24),
           
           // Pulsanti per azioni rapide
-          if (event['stato'] == 'attivo') ...[
+          if (event.state == 'active') ...[
             const Text(
               'Azioni Rapide',
               style: TextStyle(
@@ -247,7 +240,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      context.push('/events/${widget.eventId}/guests');
+                      context.push('/events/${event.id}/guests');
                     },
                     icon: const Icon(Icons.people),
                     label: const Text('Gestisci Ospiti'),
@@ -257,7 +250,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      context.push('/events/${widget.eventId}/checkin');
+                      context.push('/events/${event.id}/checkin');
                     },
                     icon: const Icon(Icons.qr_code),
                     label: const Text('Check-in'),
@@ -271,8 +264,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildGuestsTab(Map<String, dynamic> event) {
-    // Questa sarebbe una schermata separata ma la includiamo per semplicità
+  Widget _buildGuestsTab(Event event) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -292,13 +284,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
           ),
           const SizedBox(height: 8),
           Text(
-            'Totale ospiti: ${event['stats']?['totale'] ?? 0}',
+            'Totale ospiti: ${event.stats?.total ?? 0}',
             style: const TextStyle(fontSize: 16),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              context.push('/events/${widget.eventId}/guests');
+              context.push('/events/${event.id}/guests');
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -310,13 +302,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
     );
   }
 
-  Widget _buildStatsTab(Map<String, dynamic> event) {
-    final stats = event['stats'] ?? {
-      'totale': 0,
-      'invitati': 0,
-      'confermati': 0,
-      'presenti': 0,
-    };
+  Widget _buildStatsTab(Event event) {
+    final stats = event.stats ?? const EventStats(
+      total: 0,
+      invited: 0,
+      confirmed: 0,
+      present: 0,
+    );
     
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -338,14 +330,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
               Expanded(
                 child: _buildStatCard(
                   'Totale',
-                  stats['totale'].toString(),
+                  stats.total.toString(),
                   Colors.blue,
                 ),
               ),
               Expanded(
                 child: _buildStatCard(
                   'Invitati',
-                  stats['invitati'].toString(),
+                  stats.invited.toString(),
                   Colors.orange,
                 ),
               ),
@@ -357,14 +349,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
               Expanded(
                 child: _buildStatCard(
                   'Confermati',
-                  stats['confermati'].toString(),
+                  stats.confirmed.toString(),
                   Colors.green,
                 ),
               ),
               Expanded(
                 child: _buildStatCard(
                   'Presenti',
-                  stats['presenti'].toString(),
+                  stats.present.toString(),
                   Colors.purple,
                 ),
               ),
@@ -391,7 +383,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
-                      value: stats['totale'] > 0 ? stats['presenti'] / stats['totale'] : 0,
+                      value: stats.total > 0 ? stats.present / stats.total : 0,
                       minHeight: 20,
                       backgroundColor: Colors.grey.shade200,
                       valueColor: const AlwaysStoppedAnimation<Color>(Colors.deepPurple),
@@ -400,8 +392,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
-                      stats['totale'] > 0
-                          ? '${((stats['presenti'] / stats['totale']) * 100).toStringAsFixed(1)}%'
+                      stats.total > 0
+                          ? '${((stats.present / stats.total) * 100).toStringAsFixed(1)}%'
                           : '0%',
                       style: const TextStyle(
                         fontSize: 16,
@@ -413,8 +405,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> with SingleTicker
               ),
             ),
           ),
-          
-          // Qui si potrebbero inserire grafici più complessi con fl_chart
         ],
       ),
     );

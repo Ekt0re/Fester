@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,9 +7,11 @@ import 'package:fester_frontend/screens/register_screen.dart';
 import 'package:fester_frontend/screens/home_screen.dart';
 import 'package:fester_frontend/screens/event_detail_screen.dart';
 import 'package:fester_frontend/screens/create_event_screen.dart';
+import 'package:fester_frontend/screens/edit_event_screen.dart';
 import 'package:fester_frontend/screens/guest_list_screen.dart';
 import 'package:fester_frontend/screens/checkin_screen.dart';
 import 'package:fester_frontend/screens/qr_scanner_screen.dart';
+import 'package:fester_frontend/screens/add_guest_screen.dart';
 import 'package:fester_frontend/blocs/auth/auth_bloc.dart';
 import 'package:fester_frontend/blocs/event/event_bloc.dart';
 import 'package:fester_frontend/config/env_config.dart';
@@ -81,10 +82,24 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/events/:eventId/edit',
+      builder: (context, state) {
+        final eventId = state.pathParameters['eventId'] ?? '';
+        return EditEventScreen(eventId: eventId);
+      },
+    ),
+    GoRoute(
       path: '/events/:eventId/guests',
       builder: (context, state) {
         final eventId = state.pathParameters['eventId'] ?? '';
         return GuestListScreen(eventId: eventId);
+      },
+    ),
+    GoRoute(
+      path: '/events/:eventId/guests/add',
+      builder: (context, state) {
+        final eventId = state.pathParameters['eventId'] ?? '';
+        return AddGuestScreen(eventId: eventId);
       },
     ),
     GoRoute(

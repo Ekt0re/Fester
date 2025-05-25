@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fester_frontend/blocs/event/event_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class GuestListScreen extends StatefulWidget {
@@ -14,86 +14,13 @@ class GuestListScreen extends StatefulWidget {
 }
 
 class _GuestListScreenState extends State<GuestListScreen> {
-  final dio = Dio();
-  final secureStorage = const FlutterSecureStorage();
-  final String apiBaseUrl = 'http://localhost:5000/api';
-  
-  List<Map<String, dynamic>> guests = [];
-  bool isLoading = true;
-  String? error;
-  
   @override
   void initState() {
     super.initState();
-    _setupDioHeaders();
-    _fetchGuests();
+    // Carica gli ospiti usando il bloc
+    context.read<EventBloc>().add(EventGuestsRequested(eventId: widget.eventId));
   }
   
-  Future<void> _setupDioHeaders() async {
-    final token = await secureStorage.read(key: 'auth_token');
-    if (token != null) {
-      dio.options.headers['Authorization'] = 'Bearer $token';
-    }
-  }
-  
-  Future<void> _fetchGuests() async {
-    setState(() {
-      isLoading = true;
-      error = null;
-    });
-    
-    try {
-      final response = await dio.get(
-        '$apiBaseUrl/events/${widget.eventId}/guests',
-      );
-      
-      if (response.statusCode == 200) {
-        final data = response.data['data'] as List;
-        setState(() {
-          guests = data.map((guest) => guest as Map<String, dynamic>).toList();
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          error = 'Errore durante il caricamento degli ospiti';
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        error = 'Errore: ${e.toString()}';
-        isLoading = false;
-      });
-    }
-  }
-  
-  Future<void> _updateGuestStatus(String guestId, String newStatus) async {
-    try {
-      await dio.put(
-        '$apiBaseUrl/events/${widget.eventId}/guests/$guestId',
-        data: {
-          'stato': newStatus,
-        },
-      );
-      
-      // Aggiorna la lista
-      _fetchGuests();
-      
-      // Mostra messaggio di conferma solo se il widget è ancora montato
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Stato ospite aggiornato a: $newStatus')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: ${e.toString()}')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,59 +35,77 @@ class _GuestListScreenState extends State<GuestListScreen> {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(error!),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _fetchGuests,
-                        child: const Text('Riprova'),
-                      ),
-                    ],
+      body: BlocBuilder<EventBloc, EventState>(
+        builder: (context, state) {
+          if (state is EventLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is EventError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Errore: ${state.message}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<EventBloc>().add(EventGuestsRequested(eventId: widget.eventId));
+                    },
+                    child: const Text('Riprova'),
                   ),
-                )
-              : guests.isEmpty
-                  ? _buildEmptyState()
-                  : RefreshIndicator(
-                      onRefresh: _fetchGuests,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Stats summary
-                          _buildStatsSummary(),
-                          
-                          // Search bar
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: TextField(
-                              decoration: const InputDecoration(
-                                labelText: 'Cerca ospite',
-                                prefixIcon: Icon(Icons.search),
-                                border: OutlineInputBorder(),
-                              ),
-                              onChanged: (value) {
-                                // Implementare filtro di ricerca
-                              },
-                            ),
-                          ),
-                          
-                          // Guest list
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: guests.length,
-                              itemBuilder: (context, index) {
-                                return _buildGuestItem(guests[index]);
-                              },
-                            ),
-                          ),
-                        ],
+                ],
+              ),
+            );
+          } else if (state is EventGuestsLoaded) {
+            final guests = state.guests;
+            
+            if (guests.isEmpty) {
+              return _buildEmptyState();
+            }
+            
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<EventBloc>().add(EventGuestsRequested(eventId: widget.eventId));
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Stats summary
+                  _buildStatsSummary(guests),
+                  
+                  // Search bar
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Cerca ospite',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(),
                       ),
+                      onChanged: (value) {
+                        // Implementare filtro di ricerca
+                      },
                     ),
+                  ),
+                  
+                  // Guest list
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: guests.length,
+                      itemBuilder: (context, index) {
+                        return _buildGuestItem(guests[index]);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          
+          return const Center(
+            child: Text('Caricamento ospiti...'),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.push('/events/${widget.eventId}/guests/add');
@@ -206,11 +151,9 @@ class _GuestListScreenState extends State<GuestListScreen> {
     );
   }
   
-  Widget _buildStatsSummary() {
+  Widget _buildStatsSummary(List<Guest> guests) {
     final int totaleOspiti = guests.length;
-    final int invitati = guests.where((g) => g['stato'] == 'invitato').length;
-    final int confermati = guests.where((g) => g['stato'] == 'confermato').length;
-    final int presenti = guests.where((g) => g['stato'] == 'presente').length;
+    final int presenti = guests.where((g) => g.isPresent).length;
     
     return Container(
       padding: const EdgeInsets.all(16),
@@ -224,8 +167,6 @@ class _GuestListScreenState extends State<GuestListScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildStatItem('Totale', totaleOspiti, Colors.blue),
-          _buildStatItem('Invitati', invitati, Colors.orange),
-          _buildStatItem('Confermati', confermati, Colors.green),
           _buildStatItem('Presenti', presenti, Colors.deepPurple),
         ],
       ),
@@ -254,20 +195,13 @@ class _GuestListScreenState extends State<GuestListScreen> {
     );
   }
   
-  Widget _buildGuestItem(Map<String, dynamic> guest) {
-    final statusColor = guest['stato'] == 'invitato'
-        ? Colors.orange
-        : guest['stato'] == 'confermato'
-            ? Colors.green
-            : guest['stato'] == 'presente'
-                ? Colors.deepPurple
-                : Colors.grey;
+  Widget _buildGuestItem(Guest guest) {
+    final statusColor = guest.isPresent ? Colors.deepPurple : Colors.grey;
     
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ExpansionTile(
         title: Text(
-          '${guest['nome']} ${guest['cognome']}',
+          '${guest.nome} ${guest.cognome}',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),
@@ -283,7 +217,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
                 shape: BoxShape.circle,
               ),
             ),
-            Text(guest['stato']),
+            Text(guest.isPresent ? 'Presente' : 'Non presente'),
           ],
         ),
         children: [
@@ -292,20 +226,12 @@ class _GuestListScreenState extends State<GuestListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (guest['email'] != null && guest['email'].toString().isNotEmpty)
-                  _buildInfoRow(Icons.email, 'Email', guest['email']),
-                  
-                if (guest['telefono'] != null && guest['telefono'].toString().isNotEmpty)
-                  _buildInfoRow(Icons.phone, 'Telefono', guest['telefono']),
-                  
-                if (guest['note'] != null && guest['note'].toString().isNotEmpty) ...[
-                  const Divider(),
-                  _buildInfoRow(Icons.note, 'Note', guest['note']),
-                ],
+                if (guest.email.isNotEmpty)
+                  _buildInfoRow(Icons.email, 'Email', guest.email),
                 
                 const Divider(),
                 
-                // QR Code
+                // QR Code per check-in
                 Center(
                   child: Column(
                     children: [
@@ -315,7 +241,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
                       ),
                       const SizedBox(height: 8),
                       QrImageView(
-                        data: guest['codice_qr'] ?? 'error',
+                        data: guest.id,
                         version: QrVersions.auto,
                         size: 120.0,
                       ),
@@ -329,32 +255,21 @@ class _GuestListScreenState extends State<GuestListScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    PopupMenuButton<String>(
-                      onSelected: (value) {
-                        _updateGuestStatus(guest['id'], value);
+                    TextButton.icon(
+                      icon: const Icon(Icons.check),
+                      label: const Text('Check-in'),
+                      onPressed: () {
+                        if (!guest.isPresent) {
+                          context.read<EventBloc>().add(
+                            EventGuestCheckinRequested(
+                              eventId: widget.eventId,
+                              guestId: guest.id,
+                            ),
+                          );
+                        }
                       },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'invitato',
-                          child: Text('Segna come invitato'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'confermato',
-                          child: Text('Segna come confermato'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'presente',
-                          child: Text('Segna come presente'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'annullato',
-                          child: Text('Annulla invito'),
-                        ),
-                      ],
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Cambia stato'),
-                        onPressed: null, // Handled by PopupMenuButton
+                      style: TextButton.styleFrom(
+                        foregroundColor: guest.isPresent ? Colors.grey : Colors.green,
                       ),
                     ),
                     
@@ -409,10 +324,8 @@ class _GuestListScreenState extends State<GuestListScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildFilterOption('Tutti'),
-            _buildFilterOption('Invitati'),
-            _buildFilterOption('Confermati'),
             _buildFilterOption('Presenti'),
-            _buildFilterOption('Annullati'),
+            _buildFilterOption('Non presenti'),
           ],
         ),
         actions: [
@@ -437,13 +350,13 @@ class _GuestListScreenState extends State<GuestListScreen> {
     );
   }
   
-  void _showDeleteConfirmation(Map<String, dynamic> guest) {
+  void _showDeleteConfirmation(Guest guest) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Conferma eliminazione'),
         content: Text(
-          'Sei sicuro di voler eliminare ${guest['nome']} ${guest['cognome']} dalla lista degli ospiti? Questa azione non può essere annullata.',
+          'Sei sicuro di voler eliminare ${guest.nome} ${guest.cognome} dalla lista degli ospiti? Questa azione non può essere annullata.',
         ),
         actions: [
           TextButton(
@@ -453,11 +366,9 @@ class _GuestListScreenState extends State<GuestListScreen> {
             child: const Text('ANNULLA'),
           ),
           TextButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.of(context).pop();
-              // Implementare eliminazione ospite
-              // await dio.delete('$apiBaseUrl/events/${widget.eventId}/guests/${guest['id']}');
-              // _fetchGuests();
+              // TODO: Implementare eliminazione ospite
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('ELIMINA'),

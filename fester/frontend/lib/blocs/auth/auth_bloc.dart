@@ -85,7 +85,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (hasToken) {
         // Qui potremmo verificare la validità del token chiamando un endpoint protetto
         // Per ora consideriamo valido il token se presente
-        emit(const AuthAuthenticated(user: const {}));
+        emit(const AuthAuthenticated(user: {}));
       } else {
         emit(AuthUnauthenticated());
       }

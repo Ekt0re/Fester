@@ -5,7 +5,7 @@ abstract class EventState extends Equatable {
   const EventState();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 /// Stato iniziale
@@ -20,22 +20,22 @@ class EventLoading extends EventState {
 
 /// Stato quando gli eventi sono stati caricati con successo
 class EventsLoadSuccess extends EventState {
-  final List<Map<String, dynamic>> events;
+  final List<Event> events;
 
   const EventsLoadSuccess({required this.events});
 
   @override
-  List<Object?> get props => [events];
+  List<Object> get props => [events];
 }
 
 /// Stato quando i dettagli di un evento sono stati caricati con successo
 class EventDetailsLoaded extends EventState {
-  final Map<String, dynamic> event;
+  final Event event;
 
   const EventDetailsLoaded({required this.event});
 
   @override
-  List<Object?> get props => [event];
+  List<Object> get props => [event];
 }
 
 /// Stato quando gli ospiti di un evento sono stati caricati con successo
@@ -45,7 +45,7 @@ class EventGuestsLoaded extends EventState {
   const EventGuestsLoaded({required this.guests});
 
   @override
-  List<Object?> get props => [guests];
+  List<Object> get props => [guests];
 }
 
 /// Stato quando un'operazione è completata con successo
@@ -55,7 +55,7 @@ class EventOperationSuccess extends EventState {
   const EventOperationSuccess({required this.message});
 
   @override
-  List<Object?> get props => [message];
+  List<Object> get props => [message];
 }
 
 /// Stato quando c'è un errore
@@ -65,11 +65,11 @@ class EventError extends EventState {
   const EventError({required this.message});
 
   @override
-  List<Object?> get props => [message];
+  List<Object> get props => [message];
 }
 
 /// Classe per rappresentare un ospite
-class Guest {
+class Guest extends Equatable {
   final String id;
   final String nome;
   final String cognome;
@@ -82,9 +82,12 @@ class Guest {
     required this.nome,
     required this.cognome,
     required this.email,
-    this.isPresent = false,
+    required this.isPresent,
     this.checkinTime,
   });
+
+  @override
+  List<Object?> get props => [id, nome, cognome, email, isPresent, checkinTime];
 }
 
 /// Classe per un fallimento nel caricamento degli eventi
@@ -94,5 +97,5 @@ class EventFailure extends EventState {
   const EventFailure({required this.message});
 
   @override
-  List<Object?> get props => [message];
+  List<Object> get props => [message];
 } 

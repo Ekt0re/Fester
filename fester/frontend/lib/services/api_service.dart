@@ -6,73 +6,51 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Servizio per le chiamate API
 class ApiService {
-  late final Dio _dio;
-  final String _baseUrl = EnvConfig.apiUrl;
+  late final SupabaseClient _supabase;
   final _logger = Logger('ApiService');
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  static const String _jwtSecret = 'zVZUDH7YqfDdw8AV7bm0SMsGG9mCGUiA9SnA5D5AD9TjtSfqoZ3VbTqTwV+BglavDyH/lC1EFXcntCXJEReP/g==';
   
   FlutterSecureStorage get storage => _storage;
 
   ApiService() {
-    _dio = Dio(BaseOptions(
-      baseUrl: _baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    ));
-
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // Aggiungi il token di autenticazione se presente
-        final token = await _storage.read(key: 'token');
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
-        return handler.next(options);
-      },
-    ));
-
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      requestHeader: true,
-      responseHeader: true,
-      error: true,
-    ));
+    _supabase = Supabase.instance.client;
+    _initializeSupabase();
   }
 
-  /// Configura il certificato SSL per le chiamate sicure
-  Future<void> _configureSsl() async {
+  Future<void> _initializeSupabase() async {
     try {
-      if (kIsWeb) {
-        // Per il web, usa l'adapter predefinito
-        return;
+      final token = await _storage.read(key: 'token');
+      if (token != null) {
+        await _supabase.auth.setSession(token);
       }
-      
-      // Per app mobile
-      if (Platform.isAndroid || Platform.isIOS) {
-        final cert = await rootBundle.load('assets/certificates/prod-ca-2021.crt');
-        final SecurityContext context = SecurityContext.defaultContext;
-        context.setTrustedCertificatesBytes(cert.buffer.asUint8List());
-        
-        // Configura HttpClient personalizzato per Dio
-        _dio.httpClientAdapter = IOHttpClientAdapter(
-          createHttpClient: () {
-            return HttpClient(context: context);
-          },
-        );
-      }
-      
-      // Per il web non è necessario configurare il certificato,
-      // viene gestito dal browser
     } catch (e) {
-      print('Errore configurazione SSL: $e');
+      _logger.severe('Errore inizializzazione Supabase: $e');
+    }
+  }
+
+  /// Verifica se esiste un token di autenticazione salvato
+  Future<bool> hasAuthToken() async {
+    try {
+      final token = await _storage.read(key: 'token');
+      return token != null && token.isNotEmpty;
+    } catch (e) {
+      _logger.severe('Errore verifica token: $e');
+      return false;
+    }
+  }
+
+  /// Ottiene il token di autenticazione corrente
+  Future<String?> getAuthToken() async {
+    try {
+      return await _storage.read(key: 'token');
+    } catch (e) {
+      _logger.severe('Errore lettura token: $e');
+      return null;
     }
   }
 
@@ -80,14 +58,68 @@ class ApiService {
   Future<Response> get(
     String path, {
     Map<String, dynamic>? queryParameters,
-    Options? options,
   }) async {
     try {
-      return await _dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final segments = path.replaceAll('/api/', '').split('/');
+      final tableName = segments[0];
+      
+      // Gestione delle richieste di ospiti (events/id/guests)
+      if (segments.length > 2 && segments[2] == 'guests') {
+        final eventId = segments[1];
+        try {
+          final data = await _supabase
+              .from('event_users')
+              .select()
+              .eq('event_id', eventId);
+          
+          return Response(
+            data: data.isEmpty ? [] : data,
+            statusCode: 200,
+          );
+        } catch (e) {
+          // In caso di errore ritorna una lista vuota invece di un errore
+          _logger.warning('Nessun ospite trovato: $e');
+          return Response(
+            data: [],
+            statusCode: 200,
+          );
+        }
+      }
+      // Se abbiamo un ID specifico (es. /api/events/123)
+      else if (segments.length > 1 && segments[1].isNotEmpty) {
+        final id = segments[1];
+        try {
+          final data = await _supabase
+              .from(tableName)
+              .select()
+              .eq('id', id)
+              .single();
+          
+          return Response(
+            data: {'data': data},
+            statusCode: 200,
+          );
+        } catch (e) {
+          // Se non trova il record, restituisci un messaggio specifico
+          if (e is PostgrestException && e.code == 'PGRST116') {
+            return Response(
+              data: {'error': {'message': 'Elemento non trovato'}},
+              statusCode: 404,
+            );
+          }
+          throw e;
+        }
+      } else {
+        // Richiesta generica per tutti gli elementi
+        final data = await _supabase
+            .from(tableName)
+            .select();
+        
+        return Response(
+          data: data,
+          statusCode: 200,
+        );
+      }
     } catch (e) {
       return _handleError(e);
     }
@@ -98,14 +130,17 @@ class ApiService {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    Options? options,
   }) async {
     try {
-      return await _dio.post(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
+      final tableName = path.replaceAll('/api/', '');
+      final response = await _supabase
+          .from(tableName)
+          .insert(data)
+          .select();
+      
+      return Response(
+        data: response,
+        statusCode: 201,
       );
     } catch (e) {
       return _handleError(e);
@@ -117,15 +152,37 @@ class ApiService {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
-    Options? options,
   }) async {
     try {
-      return await _dio.put(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final segments = path.replaceAll('/api/', '').split('/');
+      final tableName = segments[0];
+      
+      // Se abbiamo un ID specifico (es. /api/events/123)
+      if (segments.length > 1 && segments[1].isNotEmpty) {
+        final id = segments[1];
+        
+        final response = await _supabase
+            .from(tableName)
+            .update(data)
+            .eq('id', id)
+            .select();
+        
+        return Response(
+          data: response,
+          statusCode: 200,
+        );
+      } else {
+        // Aggiornamento generico (caso raro)
+        final response = await _supabase
+            .from(tableName)
+            .update(data)
+            .select();
+        
+        return Response(
+          data: response,
+          statusCode: 200,
+        );
+      }
     } catch (e) {
       return _handleError(e);
     }
@@ -134,16 +191,18 @@ class ApiService {
   /// Effettua una richiesta DELETE
   Future<Response> delete(
     String path, {
-    dynamic data,
     Map<String, dynamic>? queryParameters,
-    Options? options,
   }) async {
     try {
-      return await _dio.delete(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
+      final tableName = path.replaceAll('/api/', '');
+      final response = await _supabase
+          .from(tableName)
+          .delete()
+          .select();
+      
+      return Response(
+        data: response,
+        statusCode: 200,
       );
     } catch (e) {
       return _handleError(e);
@@ -151,43 +210,40 @@ class ApiService {
   }
   
   /// Gestisce gli errori delle richieste
-  Future<Response> _handleError(dynamic error) async {
-    if (error is DioException) {
-      if (error.response != null) {
-        // Errore con risposta dal server
-        return error.response!;
-      } else {
-        // Errore di connessione o timeout
-        throw Exception('Errore di connessione: ${error.message}');
-      }
-    } else {
-      // Altro tipo di errore
-      throw Exception('Errore sconosciuto: $error');
+  Response _handleError(dynamic error) {
+    _logger.severe('Errore API: $error');
+    if (error is PostgrestException) {
+      final message = error.message ?? 'Errore sconosciuto';
+      final code = error.code ?? '500';
+      return Response(
+        data: {'error': {'message': message}},
+        statusCode: int.parse(code),
+      );
     }
+    return Response(
+      data: {'error': {'message': error.toString()}},
+      statusCode: 500,
+    );
   }
-  
+
   /// Salva il token di autenticazione
   Future<void> saveAuthToken(String token) async {
     await _storage.write(key: 'token', value: token);
+    await _supabase.auth.refreshSession();
   }
   
   /// Elimina il token di autenticazione
   Future<void> clearAuthToken() async {
     await _storage.delete(key: 'token');
-  }
-  
-  /// Verifica se esiste un token di autenticazione
-  Future<bool> hasAuthToken() async {
-    final token = await _storage.read(key: 'token');
-    return token != null && token.isNotEmpty;
+    await _supabase.auth.signOut();
   }
 
   // Debug: Verifica connessione al backend
   Future<bool> testConnection() async {
     try {
-      final response = await _dio.get('$_baseUrl/api/test');
-      _logger.info('Test connessione: ${response.data}');
-      return response.statusCode == 200;
+      final data = await _supabase.from('test').select();
+      _logger.info('Test connessione: $data');
+      return true;
     } catch (e) {
       _logger.severe('Errore connessione al backend: $e');
       return false;
@@ -197,7 +253,6 @@ class ApiService {
   // Autenticazione
   Future<Map<String, dynamic>> register(String nome, String cognome, String email, String password) async {
     try {
-      // Validate input data
       if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
         return {
           'success': false,
@@ -220,51 +275,37 @@ class ApiService {
       }
       
       _logger.info('Tentativo di registrazione con: $email');
-      _logger.info('URL: $_baseUrl/api/auth/register');
-      _logger.info('Dati inviati: {nome: $nome, cognome: $cognome, email: $email, password: [hidden]}');
       
-      final response = await _dio.post(
-        '/api/auth/register',
-        data: {
-          'nome': nome.trim(),
-          'cognome': cognome.trim(),
-          'email': email.trim().toLowerCase(),
-          'password': password,
-        },
-      );
+      final data = await _supabase.from('auth').insert({
+        'nome': nome.trim(),
+        'cognome': cognome.trim(),
+        'email': email.trim().toLowerCase(),
+        'password': password,
+      }).select();
       
-      _logger.info('Codice risposta: ${response.statusCode}');
-      _logger.info('Risposta registrazione: ${response.data}');
-      
-      if (response.statusCode == 201) {
-        return response.data;
-      } else {
-        return {
-          'success': false,
-          'message': response.data['message'] ?? 'Errore durante la registrazione'
-        };
-      }
+      return {
+        'success': true,
+        'data': data
+      };
     } catch (e) {
       _logger.severe('Errore registrazione: $e');
       
-      if (e is DioException) {
-        _logger.severe('Dettagli errore Dio: ${e.response?.data}');
-        _logger.severe('Codice status: ${e.response?.statusCode}');
-        _logger.severe('Messaggio: ${e.response?.data['message']}');
+      if (e is PostgrestException) {
+        _logger.severe('Dettagli errore Supabase: ${e.message}');
+        _logger.severe('Codice status: ${e.code}');
         
-        // Handle specific error cases
-        if (e.response?.statusCode == 400) {
-          if (e.response?.data?.contains('email already registered')) {
+        if (e.code == '400') {
+          if (e.message.contains('email already registered') ?? false) {
             return {
               'success': false,
               'message': 'L\'email is already registered'
             };
-          } else if (e.response?.data?.contains('invalid email')) {
+          } else if (e.message.contains('invalid email') ?? false) {
             return {
               'success': false,
               'message': 'Invalid email format'
             };
-          } else if (e.response?.data?.contains('password')) {
+          } else if (e.message.contains('password') ?? false) {
             return {
               'success': false,
               'message': 'Password does not meet security requirements'
@@ -274,7 +315,7 @@ class ApiService {
         
         return {
           'success': false,
-          'message': e.response?.data['message'] ?? 'Errore durante la registrazione: ${e.message}'
+          'message': e.message ?? 'Errore sconosciuto'
         };
       }
       
@@ -288,32 +329,22 @@ class ApiService {
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       _logger.info('Tentativo di login con: $email');
-      final response = await _dio.post(
-        '/api/auth/login',
-        data: {
-          'email': email.trim().toLowerCase(),
-          'password': password,
-        },
+      final response = await _supabase.auth.signInWithPassword(
+        email: email.trim().toLowerCase(),
+        password: password,
       );
-      _logger.info('Risposta login: ${response.data}');
       
-      if (response.statusCode == 200 && response.data != null) {
-        if (response.data['success'] == true && response.data['data'] != null) {
-          final token = response.data['data']['token'];
-          if (token != null) {
-            await saveAuthToken(token);
-            return {
-              'success': true,
-              'user': response.data['data']['user'],
-              'token': token,
-            };
-          }
-        }
+      if (response.session != null && response.user != null) {
+        return {
+          'success': true,
+          'user': response.user!.toJson(),
+          'token': response.session!.accessToken,
+        };
       }
       
       return {
         'success': false,
-        'message': response.data?['message'] ?? 'Errore durante il login: risposta non valida'
+        'message': 'Credenziali non valide'
       };
     } catch (e) {
       _logger.severe('Errore login: $e');
@@ -327,23 +358,43 @@ class ApiService {
   // Eventi
   Future<Map<String, dynamic>> getEvents() async {
     try {
-      final response = await _dio.get('$_baseUrl/api/eventi');
-      if (response.statusCode == 200) {
-        return {'success': true, 'data': response.data};
+      _logger.info('Caricamento eventi...');
+      
+      // Check if user is authenticated
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        return {
+          'success': false, 
+          'message': 'Utente non autenticato',
+          'data': []
+        };
       }
-      return {'success': false, 'message': 'Impossibile recuperare gli eventi'};
+      
+      final data = await _supabase
+          .from('events')
+          .select()
+          .eq('created_by', user.id); // Filter by current user
+      
+      _logger.info('Eventi caricati: ${data.length}');
+      return {
+        'success': true, 
+        'data': data,
+        'count': data.length
+      };
     } catch (e) {
-      return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
+      _logger.severe('Errore caricamento eventi: $e');
+      return {
+        'success': false, 
+        'message': 'Errore: ${_getErrorMessage(e)}',
+        'data': []
+      };
     }
   }
 
   Future<Map<String, dynamic>> getEventDetails(String eventId) async {
     try {
-      final response = await _dio.get('$_baseUrl/api/eventi/$eventId');
-      if (response.statusCode == 200) {
-        return {'success': true, 'data': response.data};
-      }
-      return {'success': false, 'message': 'Impossibile recuperare i dettagli dell\'evento'};
+      final data = await _supabase.from('events').select().eq('id', eventId);
+      return {'success': true, 'data': data};
     } catch (e) {
       return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
     }
@@ -351,34 +402,53 @@ class ApiService {
 
   Future<Map<String, dynamic>> createEvent(Map<String, dynamic> eventData) async {
     try {
-      _logger.info('Creazione evento: $eventData');
-      final response = await _dio.post(
-        '/api/eventi',
-        data: eventData,
-      );
-      
-      _logger.info('Risposta creazione evento: ${response.data}');
-      
-      if (response.statusCode == 201) {
+      // Check if user is authenticated
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
         return {
-          'success': true,
-          'data': response.data['data'],
-          'message': 'Evento creato con successo'
+          'success': false,
+          'message': 'Utente non autenticato'
         };
       }
       
+      // Add user ID to event data using correct column name
+      final dataWithUser = {
+        ...eventData,
+        'created_by': user.id,
+        'stato': 'active', // Stato di default
+        'created_at': DateTime.now().toIso8601String(),
+      };
+      
+      _logger.info('Creazione evento: $dataWithUser');
+      
+      final result = await _supabase
+          .from('events')
+          .insert([dataWithUser]) // Wrap in array as per documentation
+          .select()
+          .single();
+      
       return {
-        'success': false,
-        'message': response.data['error']?['message'] ?? 'Impossibile creare l\'evento'
+        'success': true,
+        'data': result,
+        'message': 'Evento creato con successo'
       };
     } catch (e) {
       _logger.severe('Errore creazione evento: $e');
-      if (e is DioException && e.response?.data != null) {
-        return {
-          'success': false,
-          'message': e.response?.data['error']?['message'] ?? 'Errore durante la creazione dell\'evento'
-        };
+      
+      if (e is PostgrestException) {
+        if (e.code == '42501') {
+          return {
+            'success': false,
+            'message': 'Permessi insufficienti. Verifica le policy RLS.'
+          };
+        } else if (e.code == '23505') {
+          return {
+            'success': false,
+            'message': 'Evento già esistente con questi dati.'
+          };
+        }
       }
+      
       return {
         'success': false,
         'message': 'Errore: ${_getErrorMessage(e)}'
@@ -388,105 +458,200 @@ class ApiService {
 
   Future<Map<String, dynamic>> updateEvent(String eventId, Map<String, dynamic> eventData) async {
     try {
-      final response = await _dio.put(
-        '$_baseUrl/api/eventi/$eventId',
-        data: eventData,
-      );
-      if (response.statusCode == 200) {
-        return {'success': true, 'data': response.data};
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        return {
+          'success': false,
+          'message': 'Utente non autenticato'
+        };
       }
-      return {'success': false, 'message': 'Impossibile aggiornare l\'evento'};
+      
+      final data = await _supabase
+          .from('events')
+          .update(eventData)
+          .eq('id', eventId)
+          .eq('created_by', user.id) // Ensure user can only update their own events
+          .select();
+      
+      return {
+        'success': true, 
+        'data': data,
+        'message': 'Evento aggiornato con successo'
+      };
     } catch (e) {
-      return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
+      return {
+        'success': false, 
+        'message': 'Errore: ${_getErrorMessage(e)}'
+      };
     }
   }
 
   Future<Map<String, dynamic>> deleteEvent(String eventId) async {
     try {
-      final response = await _dio.delete('$_baseUrl/api/eventi/$eventId');
-      if (response.statusCode == 200) {
-        return {'success': true, 'message': 'Evento eliminato con successo'};
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        return {
+          'success': false,
+          'message': 'Utente non autenticato'
+        };
       }
-      return {'success': false, 'message': 'Impossibile eliminare l\'evento'};
+      
+      await _supabase
+          .from('events')
+          .delete()
+          .eq('id', eventId)
+          .eq('created_by', user.id); // Ensure user can only delete their own events
+      
+      return {
+        'success': true, 
+        'message': 'Evento eliminato con successo'
+      };
     } catch (e) {
-      return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
+      return {
+        'success': false, 
+        'message': 'Errore: ${_getErrorMessage(e)}'
+      };
     }
   }
 
   // Ospiti
   Future<Map<String, dynamic>> getEventGuests(String eventId) async {
     try {
-      final response = await _dio.get('$_baseUrl/api/ospiti/evento/$eventId');
-      if (response.statusCode == 200) {
-        return {'success': true, 'data': response.data};
-      }
-      return {'success': false, 'message': 'Impossibile recuperare gli ospiti'};
+      final data = await _supabase.from('event_users').select().eq('event_id', eventId);
+      return {'success': true, 'data': data.isEmpty ? [] : data};
     } catch (e) {
-      return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
+      // Ritorna una lista vuota in caso di errore
+      _logger.warning('Errore caricamento ospiti: $e');
+      return {'success': true, 'data': []};
     }
   }
 
   Future<Map<String, dynamic>> addGuest(String eventId, Map<String, dynamic> guestData) async {
     try {
-      final response = await _dio.post(
-        '$_baseUrl/api/ospiti',
-        data: {...guestData, 'eventoId': eventId},
-      );
-      if (response.statusCode == 201) {
-        return {'success': true, 'data': response.data};
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        return {
+          'success': false,
+          'message': 'Utente non autenticato'
+        };
       }
-      return {'success': false, 'message': 'Impossibile aggiungere l\'ospite'};
+      
+      // Verifichiamo che l'utente abbia accesso all'evento
+      final eventAccess = await _supabase
+          .from('events')
+          .select()
+          .eq('id', eventId)
+          .eq('created_by', user.id);
+      
+      if (eventAccess.isEmpty) {
+        return {
+          'success': false,
+          'message': 'Non hai i permessi per modificare questo evento'
+        };
+      }
+      
+      // Utilizza l'auth_user_id fornito o quello corrente se non specificato
+      final authUserId = guestData['auth_user_id'] ?? user.id;
+      final role = guestData['role'] ?? 'guest';
+      
+      // Prepara i dati per la tabella event_users
+      final userData = {
+        'event_id': eventId,
+        'auth_user_id': authUserId,
+        'role': role,
+      };
+      
+      // Cerca prima se esiste già un record con questo event_id e auth_user_id
+      final existingRecords = await _supabase
+          .from('event_users')
+          .select()
+          .eq('event_id', eventId)
+          .eq('auth_user_id', authUserId);
+      
+      // Se esiste già, usa upsert per aggiornarlo invece di crearne uno nuovo
+      if (existingRecords.isNotEmpty) {
+        // Aggiorna l'elemento esistente
+        final data = await _supabase
+          .from('event_users')
+          .update(userData)
+          .eq('event_id', eventId)
+          .eq('auth_user_id', authUserId)
+          .select();
+        
+        return {'success': true, 'data': data, 'message': 'Ospite aggiornato'};
+      } else {
+        // Inserisci nuovo record
+        final data = await _supabase.from('event_users').insert(userData).select();
+        return {'success': true, 'data': data, 'message': 'Ospite aggiunto con successo'};
+      }
     } catch (e) {
+      _logger.severe('Errore aggiunta ospite: $e');
       return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
     }
   }
 
   Future<Map<String, dynamic>> updateGuestStatus(String guestId, String status) async {
     try {
-      final response = await _dio.patch(
-        '$_baseUrl/api/ospiti/$guestId/status',
-        data: {'status': status},
-      );
-      if (response.statusCode == 200) {
-        return {'success': true, 'data': response.data};
-      }
-      return {'success': false, 'message': 'Impossibile aggiornare lo stato dell\'ospite'};
+      // Aggiorniamo il campo check_in_time invece di is_present
+      final data = await _supabase
+        .from('event_users')
+        .update({
+          'check_in_time': status == 'present' ? DateTime.now().toIso8601String() : null
+        })
+        .eq('id', guestId)
+        .select();
+      
+      return {'success': true, 'data': data};
     } catch (e) {
+      _logger.severe('Errore aggiornamento stato ospite: $e');
       return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
     }
   }
 
   Future<Map<String, dynamic>> deleteGuest(String guestId) async {
     try {
-      final response = await _dio.delete('$_baseUrl/api/ospiti/$guestId');
-      if (response.statusCode == 200) {
-        return {'success': true, 'message': 'Ospite eliminato con successo'};
-      }
-      return {'success': false, 'message': 'Impossibile eliminare l\'ospite'};
+      await _supabase
+        .from('event_users')
+        .delete()
+        .eq('id', guestId);
+      
+      return {'success': true, 'message': 'Ospite eliminato con successo'};
     } catch (e) {
+      _logger.severe('Errore eliminazione ospite: $e');
       return {'success': false, 'message': 'Errore: ${_getErrorMessage(e)}'};
     }
   }
 
   // Gestione errori
   String _getErrorMessage(dynamic error) {
-    if (error is DioException) {
-      if (error.response != null) {
-        try {
-          final message = error.response?.data['error']['message'];
-          return message ?? error.message ?? 'Errore sconosciuto';
-        } catch (_) {
-          return error.message ?? 'Errore sconosciuto';
-        }
-      }
-      return error.message ?? 'Errore di connessione';
+    if (error is PostgrestException) {
+      return error.message ?? 'Errore sconosciuto';
     }
     return error.toString();
   }
 
-  void _handleAuthError() async {
-    // Gestione logout per token scaduto
-    await clearAuthToken();
-    // Qui potresti utilizzare un event bus o navigare alla pagina di login
+  // Aggiungo anche un metodo helper per verificare le RLS policies
+  Future<bool> checkRLSPolicies() async {
+    try {
+      await _supabase
+          .from('events')
+          .select()
+          .limit(1);
+      return true;
+    } catch (e) {
+      _logger.warning('RLS Policy check failed: $e');
+      return false;
+    }
   }
+}
+
+/// Classe per mantenere compatibilità con il vecchio codice
+class Response {
+  final dynamic data;
+  final int statusCode;
+
+  Response({
+    required this.data,
+    required this.statusCode,
+  });
 } 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:fester_frontend/blocs/auth/auth_bloc.dart';
 import 'package:fester_frontend/blocs/event/event_bloc.dart';
+import 'package:fester_frontend/models/event.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class HomeScreen extends StatefulWidget {
@@ -295,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
         
         if (state is EventsLoadSuccess) {
           totalEvents = state.events.length;
-          activeEvents = state.events.where((e) => e['stato'] == 'attivo').length;
+          activeEvents = state.events.where((e) => e.state == 'active').length;
           // Questo è solo un esempio, i dati reali dovrebbero venire dall'API
           guestsCount = 0; // Placeholder
         }
@@ -424,14 +425,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event) {
+  Widget _buildEventCard(Event event) {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
-    final dateTime = DateTime.parse(event['data_ora']);
-    final formattedDate = dateFormat.format(dateTime);
+    final formattedDate = dateFormat.format(event.dateTime);
     
-    final statusColor = event['stato'] == 'attivo' 
+    final statusColor = event.state == 'active' 
         ? Colors.green 
-        : event['stato'] == 'concluso' 
+        : event.state == 'completed' 
             ? Colors.grey 
             : Colors.red;
     
@@ -439,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          context.push('/events/${event['id']}');
+          context.push('/events/${event.id}');
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -451,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      event['nome'],
+                      event.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -470,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       border: Border.all(color: statusColor),
                     ),
                     child: Text(
-                      event['stato'],
+                      event.state,
                       style: TextStyle(
                         color: statusColor,
                         fontSize: 12,
@@ -486,7 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      event['luogo'],
+                      event.place,
                       style: const TextStyle(color: Colors.grey),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -505,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              if (event['ruolo'] != null)
+              if (event.role != null)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -515,15 +515,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: event['ruolo'] == 'owner' 
+                        color: event.role == 'owner' 
                             ? Colors.purple.withAlpha(26)
                             : Colors.blue.withAlpha(26),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        event['ruolo'] == 'owner' ? 'Organizzatore' : 'Staff',
+                        event.role == 'owner' ? 'Organizzatore' : 'Staff',
                         style: TextStyle(
-                          color: event['ruolo'] == 'owner' 
+                          color: event.role == 'owner' 
                               ? Colors.purple 
                               : Colors.blue,
                           fontSize: 12,
