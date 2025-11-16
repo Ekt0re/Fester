@@ -1,0 +1,11 @@
+id:
+tzrjlnvdeqmmlnivoszq
+
+URL: https://tzrjlnvdeqmmlnivoszq.supabase.co
+
+Chiave pubblicabile
+sb_publishable_eFPKG8kUCxXFvrx_x7bBLQ_7TaKcVSY
+
+Chiavi segreta
+sb_secret_tRlqkdA0WgyoXNXqMpZihQ_OlN-2F5O
+
