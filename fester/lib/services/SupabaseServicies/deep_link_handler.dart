@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
+import 'package:logger/logger.dart';
 
 class DeepLinkHandler {
   static final DeepLinkHandler _instance = DeepLinkHandler._internal();
@@ -19,6 +20,8 @@ class DeepLinkHandler {
     debugPrint('[NAV] Recovery mode: $_isRecoveryMode');
   }
 
+  static final Logger _logger = Logger(printer: PrettyPrinter(methodCount: 0, colors: false, printEmojis: false, printTime: false));
+
   /// Initialize deep link handling
   void initialize(BuildContext context) {
     // Listen to auth state changes
@@ -29,27 +32,39 @@ class DeepLinkHandler {
 
         switch (event) {
           case AuthChangeEvent.signedIn:
-            _handleSignedIn(context, session);
+            _logger.i("[EVENT] signedIn");
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _handleSignedIn(context, session);
+            });
             break;
           case AuthChangeEvent.signedOut:
-            _handleSignedOut(context);
+            _logger.i("[EVENT] signedOut");
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _handleSignedOut(context);
+            });
             break;
           case AuthChangeEvent.passwordRecovery:
-            _handlePasswordRecovery(context, session);
+            _logger.i("[EVENT] passwordRecovery");
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _handlePasswordRecovery(context, session);
+            });
             break;
           case AuthChangeEvent.tokenRefreshed:
-            debugPrint('Token refreshed');
+            _logger.i("Token refreshed");
             break;
           case AuthChangeEvent.userUpdated:
-            debugPrint('User updated');
+            _logger.i("User updated");
             break;
           default:
-            break;
+            _logger.i("[EVENT] (other): $event");
         }
       },
       onError: (error) {
-        debugPrint('Auth state change error: $error');
-        _showErrorSnackBar(context, 'Authentication error: $error');
+        _logger.e('Auth state change error: $error');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_isContextMounted(context)) return;
+          _showErrorSnackBar(context, 'Authentication error: $error');
+        });
       },
     );
   }
@@ -57,19 +72,19 @@ class DeepLinkHandler {
   /// Handle signed in event
   void _handleSignedIn(BuildContext context, Session? session) {
     if (session == null) return;
-
-    debugPrint('User signed in: ${session.user.email}');
+    _logger.i('User signed in:  [34m${session.user.email} [0m');
+    if (!_isContextMounted(context)) return;
 
     // BLOCCA TOTALE se siamo in recovery mode (flag globale)
     if (isRecoveryMode) {
-      debugPrint('[NAV] SignedIn BLOCCATO: recovery mode attivo');
+      _logger.i('[NAV] SignedIn BLOCCATO: recovery mode attivo');
       return;
     }
 
     // BLOCCA redirect a /home se siamo in recovery mode
     final currentRoute = ModalRoute.of(context)?.settings.name;
     if (currentRoute == '/set-new-password') {
-      debugPrint('[NAV] SignedIn BLOCCATO: già su set-new-password');
+      _logger.i('[NAV] SignedIn BLOCCATO: già su set-new-password');
       return;
     }
 
@@ -77,7 +92,7 @@ class DeepLinkHandler {
     try {
       final uri = Uri.base;
       if (uri.queryParameters['type'] == 'recovery') {
-        debugPrint('[NAV] SignedIn BLOCCATO: type=recovery nell\'URL');
+        _logger.i("[NAV] SignedIn BLOCCATO: type=recovery nell'URL");
         return;
       }
     } catch (e) {
@@ -85,6 +100,7 @@ class DeepLinkHandler {
     }
 
     // Navigate to event selection screen
+    if (!_isContextMounted(context)) return;
     Navigator.of(context).pushReplacementNamed('/event-selection');
 
     _showSuccessSnackBar(context, 'Successfully signed in!');
@@ -92,9 +108,8 @@ class DeepLinkHandler {
 
   /// Handle signed out event
   void _handleSignedOut(BuildContext context) {
-    debugPrint('User signed out');
-
-    // Navigate to login
+    _logger.i('User signed out');
+    if (!_isContextMounted(context)) return;
     Navigator.of(context).pushReplacementNamed('/login');
   }
 
@@ -108,6 +123,7 @@ class DeepLinkHandler {
       return;
     }
     // Evita signOut: solo redirect
+    if (!_isContextMounted(context)) return;
     Navigator.of(context).pushReplacementNamed('/set-new-password');
     _showInfoSnackBar(context, 'Imposta la nuova password');
   }
@@ -115,7 +131,7 @@ class DeepLinkHandler {
   /// Handle incoming deep link manually
   Future<void> handleDeepLink(BuildContext context, Uri uri) async {
     try {
-      debugPrint('Handling deep link: $uri');
+      _logger.i('Handling deep link: $uri');
 
       // Check if it's an auth callback
       if (uri.path.contains('auth/callback')) {
@@ -125,22 +141,31 @@ class DeepLinkHandler {
       } else if (uri.path.contains('auth/verify')) {
         await _handleEmailVerification(context, uri);
       } else {
-        debugPrint('Unknown deep link path: ${uri.path}');
+        _logger.w('Unknown deep link path: ${uri.path}');
       }
     } catch (e) {
-      debugPrint('Error handling deep link: $e');
-      _showErrorSnackBar(context, 'Failed to process link: $e');
+      _logger.e('Error handling deep link: $e');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isContextMounted(context)) return;
+        _showErrorSnackBar(context, 'Failed to process link: $e');
+      });
     }
   }
 
   /// Handle auth callback (email verification, magic link)
   Future<void> _handleAuthCallback(BuildContext context, Uri uri) async {
     try {
-      _showSuccessSnackBar(context, 'Email verified successfully!');
-      Navigator.of(context).pushReplacementNamed('/event-selection');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isContextMounted(context)) return;
+        _showSuccessSnackBar(context, 'Email verified successfully!');
+        Navigator.of(context).pushReplacementNamed('/event-selection');
+      });
     } catch (e) {
-      debugPrint('Auth callback error: $e');
-      _showErrorSnackBar(context, 'Failed to verify email: $e');
+      _logger.e('Auth callback error: $e');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isContextMounted(context)) return;
+        _showErrorSnackBar(context, 'Failed to verify email: $e');
+      });
     }
   }
 
@@ -151,12 +176,18 @@ class DeepLinkHandler {
       setRecoveryMode(true);
       await _supabase.auth.getSessionFromUrl(uri);
       // Solo redirect (NO signOut)
-      Navigator.of(context).pushReplacementNamed('/set-new-password');
-      _showInfoSnackBar(context, 'Imposta la nuova password');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isContextMounted(context)) return;
+        Navigator.of(context).pushReplacementNamed('/set-new-password');
+        _showInfoSnackBar(context, 'Imposta la nuova password');
+      });
     } catch (e) {
-      debugPrint('Password reset callback error: $e');
+      _logger.e('Password reset callback error: $e');
       setRecoveryMode(false); // Reset flag se errore
-      _showErrorSnackBar(context, 'Link reset password non valido o scaduto');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isContextMounted(context)) return;
+        _showErrorSnackBar(context, 'Link reset password non valido o scaduto');
+      });
     }
   }
 
@@ -176,49 +207,76 @@ class DeepLinkHandler {
         type: OtpType.signup,
       );
 
-      _showSuccessSnackBar(context, 'Email verified! You can now sign in.');
-      Navigator.of(context).pushReplacementNamed('/login');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isContextMounted(context)) return;
+        _showSuccessSnackBar(context, 'Email verified! You can now sign in.');
+        Navigator.of(context).pushReplacementNamed('/login');
+      });
     } catch (e) {
-      debugPrint('Email verification error: $e');
-      _showErrorSnackBar(context, 'Failed to verify email: $e');
+      _logger.e('Email verification error: $e');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isContextMounted(context)) return;
+        _showErrorSnackBar(context, 'Failed to verify email: $e');
+      });
     }
   }
 
   /// Show success snackbar
   void _showSuccessSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isContextMounted(context)) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    });
   }
 
   /// Show error snackbar
   void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 4),
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isContextMounted(context)) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    });
   }
 
   /// Show info snackbar
   void _showInfoSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.blue,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isContextMounted(context)) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    });
   }
 
   /// Dispose resources
   void dispose() {
     _authSubscription?.cancel();
+  }
+
+  // Helpers contestuali di sicurezza post-async gap
+  bool _isContextMounted(BuildContext context) {
+    try {
+      // Per StatelessWidget context non ha mounted, ma context.owner dovrebbe esistere: workaround robusto
+      final element = context as Element;
+      return element.mounted;
+    } catch (_) {
+      // Se non so verificarlo, si presume vero per retrocompatibilità
+      return true;
+    }
   }
 }

@@ -85,9 +85,12 @@ class _LoginPageState extends State<LoginPage> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(hintText: 'Email'),
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Inserisci la tua email';
-                      if (!value.contains('@')) return 'Email non valida';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Email non valida';
+                      }
                       return null;
                     },
                   ),
@@ -110,9 +113,12 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Inserisci la password';
-                      if (value.length < 6) return 'Password troppo corta';
+                      }
+                      if (value.length < 6) {
+                        return 'Password troppo corta';
+                      }
                       return null;
                     },
                   ),

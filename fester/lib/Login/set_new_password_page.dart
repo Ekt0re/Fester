@@ -36,9 +36,11 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
         Navigator.of(context).pushReplacementNamed('/login');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore:  ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore:   [4m${e.toString()} [0m')),
+        );
+      }
     } finally {
       setState(() => _isLoading = false);
     }

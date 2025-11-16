@@ -7,6 +7,7 @@ class Event {
   final DateTime createdAt;
   final DateTime? updatedAt;
   final DateTime? deletedAt;
+  final String? inviteCode;
 
   Event({
     required this.id,
@@ -16,6 +17,7 @@ class Event {
     required this.createdAt,
     this.updatedAt,
     this.deletedAt,
+    this.inviteCode,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
@@ -24,15 +26,14 @@ class Event {
       name: json['name'] as String,
       description: json['description'] as String?,
       createdBy: json['created_by'] as String,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt:
-          json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'])
-              : null,
-      deletedAt:
-          json['deleted_at'] != null
-              ? DateTime.parse(json['deleted_at'])
-              : null,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at'] as String) 
+          : null,
+      deletedAt: json['deleted_at'] != null 
+          ? DateTime.parse(json['deleted_at'] as String) 
+          : null,
+      inviteCode: json['invite_code'] as String?,
     );
   }
 
@@ -45,6 +46,7 @@ class Event {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'deleted_at': deletedAt?.toIso8601String(),
+      'invite_code': inviteCode,
     };
   }
 }

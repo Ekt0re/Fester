@@ -1,5 +1,6 @@
 // lib/services/supabase_auth.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:logger/logger.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -43,7 +44,7 @@ class AuthService {
 
       return response;
     } catch (e) {
-      print('Errore durante la registrazione: $e');
+      Logger().e('Errore durante la registrazione: $e');
       rethrow;
     }
   }

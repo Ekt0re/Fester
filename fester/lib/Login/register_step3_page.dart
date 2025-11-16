@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import 'registration_confirmation_page.dart';
+import 'package:logger/logger.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 class RegisterStep3Page extends StatefulWidget {
   final String firstName;
@@ -34,6 +37,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
   bool _isLoading = false;
 
   final AuthService _authService = AuthService();
+  final Logger _logger = Logger(printer: PrettyPrinter(methodCount: 0, colors: false, printEmojis: false, printTime: false));
 
   @override
   void dispose() {
@@ -43,14 +47,14 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
   }
 
   Future<void> _handleRegister() async {
-    print('🔍 Validating form...');
+    _logger.i('🔍 Validating form...');
     if (!_formKey.currentState!.validate()) {
-      print('❌ Form validation failed');
+      _logger.w('❌ Form validation failed');
       return;
     }
 
     if (!_acceptTerms) {
-      print('❌ Terms not accepted');
+      _logger.w('❌ Terms not accepted');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -62,15 +66,15 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
       return;
     }
 
-    print('✅ Form validation successful');
+    _logger.i('✅ Form validation successful');
     setState(() => _isLoading = true);
 
     try {
-      print('🚀 Starting registration process...');
-      print('📧 Email: ${widget.email}');
-      print('👤 Name: ${widget.firstName} ${widget.lastName}');
-      print('📅 Date of Birth: ${widget.dateOfBirth}');
-      print('📱 Phone: ${widget.phone}');
+      _logger.i('🚀 Starting registration process...');
+      _logger.d('📧 Email:  [4m${widget.email} [0m');
+      _logger.d('👤 Name: ${widget.firstName} ${widget.lastName}');
+      _logger.d('📅 Date of Birth: ${widget.dateOfBirth}');
+      _logger.d('📱 Phone: ${widget.phone}');
 
       final authResponse = await _authService.signUp(
         email: widget.email,
@@ -81,18 +85,18 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
         phone: widget.phone,
       );
 
-      print('🎉 Registration response received');
+      _logger.i('🎉 Registration response received');
       
       if (authResponse.user == null) {
-        print('❌ Auth response contains no user data');
+        _logger.e('❌ Auth response contains no user data');
         throw Exception('Impossibile creare l\'utente. Riprova più tardi.');
       }
 
-      print('👤 User created with ID: ${authResponse.user?.id}');
-      print('📬 Confirmation email sent to: ${authResponse.user?.email}');
+      _logger.i('👤 User created with ID: ${authResponse.user?.id}');
+      _logger.i('📬 Confirmation email sent to: ${authResponse.user?.email}');
 
       if (mounted) {
-        print('🔄 Navigating to confirmation page');
+        _logger.i('🔄 Navigating to confirmation page');
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -102,17 +106,17 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
         );
       }
     } catch (e, stackTrace) {
-      print('❌ Registration error:');
-      print('Error type: ${e.runtimeType}');
-      print('Error message: $e');
-      print('Stack trace: $stackTrace');
+      _logger.e('❌ Registration error:', error: e, stackTrace: stackTrace);
+      _logger.e('Error type: ${e.runtimeType}');
+      _logger.e('Error message: $e');
+      _logger.t('Stack trace: $stackTrace');
 
       String errorMessage = 'Errore durante la registrazione';
 
       if (e is AuthException) {
-        print('🔍 AuthException details:');
-        print('Status code: ${e.statusCode}');
-        print('Message: ${e.message}');
+        _logger.w('🔍 AuthException details:');
+        _logger.w('Status code: ${e.statusCode}');
+        _logger.w('Message: ${e.message}');
         
         if (e.statusCode == '400') {
           if (e.message.contains('already registered') || 
@@ -131,7 +135,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
         errorMessage = 'Errore di connessione. Verifica la tua connessione internet.';
       }
 
-      print('📢 Showing error to user: $errorMessage');
+      _logger.w('📢 Showing error to user: $errorMessage');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -145,6 +149,13 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  _launchURL() async {
+    final Uri url = Uri.parse('https://flutter.dev');
+    if (!await launchUrl(url)) {
+          throw Exception('Could not launch $url');
+      }
   }
 
   @override
@@ -194,10 +205,12 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Inserisci una password';
-                      if (value.length < 8)
+                      }
+                      if (value.length < 8) {
                         return 'La password deve essere di almeno 8 caratteri';
+                      }
                       return null;
                     },
                   ),
@@ -228,10 +241,12 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return 'Conferma la password';
-                      if (value != _passwordController.text)
+                      }
+                      if (value != _passwordController.text) {
                         return 'Le password non corrispondono';
+                      }
                       return null;
                     },
                   ),
@@ -322,4 +337,5 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
       ),
     );
   }
+  
 }

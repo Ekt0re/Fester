@@ -4,9 +4,10 @@ import '../services/SupabaseServicies/event_service.dart';
 import '../services/SupabaseServicies/staff_user_service.dart';
 import '../services/SupabaseServicies/models/event.dart';
 import '../services/SupabaseServicies/models/event_settings.dart';
+import 'create_event/create_event_flow.dart';
 
 class EventSelectionScreen extends StatefulWidget {
-  const EventSelectionScreen({Key? key}) : super(key: key);
+  const EventSelectionScreen({super.key});
 
   @override
   State<EventSelectionScreen> createState() => _EventSelectionScreenState();
@@ -229,11 +230,14 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
 
                       // Pulsante crea evento
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(
+                        onPressed: () async {
+                          await Navigator.push(
                             context,
-                            '/create-event',
-                          ).then((_) => _loadEvents());
+                            MaterialPageRoute(
+                              builder: (context) => const CreateEventFlow(),
+                            ),
+                          );
+                          _loadEvents();
                         },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -257,11 +261,14 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                 ),
               ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(
+        onPressed: () async {
+          await Navigator.push(
             context,
-            '/create-event',
-          ).then((_) => _loadEvents());
+            MaterialPageRoute(
+              builder: (context) => const CreateEventFlow(),
+            ),
+          );
+          _loadEvents();
         },
         backgroundColor: Colors.white,
         child: const Icon(Icons.add, color: Color(0xFF9B59B6)),

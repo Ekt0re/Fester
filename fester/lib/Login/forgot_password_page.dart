@@ -135,7 +135,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Inserisci la tua email';
-              if (!value.contains('@')) return 'Email non valida';
+              }
+              if (!value.contains('@')) {
+                return 'Email non valida';
+              }
               return null;
             },
           ),

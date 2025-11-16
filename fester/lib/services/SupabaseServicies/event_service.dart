@@ -1,4 +1,5 @@
 // lib/services/event_service.dart
+import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/event.dart';
 import 'models/event_settings.dart';
@@ -42,12 +43,27 @@ class EventService {
     }
   }
 
-  /// Create new event
+  /// Generate a unique invite code
+  String _generateInviteCode(String userId) {
+    final random = Random.secure();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final randomString = List.generate(5, (index) => 
+      chars[random.nextInt(chars.length)]).join();
+    
+    final now = DateTime.now();
+    final timeString = '${now.year}${now.month}${now.day}${now.hour}${now.minute}';
+    
+    return '${userId.substring(0, 6)}$timeString$randomString';
+  }
+
+  /// Create new event with an invite code
   Future<Event> createEvent({required String name, String? description}) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
+      final inviteCode = _generateInviteCode(userId);
+      
       final response =
           await _supabase
               .from('event')
@@ -55,10 +71,34 @@ class EventService {
                 'name': name,
                 'description': description,
                 'created_by': userId,
+                'invite_code': inviteCode,
               })
               .select()
               .single();
 
+      // Add creator as staff
+      await _supabase.from('event_staff').insert({
+        'event_id': response['id'],
+        'user_id': userId,
+        'role': 'admin',
+      });
+
+      return Event.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+  
+  /// Get event by invite code
+  Future<Event?> getEventByInviteCode(String inviteCode) async {
+    try {
+      final response = await _supabase
+          .from('event')
+          .select()
+          .eq('invite_code', inviteCode)
+          .maybeSingle();
+
+      if (response == null) return null;
       return Event.fromJson(response);
     } catch (e) {
       rethrow;
@@ -159,8 +199,9 @@ class EventService {
       if (checkInEndTime != null) {
         data['check_in_end_time'] = checkInEndTime.toIso8601String();
       }
-      if (lateEntryAllowed != null)
+      if (lateEntryAllowed != null) {
         data['late_entry_allowed'] = lateEntryAllowed;
+      }
       if (ageRestriction != null) data['age_restriction'] = ageRestriction;
       if (idCheckRequired != null) data['id_check_required'] = idCheckRequired;
       if (maxWarningsBeforeBan != null) {

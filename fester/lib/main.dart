@@ -9,6 +9,7 @@ import 'services/SupabaseServicies/supabase_config.dart';
 import 'services/SupabaseServicies/deep_link_handler.dart';
 import 'Login/set_new_password_page.dart';
 import 'screens/event_selection_screen.dart';
+import 'package:logger/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +55,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final Logger _logger = Logger(printer: PrettyPrinter(methodCount: 0, colors: false, printEmojis: false, printTime: false));
   StreamSubscription? _sub;
   @override
   void initState() {
@@ -69,9 +71,9 @@ class _SplashScreenState extends State<SplashScreen> {
     String? initialLink;
     try {
       initialLink = await getInitialLink();
-      print('[DEBUG] initialLink: $initialLink');
+      _logger.d('[DEBUG] initialLink: $initialLink');
     } catch (e, st) {
-      print('[ERROR] getInitialLink failed: $e\n$st');
+      _logger.e('[ERROR] getInitialLink failed:', error: e, stackTrace: st);
     }
 
     final queryParams = Uri.base.queryParameters;
@@ -82,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           (initialLink != null && Uri.parse(initialLink).queryParameters['type'] == 'recovery');
     
     if (isRecoveryMode) {
-      print('[NAV] Recovery mode attivo - skippo TUTTO getSessionFromUrl');
+      _logger.i('[NAV] Recovery mode attivo - skippo TUTTO getSessionFromUrl');
     }
     
     if (UniversalPlatform.isWeb) {
@@ -100,30 +102,30 @@ class _SplashScreenState extends State<SplashScreen> {
       // NON processare session se siamo in recovery
       if (!isRecoveryMode) {
         final search = Uri.base.query;
-        print('[DEBUG] Web query: $search');
+        _logger.d('[DEBUG] Web query: $search');
         if (search.contains('code=') || search.contains('access_token=') || search.contains('error=')) {
           try {
-            print('[DEBUG] Web: trovati parametri auth, provo getSessionFromUrl');
+            _logger.d('[DEBUG] Web: trovati parametri auth, provo getSessionFromUrl');
             await supabase.auth.getSessionFromUrl(Uri.base);
           } catch (err, st) {
-            print('[ERROR] Web getSessionFromUrl: $err\n$st');
+            _logger.e('[ERROR] Web getSessionFromUrl:', error: err, stackTrace: st);
           }
         } else {
-          print('[DEBUG] Web: nessun parametro magico trovato, skippa getSessionFromUrl');
+          _logger.d('[DEBUG] Web: nessun parametro magico trovato, skippa getSessionFromUrl');
         }
       } else {
-        print('[DEBUG] Web: recovery mode rilevato, skippo getSessionFromUrl');
+        _logger.i('[DEBUG] Web: recovery mode rilevato, skippo getSessionFromUrl');
       }
     } else if (initialLink != null && !isRecoveryMode) {
       // MOBILE/DESKTOP: gestisce automatico magic/reset ecc. MA NON recovery
       try {
-        print('[DEBUG] Mobile/Desktop: provo getSessionFromUrl con initialLink');
+        _logger.d('[DEBUG] Mobile/Desktop: provo getSessionFromUrl con initialLink');
         await supabase.auth.getSessionFromUrl(Uri.parse(initialLink));
       } catch (err, st) {
-        print('[ERROR] Mobile/Desktop getSessionFromUrl: $err\n$st');
+        _logger.e('[ERROR] Mobile/Desktop getSessionFromUrl:', error: err, stackTrace: st);
       }
     } else if (isRecoveryMode) {
-      print('[DEBUG] Mobile/Desktop: recovery mode rilevato, skippo getSessionFromUrl');
+      _logger.i('[DEBUG] Mobile/Desktop: recovery mode rilevato, skippo getSessionFromUrl');
     }
 
     await Future.delayed(const Duration(seconds: 1));
@@ -132,19 +134,19 @@ class _SplashScreenState extends State<SplashScreen> {
     
     // BLOCCA TOTALE se recovery mode attivo (flag globale)
     if (DeepLinkHandler.isRecoveryMode) {
-      print('[NAV] SplashScreen: recovery mode attivo - BLOCCATO redirect a /home o /login');
+      _logger.i('[NAV] SplashScreen: recovery mode attivo - BLOCCATO redirect a /home o /login');
       return;
     }
     
     // Pattern: non navigare MAI nessuna pagina se già su set-new-password (o altri recovery)!
     final currentRoute = ModalRoute.of(context)?.settings.name;
     if (currentRoute == '/set-new-password') {
-      print('[NAV] SplashScreen: già su set-new-password - BLOCCATO redirect');
+      _logger.i('[NAV] SplashScreen: già su set-new-password - BLOCCATO redirect');
       return;
     }
     
     final session = supabase.auth.currentSession;
-    print('[DEBUG] session auth: $session');
+    _logger.d('[DEBUG] session auth: $session');
     if (session != null) {
       Navigator.of(context).pushReplacementNamed('/event-selection');
     } else {
