@@ -46,6 +46,7 @@ dependencies:
   riverpod: ^2.5.1
 
   go_router: ^14.2.0             # Routing dichiarativo
+  url_strategy: ^0.2.0           # URL strategy for web apps
 
   cached_network_image: ^3.3.1   # Cache immagini profilo
   image_picker: ^1.1.2           # Upload foto profilo
@@ -72,15 +73,19 @@ dependencies:
 
   fl_chart: ^0.68.0              # Grafici dashboard
 
+  uni_links: ^0.5.1
+
   flutter_local_notifications: ^17.1.2  # Notifiche locali
 
   # MAPPE (location eventi)
   google_maps_flutter: ^2.7.0
   geolocator: ^12.0.0
+  
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  universal_platform: ^1.1.0
   
 
   

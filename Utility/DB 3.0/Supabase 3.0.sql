@@ -42,6 +42,155 @@ COMMENT ON COLUMN transaction_type.affects_drink_count IS 'Se TRUE, conta nel li
 COMMENT ON COLUMN transaction_type.is_monetary IS 'Se FALSE, Ã¨ una transazione non monetaria';
 
 -- ============================================
+-- TABELLA staff_user
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS staff_user (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    date_of_birth DATE,
+    email VARCHAR(255),
+    phone VARCHAR(30),
+    image_path TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ
+);
+
+COMMENT ON TABLE staff_user IS 'Profilo interno dello user collegato ad auth.users. id = auth.users.id';
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+CREATE OR REPLACE FUNCTION create_staff_user_on_signup()
+RETURNS TRIGGER
+SET search_path = public
+AS $$
+DECLARE
+    v_first     TEXT;
+    v_last      TEXT;
+    v_full      TEXT;
+    v_dob       DATE;
+    v_phone     TEXT;
+    um          JSONB;
+BEGIN
+    -- Usa raw_user_meta_data invece di user_metadata
+    um := COALESCE(NEW.raw_user_meta_data, '{}'::jsonb);
+    
+    -- Se esiste già una staff_user con lo stesso id, non fare nulla
+    IF EXISTS (SELECT 1 FROM staff_user WHERE id = NEW.id) THEN
+        RETURN NEW;
+    END IF;
+
+    -- Estrai i dati dall'oggetto data
+    v_first := um->>'first_name';
+    v_last := um->>'last_name';
+    v_full := um->>'full_name';
+    v_phone := um->>'phone';
+    
+    -- Gestisci la data di nascita
+    BEGIN
+        v_dob := (um->>'date_of_birth')::DATE;
+    EXCEPTION WHEN OTHERS THEN
+        v_dob := NULL;
+    END;
+
+    -- Se non abbiamo first_name o last_name, proviamo a estrarli da full_name
+    IF (v_first IS NULL OR v_first = '') AND v_full IS NOT NULL THEN
+        v_first := split_part(v_full, ' ', 1);
+        IF v_last IS NULL OR v_last = '' THEN
+            v_last := NULLIF(trim(substring(v_full FROM length(v_first) + 1)), '');
+        END IF;
+    END IF;
+
+    -- Se manca ancora il first_name, usiamo l'email
+    IF v_first IS NULL OR v_first = '' THEN
+        v_first := split_part(NEW.email, '@', 1);
+    END IF;
+
+    -- Assicurati che last_name non sia null
+    IF v_last IS NULL OR v_last = '' THEN
+        v_last := ' '; -- placeholder per NOT NULL
+    END IF;
+
+    -- Inserisci il record in staff_user
+    INSERT INTO staff_user (
+        id, 
+        first_name, 
+        last_name, 
+        email, 
+        phone, 
+        date_of_birth, 
+        created_at, 
+        is_active
+    ) VALUES (
+        NEW.id, 
+        LEFT(v_first, 100), 
+        LEFT(v_last, 100), 
+        NEW.email, 
+        NULLIF(v_phone, '')::VARCHAR,
+        v_dob,
+        COALESCE((um->>'created_at')::TIMESTAMPTZ, NOW()),
+        COALESCE((um->>'is_active')::BOOLEAN, TRUE)
+    )
+    ON CONFLICT (id) DO NOTHING;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Ricrea il trigger
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION create_staff_user_on_signup();
+
+-- ============================================
+-- TABELLA EVENTI
+-- ============================================
+
+CREATE TABLE event (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_by UUID NOT NULL REFERENCES staff_user(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ
+);
+
+COMMENT ON COLUMN event.deleted_at IS 'Soft delete';
+
+CREATE INDEX idx_event_created_by ON event(created_by);
+CREATE INDEX idx_event_deleted ON event(deleted_at);
+
+-- ============================================
+-- STAFF ASSEGNATO AGLI EVENTI (con ruoli specifici)
+-- ============================================
+
+CREATE TABLE event_staff (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL REFERENCES event(id) ON DELETE CASCADE,
+    staff_user_id UUID NOT NULL REFERENCES staff_user(id) ON DELETE CASCADE,
+    role_id INT NOT NULL REFERENCES role(id),
+    assigned_by UUID REFERENCES staff_user(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    
+    UNIQUE(event_id, staff_user_id)
+);
+
+COMMENT ON TABLE event_staff IS 'Assegnazione staff agli eventi con ruoli specifici';
+COMMENT ON COLUMN event_staff.role_id IS 'Ruolo dello staff in questo specifico evento (staff1, staff2, staff3)';
+COMMENT ON COLUMN event_staff.assigned_by IS 'Chi ha assegnato questo staff all evento';
+
+CREATE INDEX IF NOT EXISTS idx_event_staff_event ON event_staff(event_id);
+CREATE INDEX IF NOT EXISTS idx_event_staff_user ON event_staff(staff_user_id);
+CREATE INDEX IF NOT EXISTS idx_event_staff_role ON event_staff(role_id);
+
+-- ============================================
 -- TABELLA PERSONE
 -- ============================================
 
@@ -67,50 +216,6 @@ COMMENT ON COLUMN person.deleted_at IS 'Soft delete timestamp';
 CREATE INDEX idx_person_email ON person(email);
 CREATE INDEX idx_person_active ON person(is_active, deleted_at);
 
--- ============================================
--- TABELLA STAFF USERS (collegati a Supabase Auth)
--- ============================================
-
-CREATE TABLE staff_user (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    date_of_birth DATE,
-    email VARCHAR(255),
-    phone VARCHAR(30),
-    image_path TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ
-);
-
-COMMENT ON TABLE staff_user IS 'Utenti staff collegati a Supabase Auth';
-COMMENT ON COLUMN staff_user.id IS 'Stesso UUID di auth.users(id)';
-
-CREATE INDEX idx_staff_user_email ON staff_user(email);
-CREATE INDEX idx_staff_user_active ON staff_user(is_active, deleted_at);
-
-
-
--- ============================================
--- TABELLA EVENTI
--- ============================================
-
-CREATE TABLE event (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    created_by UUID NOT NULL REFERENCES staff_user(id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ,
-    deleted_at TIMESTAMPTZ
-);
-
-COMMENT ON COLUMN event.deleted_at IS 'Soft delete';
-
-CREATE INDEX idx_event_created_by ON event(created_by);
-CREATE INDEX idx_event_deleted ON event(deleted_at);
 
 -- ============================================
 -- IMPOSTAZIONI EVENTO (1:1 con event)
@@ -144,7 +249,7 @@ CREATE TABLE event_settings (
     custom_settings JSONB,
     
     is_active BOOLEAN DEFAULT TRUE,
-    created_by UUID NOT NULL REFERENCES staff_user(id),
+    created_by UUID NOT NULL REFERENCES staff_user(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ
 );
@@ -164,60 +269,36 @@ CREATE INDEX idx_event_settings_event ON event_settings(event_id);
 CREATE INDEX idx_event_settings_dates ON event_settings(start_at, end_at);
 
 -- ============================================
--- STAFF ASSEGNATO AGLI EVENTI (con ruoli specifici)
--- ============================================
-
-CREATE TABLE event_staff (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    event_id UUID NOT NULL REFERENCES event(id) ON DELETE CASCADE,
-    staff_user_id UUID NOT NULL REFERENCES staff_user(id) ON DELETE CASCADE,
-    role_id INT NOT NULL REFERENCES role(id),
-    assigned_by UUID REFERENCES staff_user(id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ,
-    
-    UNIQUE(event_id, staff_user_id)
-);
-
-COMMENT ON TABLE event_staff IS 'Assegnazione staff agli eventi con ruoli specifici';
-COMMENT ON COLUMN event_staff.role_id IS 'Ruolo dello staff in questo specifico evento (staff1, staff2, staff3)';
-COMMENT ON COLUMN event_staff.assigned_by IS 'Chi ha assegnato questo staff all evento';
-
-CREATE INDEX idx_event_staff_event ON event_staff(event_id);
-CREATE INDEX idx_event_staff_user ON event_staff(staff_user_id);
-CREATE INDEX idx_event_staff_role ON event_staff(role_id);
-
-
-
-
--- ============================================
 -- MENU
 -- ============================================
 
-CREATE TABLE menu (
+-- Abilita gen_random_uuid() (pgcrypto)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- TABELLA menu (ogni menu è collegato 1:1 ad un event)
+CREATE TABLE IF NOT EXISTS menu (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL UNIQUE REFERENCES event(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    created_by UUID NOT NULL REFERENCES staff_user(id),
+    created_by UUID NOT NULL REFERENCES staff_user(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_menu_created_by ON menu(created_by);
+CREATE INDEX IF NOT EXISTS idx_menu_event ON menu(event_id);
 
--- ============================================
--- VOCI DI MENU
--- ============================================
-
-CREATE TABLE menu_item (
+-- TABELLA menu_item (quantità specifica per quel menu/evento)
+CREATE TABLE IF NOT EXISTS menu_item (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     menu_id UUID NOT NULL REFERENCES menu(id) ON DELETE CASCADE,
     transaction_type_id INT NOT NULL REFERENCES transaction_type(id),
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    price DECIMAL(10,2) NOT NULL,
+    price NUMERIC(10,2) NOT NULL,
     is_available BOOLEAN DEFAULT TRUE,
     sort_order INT DEFAULT 0,
+    available_quantity INT, -- nullable = illimitata
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ
 );
@@ -229,43 +310,6 @@ CREATE INDEX idx_menu_item_menu ON menu_item(menu_id);
 CREATE INDEX idx_menu_item_available ON menu_item(is_available);
 CREATE INDEX idx_menu_item_sort ON menu_item(menu_id, sort_order);
 
--- ============================================
--- MENU EVENTO (1:1 con event)
--- ============================================
-
-CREATE TABLE event_menu (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    event_id UUID UNIQUE NOT NULL REFERENCES event(id) ON DELETE CASCADE,
-    menu_id UUID NOT NULL REFERENCES menu(id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ
-);
-
-COMMENT ON COLUMN event_menu.event_id IS 'Relazione 1:1 con event';
-
-CREATE INDEX idx_event_menu_event ON event_menu(event_id);
-CREATE INDEX idx_event_menu_menu ON event_menu(menu_id);
-
--- ============================================
--- QUANTITÃ€ DISPONIBILI PER VOCE DI MENU
--- ============================================
-
-CREATE TABLE event_menu_item_inventory (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    event_id UUID NOT NULL REFERENCES event(id) ON DELETE CASCADE,
-    menu_item_id UUID NOT NULL REFERENCES menu_item(id),
-    available_quantity INT,
-    consumed_quantity INT DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ,
-    
-    UNIQUE(event_id, menu_item_id)
-);
-
-COMMENT ON COLUMN event_menu_item_inventory.available_quantity IS 'NULL = illimitato';
-
-CREATE INDEX idx_inventory_event ON event_menu_item_inventory(event_id);
-CREATE INDEX idx_inventory_item ON event_menu_item_inventory(menu_item_id);
 
 -- ============================================
 -- PARTECIPAZIONI
@@ -327,7 +371,7 @@ CREATE TABLE transaction (
     amount DECIMAL(10,2) DEFAULT 0.00,
     quantity INT DEFAULT 1,
     
-    created_by UUID NOT NULL REFERENCES staff_user(id),
+    created_by UUID NOT NULL REFERENCES staff_user(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -400,37 +444,152 @@ COMMENT ON VIEW person_with_age IS 'Vista person con campo age calcolato da date
 -- FUNCTION & TRIGGER: Aggiorna inventario
 -- ============================================
 
-CREATE OR REPLACE FUNCTION update_inventory_on_transaction()
-RETURNS TRIGGER 
-SET search_path = public
+-- ============================================
+-- FUNCTION & TRIGGER: Aggiorna inventario
+-- Gestisce INSERT / UPDATE / DELETE sulla tabella "transaction"
+-- Presupposti:
+--  - la tabella "transaction" ha almeno: id, menu_item_id UUID (nullable), quantity INT
+--  - la tabella "menu_item" ha: id UUID, available_quantity INT (nullable = illimitata)
+-- ============================================
+
+CREATE OR REPLACE FUNCTION fn_inventory_adjust_on_transaction()
+RETURNS trigger
+LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_event_id UUID;
+    v_old_menu_item_id UUID;
+    v_new_menu_item_id UUID;
+    v_old_qty INT := 0;
+    v_new_qty INT := 0;
+    v_avail INT;
+    v_new_avail INT;
 BEGIN
-    -- Ottieni event_id dalla participation
-    SELECT event_id INTO v_event_id
-    FROM participation
-    WHERE id = NEW.participation_id;
-    
-    -- Aggiorna consumed_quantity se la transazione ha un menu_item
-    IF NEW.menu_item_id IS NOT NULL THEN
-        UPDATE event_menu_item_inventory
-        SET consumed_quantity = consumed_quantity + NEW.quantity,
-            updated_at = NOW()
-        WHERE event_id = v_event_id 
-        AND menu_item_id = NEW.menu_item_id;
+    -- Prendi riferimenti e quantità (gestisce caso NULL)
+    IF TG_OP = 'INSERT' THEN
+        v_new_menu_item_id := NEW.menu_item_id;
+        v_new_qty := COALESCE(NEW.quantity, 0);
+
+        IF v_new_menu_item_id IS NULL OR v_new_qty = 0 THEN
+            RETURN NEW;
+        END IF;
+
+        -- Lock riga menu_item per evitare race
+        SELECT available_quantity INTO v_avail
+        FROM menu_item
+        WHERE id = v_new_menu_item_id
+        FOR UPDATE;
+
+        -- se available_quantity IS NULL => illimitata -> niente da fare
+        IF v_avail IS NULL THEN
+            RETURN NEW;
+        END IF;
+
+        v_new_avail := v_avail - v_new_qty;
+        IF v_new_avail < 0 THEN
+            RAISE EXCEPTION 'Disponibilità insufficiente per menu_item %: richieste %, disponibili %', v_new_menu_item_id, v_new_qty, v_avail;
+        END IF;
+
+        UPDATE menu_item SET available_quantity = v_new_avail, updated_at = NOW() WHERE id = v_new_menu_item_id;
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        v_old_menu_item_id := OLD.menu_item_id;
+        v_old_qty := COALESCE(OLD.quantity, 0);
+
+        IF v_old_menu_item_id IS NULL OR v_old_qty = 0 THEN
+            RETURN OLD;
+        END IF;
+
+        SELECT available_quantity INTO v_avail
+        FROM menu_item
+        WHERE id = v_old_menu_item_id
+        FOR UPDATE;
+
+        -- se illimitata (NULL) -> niente da fare
+        IF v_avail IS NULL THEN
+            RETURN OLD;
+        END IF;
+
+        v_new_avail := v_avail + v_old_qty;
+        UPDATE menu_item SET available_quantity = v_new_avail, updated_at = NOW() WHERE id = v_old_menu_item_id;
+        RETURN OLD;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        v_old_menu_item_id := OLD.menu_item_id;
+        v_new_menu_item_id := NEW.menu_item_id;
+        v_old_qty := COALESCE(OLD.quantity, 0);
+        v_new_qty := COALESCE(NEW.quantity, 0);
+
+        -- Caso 1: stesso menu_item (modifica quantità) -> aggiusta delta
+        IF v_old_menu_item_id IS NOT NULL AND v_old_menu_item_id = v_new_menu_item_id THEN
+            IF v_new_qty = v_old_qty THEN
+                RETURN NEW; -- niente da fare
+            END IF;
+
+            SELECT available_quantity INTO v_avail
+            FROM menu_item
+            WHERE id = v_new_menu_item_id
+            FOR UPDATE;
+
+            IF v_avail IS NULL THEN
+                RETURN NEW; -- illimitata
+            END IF;
+
+            v_new_avail := v_avail - (v_new_qty - v_old_qty); -- se incremento quantità, si sottrae di più
+            IF v_new_avail < 0 THEN
+                RAISE EXCEPTION 'Disponibilità insufficiente per menu_item %: delta richiesto %, disponibili %', v_new_menu_item_id, (v_new_qty - v_old_qty), v_avail;
+            END IF;
+
+            UPDATE menu_item SET available_quantity = v_new_avail, updated_at = NOW() WHERE id = v_new_menu_item_id;
+            RETURN NEW;
+        END IF;
+
+        -- Caso 2: menu_item è cambiato -> ripristina vecchio e decrementa nuovo
+        IF v_old_menu_item_id IS NOT NULL THEN
+            -- ripristino vecchio
+            SELECT available_quantity INTO v_avail
+            FROM menu_item
+            WHERE id = v_old_menu_item_id
+            FOR UPDATE;
+
+            IF v_avail IS NOT NULL THEN
+                UPDATE menu_item SET available_quantity = v_avail + v_old_qty, updated_at = NOW() WHERE id = v_old_menu_item_id;
+            END IF;
+        END IF;
+
+        IF v_new_menu_item_id IS NOT NULL THEN
+            -- decremento nuovo
+            SELECT available_quantity INTO v_avail
+            FROM menu_item
+            WHERE id = v_new_menu_item_id
+            FOR UPDATE;
+
+            IF v_avail IS NULL THEN
+                RETURN NEW; -- illimitata
+            END IF;
+
+            v_new_avail := v_avail - v_new_qty;
+            IF v_new_avail < 0 THEN
+                RAISE EXCEPTION 'Disponibilità insufficiente per menu_item %: richieste %, disponibili %', v_new_menu_item_id, v_new_qty, v_avail;
+            END IF;
+
+            UPDATE menu_item SET available_quantity = v_new_avail, updated_at = NOW() WHERE id = v_new_menu_item_id;
+        END IF;
+
+        RETURN NEW;
     END IF;
-    
+
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-CREATE TRIGGER trigger_update_inventory
-AFTER INSERT ON transaction
+
+-- Trigger per chiamare la funzione ad ogni modifica sulla tabella "transaction"
+DROP TRIGGER IF EXISTS trg_inventory_on_transaction ON "transaction";
+CREATE TRIGGER trg_inventory_on_transaction
+AFTER INSERT OR UPDATE OR DELETE ON "transaction"
 FOR EACH ROW
-EXECUTE FUNCTION update_inventory_on_transaction();
-
-COMMENT ON FUNCTION update_inventory_on_transaction() IS 'Aggiorna automaticamente consumed_quantity quando si inserisce una transaction';
+EXECUTE FUNCTION fn_inventory_adjust_on_transaction();
 
 -- ============================================
 -- FUNCTION: Auto-update updated_at
@@ -474,24 +633,8 @@ CREATE TRIGGER update_menu_item_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
     
-CREATE TRIGGER update_event_menu_updated_at 
-    BEFORE UPDATE ON event_menu
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-    
-CREATE TRIGGER update_inventory_updated_at 
-    BEFORE UPDATE ON event_menu_item_inventory
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-    
 CREATE TRIGGER update_participation_updated_at 
     BEFORE UPDATE ON participation
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Trigger per updated_at
-CREATE TRIGGER update_staff_user_updated_at 
-    BEFORE UPDATE ON staff_user
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -499,29 +642,57 @@ CREATE TRIGGER update_event_staff_updated_at
     BEFORE UPDATE ON event_staff
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+CREATE OR REPLACE FUNCTION update_updated_at_column_staff_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS update_staff_user_updated_at ON staff_user;
+CREATE TRIGGER update_staff_user_updated_at
+    BEFORE UPDATE ON staff_user
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column_staff_user();
+
 -- ============================================
 -- HELPER FUNCTIONS per RLS (VERSIONE AGGIORNATA)
 -- ============================================
 
+-- Helper: UUID dell'utente chiamante (supporta auth.uid() e jwt.claims.user_id)
+CREATE OR REPLACE FUNCTION public._caller_uuid()
+RETURNS uuid
+LANGUAGE sql
+IMMUTABLE
+AS $$
+    SELECT COALESCE(
+        NULLIF(current_setting('jwt.claims.user_id', true), '')::uuid,
+        NULLIF(auth.uid()::text, '')::uuid
+    );
+$$ SECURITY DEFINER;
+
 -- Funzione: Verifica se l'utente è admin
-CREATE OR REPLACE FUNCTION is_admin()
+CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN 
 SET search_path = public
 AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1
-        FROM staff_user su
-        JOIN event_staff es ON su.id = es.staff_user_id
+        FROM event_staff es
         JOIN role r ON es.role_id = r.id
-        WHERE su.id = auth.uid()
-        AND r.name = 'admin'
+        WHERE es.staff_user_id = public._caller_uuid()
+        AND lower(r.name) = 'admin'
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Funzione: Ottieni il ruolo staff per un evento specifico
-CREATE OR REPLACE FUNCTION get_event_staff_role(event_uuid UUID)
+CREATE OR REPLACE FUNCTION public.get_event_staff_role(event_uuid UUID)
 RETURNS TEXT 
 SET search_path = public
 AS $$
@@ -532,14 +703,15 @@ BEGIN
     FROM event_staff es
     JOIN role r ON es.role_id = r.id
     WHERE es.event_id = event_uuid
-    AND es.staff_user_id = auth.uid();
+      AND es.staff_user_id = public._caller_uuid()
+    LIMIT 1;
     
     RETURN staff_role;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Funzione: Ottieni il livello staff per un evento (1, 2, 3, o NULL)
-CREATE OR REPLACE FUNCTION get_event_staff_level(event_uuid UUID)
+-- Ottieni il livello numerico (1/2/3) del role dello staff sull'evento
+CREATE OR REPLACE FUNCTION public.get_event_staff_level(event_uuid UUID)
 RETURNS INT 
 SET search_path = public
 AS $$
@@ -548,27 +720,29 @@ DECLARE
 BEGIN
     staff_role := get_event_staff_role(event_uuid);
     
-    RETURN CASE
-        WHEN staff_role = 'staff1' THEN 1
-        WHEN staff_role = 'staff2' THEN 2
-        WHEN staff_role = 'staff3' THEN 3
+    RETURN CASE lower(COALESCE(staff_role,''))
+        WHEN 'staff1' THEN 1
+        WHEN 'staff2' THEN 2
+        WHEN 'staff3' THEN 3
+        WHEN 'admin'  THEN 4
         ELSE NULL
     END;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+
 -- Funzione: Verifica se utente ha almeno un certo livello staff per un evento
-CREATE OR REPLACE FUNCTION has_event_staff_level(event_uuid UUID, min_level INT)
+CREATE OR REPLACE FUNCTION public.has_event_staff_level(event_uuid UUID, min_level INT)
 RETURNS BOOLEAN 
 SET search_path = public
 AS $$
 BEGIN
-    RETURN COALESCE(get_event_staff_level(event_uuid), 0) >= min_level;
+    RETURN COALESCE(get_event_staff_level(event_uuid), 0) >= COALESCE(min_level, 0);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Funzione: Verifica se l'utente è staff di un evento (qualsiasi livello)
-CREATE OR REPLACE FUNCTION is_event_staff(event_uuid UUID)
+CREATE OR REPLACE FUNCTION public.is_event_staff(event_uuid UUID)
 RETURNS BOOLEAN 
 SET search_path = public
 AS $$
@@ -577,13 +751,13 @@ BEGIN
         SELECT 1
         FROM event_staff es
         WHERE es.event_id = event_uuid
-        AND es.staff_user_id = auth.uid()
+          AND es.staff_user_id = public._caller_uuid()
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Funzione: Verifica se l'utente è creatore dell'evento
-CREATE OR REPLACE FUNCTION is_event_creator(event_uuid UUID)
+CREATE OR REPLACE FUNCTION public.is_event_creator(event_uuid UUID)
 RETURNS BOOLEAN 
 SET search_path = public
 AS $$
@@ -591,640 +765,434 @@ BEGIN
     RETURN EXISTS (
         SELECT 1 FROM event e
         WHERE e.id = event_uuid
-        AND e.created_by = auth.uid()
+          AND e.created_by = public._caller_uuid()
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Helper: ritorna il nome del ruolo dato role.id
+CREATE OR REPLACE FUNCTION public.es_role_name(role_input TEXT)
+RETURNS TEXT
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT CASE
+    WHEN role_input IS NULL THEN NULL
+    WHEN role_input ~ '^\s*\d+\s*$' THEN (SELECT name FROM role WHERE id = role_input::int)
+    ELSE role_input
+  END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.es_role_name(role_input INT)
+RETURNS TEXT
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT name FROM role WHERE id = role_input LIMIT 1;
+$$;
+
+CREATE OR REPLACE FUNCTION public._role_rank(role_text TEXT)
+RETURNS INT
+LANGUAGE sql
+IMMUTABLE
+AS $$
+    SELECT CASE LOWER(COALESCE(role_text,''))
+        WHEN 'admin' THEN 4
+        WHEN 'staff3' THEN 3
+        WHEN 'staff2' THEN 2
+        WHEN 'staff1' THEN 1
+        ELSE 0
+    END;
+$$;
+
+-- 1) TEXT,TEXT implementation (canonical)
+CREATE OR REPLACE FUNCTION public.is_negative_role_change(old_role TEXT, new_role TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT public._role_rank(public.es_role_name(COALESCE(new_role, '')))
+       <= public._role_rank(public.es_role_name(COALESCE(old_role, '')));
+$$;
+
+-- 2) INT,INT overload (wrapper)
+CREATE OR REPLACE FUNCTION public.is_negative_role_change(old_role INT, new_role INT)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT public.is_negative_role_change(
+    public.es_role_name(COALESCE(old_role::text, '')),
+    public.es_role_name(COALESCE(new_role::text, ''))
+  );
+$$;
+
+CREATE POLICY event_staff_self_negative_update ON event_staff
+FOR UPDATE TO authenticated
+USING (staff_user_id = auth.uid()::uuid)
+WITH CHECK (
+    staff_user_id = auth.uid()::uuid
+    AND public._role_rank(public.es_role_name(event_staff.role_id)) >= 
+        public._role_rank(public.es_role_name((SELECT role_id FROM event_staff es WHERE es.id = event_staff.id)))
+);
+
+
 
 
 -- ============================================
 -- ABILITA RLS SU TUTTE LE TABELLE
 -- ============================================
 
-ALTER TABLE person ENABLE ROW LEVEL SECURITY;
-ALTER TABLE event_staff ENABLE ROW LEVEL SECURITY;
-ALTER TABLE staff_user ENABLE ROW LEVEL SECURITY;
-ALTER TABLE event ENABLE ROW LEVEL SECURITY;
-ALTER TABLE event_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE menu ENABLE ROW LEVEL SECURITY;
-ALTER TABLE menu_item ENABLE ROW LEVEL SECURITY;
-ALTER TABLE event_menu ENABLE ROW LEVEL SECURITY;
-ALTER TABLE event_menu_item_inventory ENABLE ROW LEVEL SECURITY;
-ALTER TABLE participation ENABLE ROW LEVEL SECURITY;
-ALTER TABLE participation_status_history ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transaction ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS event_staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS event ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS participation ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS person ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS menu ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS transaction ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
--- TABELLA: person
+-- RLS event_staff
 -- ============================================
 
+-- 3.1 POLICY: consentire INSERT per chi è admin o per il sistema (admin crea assegnazioni),
+-- ma lasciare che l'app usi ruolo admin per inserire. Qui diamo permesso GENERICO a utenti autenticati:
+CREATE POLICY event_staff_insert_for_authenticated ON event_staff 
+FOR INSERT TO authenticated 
+WITH CHECK (auth.uid() IS NOT NULL);
 
-DROP POLICY IF EXISTS "person_select_policy" ON person;
-DROP POLICY IF EXISTS "person_insert_policy" ON person;
-DROP POLICY IF EXISTS "person_update_policy" ON person;
-DROP POLICY IF EXISTS "person_delete_policy" ON person;
+-- 3.2 POLICY: permettere a ciascuno di cancellare la propria riga (rimuoversi dall'evento)
+CREATE POLICY event_staff_self_delete ON event_staff
+FOR DELETE TO authenticated
+USING (staff_user_id = auth.uid()::uuid);
 
--- SELECT: Solo staff degli eventi in cui la persona partecipa, e admin
-CREATE POLICY "person_select_policy"
-    ON person FOR SELECT
-    USING (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM participation pa
-            WHERE pa.person_id = person.id
-            AND is_event_staff(pa.event_id)
-        )
-    );
-
--- INSERT: Solo staff2+ di qualsiasi evento e admin
-CREATE POLICY "person_insert_policy"
-    ON person FOR INSERT
-    WITH CHECK (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM event_staff es
-            WHERE es.staff_user_id = auth.uid()
-            AND has_event_staff_level(es.event_id, 2)
-        )
-    );
-
--- UPDATE: Solo staff2+ degli eventi in cui partecipa, e admin
-CREATE POLICY "person_update_policy"
-    ON person FOR UPDATE
-    USING (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM participation pa
-            WHERE pa.person_id = person.id
-            AND has_event_staff_level(pa.event_id, 2)
-        )
-    );
-    
--- DELETE: Solo admin
-CREATE POLICY "person_delete_policy"
-    ON person FOR DELETE
-    USING (is_admin());
-
--- ============================================
--- TABELLA: event
--- ============================================
-DROP POLICY IF EXISTS "event_select_policy" ON event;
-DROP POLICY IF EXISTS "event_insert_policy" ON event;
-DROP POLICY IF EXISTS "event_update_policy" ON event;
-DROP POLICY IF EXISTS "event_delete_policy" ON event;
-
--- SELECT: Solo staff assegnati all'evento + admin
-CREATE POLICY "event_select_policy"
-    ON event FOR SELECT
-    USING (
-        is_event_creator(id)           -- Creatore dell'evento
-        OR is_event_staff(id)          -- Staff assegnato all'evento
-        OR is_admin()                  -- Admin
-    );
-
--- INSERT: Solo admin e staff3 globali possono creare eventi
-CREATE POLICY "event_insert_policy"
-    ON event FOR INSERT
-    WITH CHECK (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM event_staff es
-            JOIN role r ON es.role_id = r.id
-            WHERE es.staff_user_id = auth.uid()
-            AND r.name = 'staff3'
-        )
-    );
-
--- UPDATE: Solo creatore, staff3 dell'evento, e admin
-CREATE POLICY "event_update_policy"
-    ON event FOR UPDATE
-    USING (
-        is_event_creator(id)
-        OR has_event_staff_level(id, 3)
-        OR is_admin()
-    );
-
--- DELETE: Solo admin e staff3 possono eliminare eventi
-CREATE POLICY "event_delete_policy"
-    ON event FOR DELETE
-    USING (
-        is_admin()
-        OR has_event_staff_level(id, 3)    -- usa id (pk) della tabella event, non event_id
-    );
-
--- ============================================
--- TABELLA: event_settings
--- ============================================
-DROP POLICY IF EXISTS "event_settings_select_policy" ON event_settings;
-DROP POLICY IF EXISTS "event_settings_insert_policy" ON event_settings;
-DROP POLICY IF EXISTS "event_settings_update_policy" ON event_settings;
-DROP POLICY IF EXISTS "event_settings_delete_policy" ON event_settings;
-
--- SELECT: Staff dell'evento vede le settings
-CREATE POLICY "event_settings_select_policy"
-    ON event_settings FOR SELECT
-    USING (
-        is_event_creator(event_settings.event_id)
-        OR is_event_staff(event_settings.event_id)
-        OR is_admin()
-    );
-
--- INSERT: Creatore e staff3 dell'evento
-CREATE POLICY "event_settings_insert_policy"
-    ON event_settings FOR INSERT
-    WITH CHECK (
-        is_event_creator(event_settings.event_id)
-        OR has_event_staff_level(event_settings.event_id, 3)
-        OR is_admin()
-    );
-
--- UPDATE: Creatore e staff3 dell'evento
-CREATE POLICY "event_settings_update_policy"
-    ON event_settings FOR UPDATE
-    USING (
-        is_event_creator(event_settings.event_id)
-        OR has_event_staff_level(event_settings.event_id, 3)
-        OR is_admin()
-    );
-
--- DELETE: Solo admin
-CREATE POLICY "event_settings_delete_policy"
-    ON event_settings FOR DELETE
-    USING (is_admin());
-
--- ============================================
--- TABELLA: menu
--- ============================================
-
-
-DROP POLICY IF EXISTS "menu_select_policy" ON menu;
-DROP POLICY IF EXISTS "menu_insert_policy" ON menu;
-DROP POLICY IF EXISTS "menu_update_policy" ON menu;
-DROP POLICY IF EXISTS "menu_delete_policy" ON menu;
-
--- SELECT: Creatore, qualsiasi staff, admin
-CREATE POLICY "menu_select_policy"
-    ON menu FOR SELECT
-    USING (
-        created_by = auth.uid()
-        OR is_admin()
-        OR EXISTS (
-            SELECT 1 FROM event_staff es
-            WHERE es.staff_user_id = auth.uid()
-        )
-    );
-
--- INSERT: Staff2+ di qualsiasi evento, admin
-CREATE POLICY "menu_insert_policy"
-    ON menu FOR INSERT
-    WITH CHECK (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM event_staff es
-            WHERE es.staff_user_id = auth.uid()
-            AND has_event_staff_level(es.event_id, 2)
-        )
-    );
-
--- UPDATE: Creatore, staff2+ di qualsiasi evento, admin
-CREATE POLICY "menu_update_policy"
-    ON menu FOR UPDATE
-    USING (
-        created_by = auth.uid()
-        OR is_admin()
-        OR EXISTS (
-            SELECT 1 FROM event_staff es
-            WHERE es.staff_user_id = auth.uid()
-            AND has_event_staff_level(es.event_id, 2)
-        )
-    );
-
--- DELETE: Admin e staff3 di qualsiasi evento
-CREATE POLICY "menu_delete_policy"
-    ON menu FOR DELETE
-    USING (
-        is_admin()
-        OR EXISTS (
-            SELECT 1
-            FROM event_menu em
-            JOIN event_staff es ON em.event_id = es.event_id
-            WHERE em.menu_id = menu.id
-              AND es.staff_user_id = auth.uid()
-              AND has_event_staff_level(es.event_id, 3) 
-        )
-    );
-
--- ============================================
--- TABELLA: menu_item
--- ============================================
-
-DROP POLICY IF EXISTS "menu_item_select_policy" ON menu_item;
-DROP POLICY IF EXISTS "menu_item_insert_policy" ON menu_item;
-DROP POLICY IF EXISTS "menu_item_update_policy" ON menu_item;
-DROP POLICY IF EXISTS "menu_item_delete_policy" ON menu_item;
-
--- SELECT: Chi vede il menu vede gli item
-CREATE POLICY "menu_item_select_policy"
-    ON menu_item FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM menu m
-            WHERE m.id = menu_id
-            AND (
-                m.created_by = auth.uid()
-                OR is_admin()
-                OR EXISTS (
-                    SELECT 1 FROM event_staff es
-                    WHERE es.staff_user_id = auth.uid()
-                )
-            )
-        )
-    );
-
--- INSERT: Staff2+ di qualsiasi evento, admin
-CREATE POLICY "menu_item_insert_policy"
-    ON menu_item FOR INSERT
-    WITH CHECK (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM event_staff es
-            WHERE es.staff_user_id = auth.uid()
-            AND has_event_staff_level(es.event_id, 2)
-        )
-    );
-
--- UPDATE: Staff2+ di qualsiasi evento, admin
-CREATE POLICY "menu_item_update_policy"
-    ON menu_item FOR UPDATE
-    USING (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM event_staff es
-            WHERE es.staff_user_id = auth.uid()
-            AND has_event_staff_level(es.event_id, 2)
-        )
-    );
-
--- DELETE: Staff3 di qualsiasi evento, admin
-CREATE POLICY "menu_item_delete_policy"
-    ON menu_item FOR DELETE
-    USING (
-        is_admin()
-        OR EXISTS (
-            SELECT 1
-            FROM event_menu em
-            JOIN event_staff es ON em.event_id = es.event_id
-            WHERE em.menu_id = menu_item.menu_id
-              AND es.staff_user_id = auth.uid()
-              AND has_event_staff_level(es.event_id, 3)  -- verifica staff3 sull'evento che usa il menu dell'item
-        )
-    );
-
--- ============================================
--- TABELLA: staff_user
--- ============================================
-
--- SELECT: Ognuno vede i propri dati, admin vede tutti
-CREATE POLICY "staff_user_select_policy"
-    ON staff_user FOR SELECT
-    USING (
-        id = auth.uid()
-        OR is_admin()
-    );
-
--- INSERT: Registrazione automatica + admin
-CREATE POLICY "staff_user_insert_policy"
-    ON staff_user FOR INSERT
-    WITH CHECK (
-        id = auth.uid()  -- Auto-registrazione
-        OR is_admin()
-    );
-
--- UPDATE: Ognuno aggiorna i propri dati, admin aggiorna tutti
-CREATE POLICY "staff_user_update_policy"
-    ON staff_user FOR UPDATE
-    USING (
-        id = auth.uid()
-        OR is_admin()
-    );
-
--- DELETE: Solo admin o se stessi
-CREATE POLICY "staff_user_delete_policy"
-    ON staff_user FOR DELETE
-    USING (
-        id = auth.uid()
-        OR is_admin()
-    );
-
--- ============================================
--- TABELLA: event_staff
--- ============================================
-
-DROP POLICY IF EXISTS "staff_user_select_policy" ON staff_user;
-DROP POLICY IF EXISTS "staff_user_insert_policy" ON staff_user;
-DROP POLICY IF EXISTS "staff_user_update_policy" ON staff_user;
-DROP POLICY IF EXISTS "staff_user_delete_policy" ON staff_user;
-
-
--- SELECT: Semplificata per evitare problemi circolari
-CREATE POLICY "staff_user_select_policy"
-    ON staff_user FOR SELECT
-    TO authenticated
-    USING (true);
-    
--- INSERT: Durante registrazione (service_role) o admin
-CREATE POLICY "staff_user_insert_policy"
-    ON staff_user FOR INSERT
-    WITH CHECK (true);
-
--- UPDATE: Solo proprio profilo o admin
-CREATE POLICY "staff_user_update_policy"
-    ON staff_user FOR UPDATE
-    TO authenticated
-    USING (
-        auth.uid() = id
-        OR is_admin()
+-- 3.4 POLICY: permettere a chi ha ruolo superiore di modificare/eliminare ruoli inferiori sullo stesso evento
+-- Modifica (UPDATE) di altre righe: richiesto rank > rank(target)
+CREATE POLICY event_staff_hierarchy_update ON event_staff
+FOR UPDATE TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM event_staff myes
+        WHERE myes.event_id = event_staff.event_id
+          AND myes.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(public.es_role_name(myes.role_id)) > public._role_rank(public.es_role_name(event_staff.role_id))
     )
-    WITH CHECK (
-        auth.uid() = id
-        OR is_admin()
-    );
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM event_staff myes
+        WHERE myes.event_id = event_staff.event_id
+          AND myes.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(public.es_role_name(myes.role_id)) > public._role_rank(public.es_role_name(event_staff.role_id))
+    )
+);
 
--- DELETE: Solo admin (soft delete via update)
-CREATE POLICY "staff_user_delete_policy"
-    ON staff_user FOR DELETE
-    USING (is_admin());
-
-
-CREATE OR REPLACE FUNCTION create_staff_user_on_signup()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Inserisci in staff_user quando viene creato un utente in auth.users
-    INSERT INTO public.staff_user (
-        id,
-        first_name,
-        last_name,
-        email,
-        phone,
-        date_of_birth
-    ) VALUES (
-        NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'first_name', ''),
-        COALESCE(NEW.raw_user_meta_data->>'last_name', ''),
-        NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'phone', NULL),
-        COALESCE((NEW.raw_user_meta_data->>'date_of_birth')::DATE, NULL)
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW
-    EXECUTE FUNCTION create_staff_user_on_signup();
+-- 3.5 POLICY: permettere delete di altre righe solo se il chiamante ha rank > target rank
+CREATE POLICY event_staff_hierarchy_delete ON event_staff
+FOR DELETE TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM event_staff myes
+        WHERE myes.event_id = event_staff.event_id
+          AND myes.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(myes.role_id)) > public._role_rank(es_role_name(event_staff.role_id))
+    )
+);
 
 -- ============================================
--- TABELLA: event_menu
+-- RLS participation
 -- ============================================
 
-DROP POLICY IF EXISTS "event_menu_select_policy" ON event_menu;
-DROP POLICY IF EXISTS "event_menu_insert_policy" ON event_menu;
-DROP POLICY IF EXISTS "event_menu_update_policy" ON event_menu;
-DROP POLICY IF EXISTS "event_menu_delete_policy" ON event_menu;
+-- 4.1 Lettura: staff1+ possono leggere le partecipazioni del loro evento
+CREATE POLICY participation_select_by_event_staff ON participation
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM event_staff es
+        WHERE es.event_id = participation.event_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 1
+    )
+);
 
--- SELECT: Staff dell'evento vede il menu
-CREATE POLICY "event_menu_select_policy"
-    ON event_menu FOR SELECT
-    USING (
-        is_event_creator(event_menu.event_id)
-        OR is_event_staff(event_menu.event_id)
-        OR is_admin()
-    );
+-- 4.2 Inserimento: staff2+ possono creare partecipazioni
+CREATE POLICY participation_insert_staff2 ON participation
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM event_staff es
+        WHERE es.event_id = participation.event_id  -- Cambiato da NEW.event_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
 
--- INSERT: Creatore, staff3 dell'evento, admin
-CREATE POLICY "event_menu_insert_policy"
-    ON event_menu FOR INSERT
-    WITH CHECK (
-        is_event_creator(event_menu.event_id)
-        OR has_event_staff_level(event_menu.event_id, 3)
-        OR is_admin()
-    );
+-- 4.3 UPDATE: staff2+ possono aggiornare partecipazioni
+CREATE POLICY participation_update_staff2 ON participation
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM event_staff es
+        WHERE es.event_id = participation.event_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
 
--- UPDATE: Creatore, staff3 dell'evento, admin
-CREATE POLICY "event_menu_update_policy"
-    ON event_menu FOR UPDATE
-    USING (
-        is_event_creator(event_menu.event_id)
-        OR has_event_staff_level(event_menu.event_id, 3)
-        OR is_admin()
-    );
-
--- DELETE: Staff3 dell'evento, admin
-CREATE POLICY "event_menu_delete_policy"
-    ON event_menu FOR DELETE
-    USING (
-        has_event_staff_level(event_menu.event_id, 3)
-        OR is_admin()
-    );
-
--- ============================================
--- TABELLA: event_menu_item_inventory
--- ============================================
-
-DROP POLICY IF EXISTS "inventory_select_policy" ON event_menu_item_inventory;
-DROP POLICY IF EXISTS "inventory_insert_policy" ON event_menu_item_inventory;
-DROP POLICY IF EXISTS "inventory_update_policy" ON event_menu_item_inventory;
-DROP POLICY IF EXISTS "inventory_delete_policy" ON event_menu_item_inventory;
-
--- SELECT: Staff dell'evento vede l'inventario
-CREATE POLICY "inventory_select_policy"
-    ON event_menu_item_inventory FOR SELECT
-    USING (
-        is_event_creator(event_id)
-        OR is_event_staff(event_id)
-        OR is_admin()
-    );
-
--- INSERT: Creatore, staff2+ dell'evento, admin
-CREATE POLICY "inventory_insert_policy"
-    ON event_menu_item_inventory FOR INSERT
-    WITH CHECK (
-        is_event_creator(event_menu_item_inventory.event_id)
-        OR has_event_staff_level(event_menu_item_inventory.event_id, 2)
-        OR is_admin()
-    );
-
--- UPDATE: Creatore, staff1+ dell'evento (per trigger), admin
-CREATE POLICY "inventory_update_policy"
-    ON event_menu_item_inventory FOR UPDATE
-    USING (
-        is_event_creator(event_menu_item_inventory.event_id)
-        OR is_event_staff(event_menu_item_inventory.event_id)
-        OR is_admin()
-    );
-
--- DELETE: Staff3 dell'evento, admin
-DROP POLICY IF EXISTS "inventory_delete_policy" ON event_menu_item_inventory;
-
-CREATE POLICY "inventory_delete_policy"
-    ON event_menu_item_inventory FOR DELETE
-    USING (
-        has_event_staff_level(event_menu_item_inventory.event_id, 3)
-        OR is_admin()
-    );
+-- 4.4 DELETE: staff2+ possono cancellare partecipazioni
+CREATE POLICY participation_delete_staff2 ON participation
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM event_staff es
+        WHERE es.event_id = participation.event_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
 
 -- ============================================
--- TABELLA: participation
+-- RLS menu
 -- ============================================
 
-DROP POLICY IF EXISTS "participation_select_policy" ON participation;
-DROP POLICY IF EXISTS "participation_insert_policy" ON participation;
-DROP POLICY IF EXISTS "participation_update_policy" ON participation;
-DROP POLICY IF EXISTS "participation_delete_policy" ON participation;
+-- SELECT: tutti gli staff (>=1) possono leggere
+CREATE POLICY menu_select_by_staff ON menu
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM event_staff es WHERE es.event_id = menu.event_id AND es.staff_user_id = auth.uid()::uuid AND public._role_rank(es_role_name(es.role_id)) >= 1)
+);
 
--- SELECT: Staff dell'evento vede le partecipazioni
-CREATE POLICY "participation_select_policy"
-    ON participation FOR SELECT
-    USING (
-        is_event_creator(participation.event_id)
-        OR is_event_staff(participation.event_id)
-        OR is_admin()
-    );
+-- INSERT: staff2+
+CREATE POLICY menu_insert_staff2 ON menu
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM event_staff es 
+        WHERE es.event_id = menu.event_id  -- Cambiato da NEW.event_id
+          AND es.staff_user_id = auth.uid()::uuid 
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
 
--- INSERT: Creatore, staff2+ dell'evento, admin
-CREATE POLICY "participation_insert_policy"
-    ON participation FOR INSERT
-    WITH CHECK (
-        is_event_creator(participation.event_id)
-        OR has_event_staff_level(participation.event_id, 2)
-        OR is_admin()
-    );
+-- UPDATE: staff2+
+CREATE POLICY menu_update_staff2 ON menu
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM event_staff es 
+        WHERE es.event_id = menu.event_id 
+          AND es.staff_user_id = auth.uid()::uuid 
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM event_staff es 
+        WHERE es.event_id = menu.event_id  -- Cambiato da NEW.event_id
+          AND es.staff_user_id = auth.uid()::uuid 
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
 
--- UPDATE: Creatore, staff2+ dell'evento, admin
-CREATE POLICY "participation_update_policy"
-    ON participation FOR UPDATE
-    USING (
-        is_event_creator(participation.event_id)
-        OR has_event_staff_level(participation.event_id, 2)
-        OR is_admin()
-    );
-
--- DELETE: Staff3 dell'evento, admin
-CREATE POLICY "participation_delete_policy"
-    ON participation FOR DELETE
-    USING (
-        has_event_staff_level(participation.event_id, 3)
-        OR is_admin()
-    );
-
--- ============================================
--- TABELLA: participation_status_history
--- ============================================
-
-DROP POLICY IF EXISTS "participation_history_select_policy" ON participation_status_history;
-DROP POLICY IF EXISTS "participation_history_insert_policy" ON participation_status_history;
-DROP POLICY IF EXISTS "participation_history_update_policy" ON participation_status_history;
-DROP POLICY IF EXISTS "participation_history_delete_policy" ON participation_status_history;
-
--- SELECT: Staff dell'evento vede lo storico
-CREATE POLICY "participation_history_select_policy"
-    ON participation_status_history FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM participation p
-            WHERE p.id = participation_id
-            AND (
-                is_event_creator(p.event_id)
-                OR is_event_staff(p.event_id)
-                OR is_admin()
-            )
-        )
-    );
-
--- INSERT: Staff2+ dell'evento, admin
-CREATE POLICY "participation_history_insert_policy"
-    ON participation_status_history FOR INSERT
-    WITH CHECK (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM participation p
-            WHERE p.id = participation_id
-            AND has_event_staff_level(p.event_id, 2)
-        )
-    );
-
--- UPDATE: Solo admin
-CREATE POLICY "participation_history_update_policy"
-    ON participation_status_history FOR UPDATE
-    USING (is_admin());
-
--- DELETE: Solo admin
-CREATE POLICY "participation_history_delete_policy"
-    ON participation_status_history FOR DELETE
-    USING (is_admin());
+-- DELETE: staff2+
+CREATE POLICY menu_delete_staff2 ON menu
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM event_staff es WHERE es.event_id = menu.event_id AND es.staff_user_id = auth.uid()::uuid AND public._role_rank(es_role_name(es.role_id)) >= 2)
+);
 
 -- ============================================
--- TABELLA: transaction
+-- RLS transaction
 -- ============================================
 
-DROP POLICY IF EXISTS "transaction_select_policy" ON transaction;
-DROP POLICY IF EXISTS "transaction_insert_policy" ON transaction;
-DROP POLICY IF EXISTS "transaction_update_policy" ON transaction;
-DROP POLICY IF EXISTS "transaction_delete_policy" ON transaction;
+-- SELECT: staff1+ possono leggere transazioni collegate a un evento dove sono staff
+CREATE POLICY transaction_select_by_staff ON transaction
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.id = transaction.participation_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 1
+    )
+);
 
--- SELECT: Staff dell'evento vede le transazioni
-CREATE POLICY "transaction_select_policy"
-    ON transaction FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM participation p
-            WHERE p.id = participation_id
-            AND (
-                is_event_creator(p.event_id)
-                OR is_event_staff(p.event_id)
-                OR is_admin()
-            )
-        )
-    );
+-- INSERT: staff1+ possono creare una transaction solo se la participation appartiene a un evento su cui sono staff
+CREATE POLICY transaction_insert_staff1 ON transaction
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.id = transaction.participation_id  -- Cambiato da NEW.participation_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 1
+    )
+);
 
--- INSERT: Staff1+ dell'evento crea transazioni
-CREATE POLICY "transaction_insert_policy"
-    ON transaction FOR INSERT
-    WITH CHECK (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM participation p
-            WHERE p.id = participation_id
-            AND is_event_staff(p.event_id)
-        )
-    );
+-- UPDATE: staff2+ (correzioni) — usare la participation collegata alla riga (vecchia o nuova)
+CREATE POLICY transaction_update_staff2 ON transaction
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.id = transaction.participation_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.id = transaction.participation_id  -- Cambiato da NEW.participation_id a transaction.participation_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
 
--- UPDATE: Staff2+ dell'evento, admin
-CREATE POLICY "transaction_update_policy"
-    ON transaction FOR UPDATE
-    USING (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM participation p
-            WHERE p.id = participation_id
-            AND has_event_staff_level(p.event_id, 2)
-        )
-    );
+-- DELETE: staff2+ possono cancellare transazioni legate al loro evento
+CREATE POLICY transaction_delete_staff2 ON transaction
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.id = transaction.participation_id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
 
--- DELETE: Staff3 dell'evento, admin
-CREATE POLICY "transaction_delete_policy"
-    ON transaction FOR DELETE
-    USING (
-        is_admin()
-        OR EXISTS (
-            SELECT 1 FROM participation p
-            WHERE p.id = participation_id
-            AND has_event_staff_level(p.event_id, 3)
-        )
-    );
+-- ============================================
+-- RLS person
+-- ============================================
+
+-- SELECT: Staff può leggere persone che hanno una participation per eventi dove sono staff
+CREATE POLICY person_select_by_staff ON person
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.person_id = person.id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 1
+    )
+);
+
+-- INSERT: consentiamo a staff2+ di creare persone (non possiamo verificare event qui perché person non ha event_id)
+CREATE POLICY person_insert_staff2 ON person
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM event_staff es
+        WHERE es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
+
+-- UPDATE: staff2+ possono aggiornare persone se esiste una participation che lega quella person a un evento di cui sono staff
+CREATE POLICY person_update_staff2 ON person
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.person_id = person.id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.person_id = person.id  -- Cambiato da NEW.id a person.id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
+
+-- DELETE: staff2+ possono cancellare persone legate al loro evento tramite participation
+CREATE POLICY person_delete_staff2 ON person
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1
+        FROM participation p
+        JOIN event_staff es ON es.event_id = p.event_id
+        WHERE p.person_id = person.id
+          AND es.staff_user_id = auth.uid()::uuid
+          AND public._role_rank(es_role_name(es.role_id)) >= 2
+    )
+);
+
+-- ============================================
+-- REALTIME event
+-- ============================================
+
+-- SELECT: tutti gli staff del evento possono leggere
+CREATE POLICY event_select_by_staff ON event
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM event_staff es WHERE es.event_id = event.id AND es.staff_user_id = auth.uid()::uuid AND public._role_rank(es_role_name(es.role_id)) >= 1)
+);
+
+-- UPDATE: staff3+ possono aggiornare event
+CREATE POLICY event_update_staff3 ON event
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM event_staff es 
+        WHERE es.event_id = event.id 
+          AND es.staff_user_id = auth.uid()::uuid 
+          AND public._role_rank(es_role_name(es.role_id)) >= 3
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM event_staff es 
+        WHERE es.event_id = event.id  -- Cambiato da NEW.id a event.id
+          AND es.staff_user_id = auth.uid()::uuid 
+          AND public._role_rank(es_role_name(es.role_id)) >= 3
+    )
+);
+-- DELETE: solo admin (rank 4)
+CREATE POLICY event_delete_admin_only ON event
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM event_staff es WHERE es.event_id = event.id AND es.staff_user_id = auth.uid()::uuid AND public._role_rank(es_role_name(es.role_id)) = 4)
+);
+
 
 -- ============================================
 -- REALTIME PUBLICATION
@@ -1233,7 +1201,6 @@ CREATE POLICY "transaction_delete_policy"
 -- Abilita realtime per aggiornamenti in tempo reale
 ALTER PUBLICATION supabase_realtime ADD TABLE transaction;
 ALTER PUBLICATION supabase_realtime ADD TABLE participation;
-ALTER PUBLICATION supabase_realtime ADD TABLE event_menu_item_inventory;
 
 -- ============================================
 -- DATI DI ESEMPIO PER LOOKUP TABLES
@@ -1265,3 +1232,4 @@ INSERT INTO transaction_type (name, description, affects_drink_count, is_monetar
 ('report', 'Segnalazione', FALSE, FALSE),
 ('refund', 'Rimborso', FALSE, TRUE),
 ('fee', 'Commissione/Tassa', FALSE, TRUE);
+

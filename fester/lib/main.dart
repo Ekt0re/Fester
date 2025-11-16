@@ -1,124 +1,47 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:fester/services/supabase_service.dart';
+import 'package:uni_links/uni_links.dart';
+import 'package:url_strategy/url_strategy.dart';
+import 'package:universal_platform/universal_platform.dart';
 import 'Login/login_page.dart';
+import 'home_page.dart';
+import 'services/SupabaseServicies/supabase_config.dart';
+import 'services/SupabaseServicies/deep_link_handler.dart';
+import 'Login/set_new_password_page.dart';
+import 'screens/event_selection_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  setPathUrlStrategy(); // Rimuove il # dagli URL
+  await SupabaseConfig.initialize();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({super.key, this.initialRoute = '/'});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fester 3.0',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
       ),
-      home: const SplashScreen(),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      initialRoute: initialRoute,
+      routes: {
+        '/': (context) => const SplashScreen(),
+        '/home': (context) => const HomePage(),
+        '/event-selection': (context) => const EventSelectionScreen(),
+        '/login': (context) => const LoginPage(),
+        '/set-new-password': (context) => const SetNewPasswordPage(),
+      },
+      onGenerateRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (context) => const SplashScreen(),
+        );
+      },
     );
   }
 }
@@ -131,8 +54,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  bool _loading = true;
-
+  StreamSubscription? _sub;
   @override
   void initState() {
     super.initState();
@@ -140,56 +62,107 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initApp() async {
+    // Abilita gestione automatica dei deep link (sia web sia mobile se serve)
+    DeepLinkHandler().initialize(context);
+    final supabase = SupabaseConfig.client;
+
+    String? initialLink;
     try {
-      // Usa la chiave pubblica (anon key) di Supabase
-      const supabaseUrl = 'https://tzrjlnvdeqmmlnivoszq.supabase.co';
-      const supabaseAnonKey = 'sb_publishable_eFPKG8kUCxXFvrx_x7bBLQ_7TaKcVSY';
-      
-      await SupabaseService.initialize(
-        url: supabaseUrl, 
-        anonKey: supabaseAnonKey,
-      );
-    } catch (e) {
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Errore di connessione'),
-            content: const Text('Impossibile connettersi al server. Riprova più tardi.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-      return;
+      initialLink = await getInitialLink();
+      print('[DEBUG] initialLink: $initialLink');
+    } catch (e, st) {
+      print('[ERROR] getInitialLink failed: $e\n$st');
     }
 
-    final isLogged = SupabaseService().currentUser != null;
-    if (!mounted) return;
-    if (isLogged) {
-      // Vai a Home (placeholder, da personalizzare)
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const Placeholder()),
-      );
-    } else {
-      // Mandalo al login
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
+    final queryParams = Uri.base.queryParameters;
+
+    // BLOCCA getSessionFromUrl se siamo in recovery mode (controlla flag globale PRIMA)
+    bool isRecoveryMode = DeepLinkHandler.isRecoveryMode ||
+                          queryParams['type'] == 'recovery' || 
+                          (initialLink != null && Uri.parse(initialLink).queryParameters['type'] == 'recovery');
+    
+    if (isRecoveryMode) {
+      print('[NAV] Recovery mode attivo - skippo TUTTO getSessionFromUrl');
     }
+    
+    if (UniversalPlatform.isWeb) {
+      // Se il link è scaduto o già usato, mostra un messaggio e rimanda al login
+      if (queryParams['error_code'] == 'otp_expired') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Il link utilizzato è scaduto o non più valido. Richiedi un nuovo reset password o registrazione.'),
+            backgroundColor: Colors.red,
+          ));
+          Navigator.of(context).pushReplacementNamed('/login');
+        });
+        return;
+      }
+      // NON processare session se siamo in recovery
+      if (!isRecoveryMode) {
+        final search = Uri.base.query;
+        print('[DEBUG] Web query: $search');
+        if (search.contains('code=') || search.contains('access_token=') || search.contains('error=')) {
+          try {
+            print('[DEBUG] Web: trovati parametri auth, provo getSessionFromUrl');
+            await supabase.auth.getSessionFromUrl(Uri.base);
+          } catch (err, st) {
+            print('[ERROR] Web getSessionFromUrl: $err\n$st');
+          }
+        } else {
+          print('[DEBUG] Web: nessun parametro magico trovato, skippa getSessionFromUrl');
+        }
+      } else {
+        print('[DEBUG] Web: recovery mode rilevato, skippo getSessionFromUrl');
+      }
+    } else if (initialLink != null && !isRecoveryMode) {
+      // MOBILE/DESKTOP: gestisce automatico magic/reset ecc. MA NON recovery
+      try {
+        print('[DEBUG] Mobile/Desktop: provo getSessionFromUrl con initialLink');
+        await supabase.auth.getSessionFromUrl(Uri.parse(initialLink));
+      } catch (err, st) {
+        print('[ERROR] Mobile/Desktop getSessionFromUrl: $err\n$st');
+      }
+    } else if (isRecoveryMode) {
+      print('[DEBUG] Mobile/Desktop: recovery mode rilevato, skippo getSessionFromUrl');
+    }
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) return;
+    
+    // BLOCCA TOTALE se recovery mode attivo (flag globale)
+    if (DeepLinkHandler.isRecoveryMode) {
+      print('[NAV] SplashScreen: recovery mode attivo - BLOCCATO redirect a /home o /login');
+      return;
+    }
+    
+    // Pattern: non navigare MAI nessuna pagina se già su set-new-password (o altri recovery)!
+    final currentRoute = ModalRoute.of(context)?.settings.name;
+    if (currentRoute == '/set-new-password') {
+      print('[NAV] SplashScreen: già su set-new-password - BLOCCATO redirect');
+      return;
+    }
+    
+    final session = supabase.auth.currentSession;
+    print('[DEBUG] session auth: $session');
+    if (session != null) {
+      Navigator.of(context).pushReplacementNamed('/event-selection');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/login');
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Color(0xFFE8F0FE),
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
