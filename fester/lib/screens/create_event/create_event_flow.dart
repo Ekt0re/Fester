@@ -3,7 +3,9 @@ import 'package:fester/screens/create_event/staff_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import '../../services/SupabaseServicies/event_service.dart';
+import '../../services/SupabaseServicies/models/event_staff.dart';
 import 'create_menu_screen.dart';
 import '../event_selection_screen.dart';
 
@@ -17,7 +19,7 @@ class CreateEventFlow extends StatefulWidget {
 class _CreateEventFlowState extends State<CreateEventFlow> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  List<StaffMember> _staffMembers = [];
+  List<EventStaff> _staffMembers = [];
 
   // Dati raccolti attraverso il flusso
   String? _eventName;
@@ -170,38 +172,51 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
           }
         }
       } catch (e) {
-        // Log errore ma non bloccare la creazione evento
         debugPrint('Errore creazione menu: $e');
       }
 
-        //Creazione Staff x Evento
+      // 5. Creazione Staff x Evento
       for (final member in _staffMembers) {
         try {
-          // First, get or create the user by email
-          final userResponse = await Supabase.instance.client
-            .from('profiles')
-            .select('id')
-            .eq('email', member.email)
-            .maybeSingle();
-
-          if (userResponse == null) {
-            // If user doesn't exist, you might want to create them or skip
-            debugPrint('User with email ${member.email} not found');
-            continue;
+          // Mappa il ruolo locale (Staff1/2/3) al ruolo DB (staff1/staff2/staff3)
+          String dbRoleName;
+          switch (member.roleId) {
+            case 3:
+              dbRoleName = 'staff3';
+              break;
+            case 2:
+              dbRoleName = 'staff2';
+              break;
+            case 1:
+            default:
+              dbRoleName = 'staff1';
+              break;
           }
 
-          await Supabase.instance.client.from('event_staff').upsert({
+          // Ottieni l'ID del ruolo
+          final roleResponse = await Supabase.instance.client
+            .from('role')
+            .select('id')
+            .eq('name', dbRoleName)
+            .maybeSingle();
+            
+          if (roleResponse == null) {
+             debugPrint('Role $dbRoleName not found');
+             continue;
+          }
+
+          // Inserisci in event_staff (solo mail, il trigger collegherà l'utente se esiste)
+          await Supabase.instance.client.from('event_staff').insert({
             'event_id': event.id,
-            'user_id': userResponse['id'],
-            'role': member.role,
+            'role_id': roleResponse['id'],
+            'mail': member.mail,
             'assigned_by': Supabase.instance.client.auth.currentUser?.id,
           });
         } catch (e) {
-          debugPrint('Error assigning staff ${member.email}: $e');
-          // Continue with the next staff member even if one fails
+          debugPrint('Error assigning staff ${member.mail}: $e');
         }
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Evento creato con successo!')),
@@ -224,21 +239,22 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFB8D4E8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFB8D4E8),
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'FESTER 3.0',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 28,
+          style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         centerTitle: true,
@@ -258,8 +274,8 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
                     decoration: BoxDecoration(
                       color:
                           index <= _currentPage
-                              ? Colors.black87
-                              : Colors.black26,
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurface.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -309,6 +325,9 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
                 _Step4Settings(
                   eventId: _createdEventId,
                   menuCreated: _menuCreated,
+                  menuName: _menuName,
+                  menuDescription: _menuDescription,
+                  menuItemsData: _menuItemsData,
                   ageRestriction: _ageRestriction,
                   maxDrinksPerPerson: _maxDrinksPerPerson,
                   onAgeRestrictionChanged:
@@ -353,25 +372,29 @@ class _Step1BasicInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'ORGANIZZA LA TUA FESTA!',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'CREA LA TUA FESTA!',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -395,24 +418,15 @@ class _Step1BasicInfo extends StatelessWidget {
           ElevatedButton(
             onPressed:
                 eventName != null && eventName!.isNotEmpty ? onNext : null,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: Colors.grey,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Avanti', style: TextStyle(fontSize: 16)),
+            child: const Text('Avanti'),
           ),
           const SizedBox(height: 120),
 
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Indietro',
-              style: TextStyle(color: Colors.black54, fontSize: 16),
+              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
             ),
           ),
         ],
@@ -457,6 +471,7 @@ class _Step2DateTime extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final canProceed = startDate != null && startTime != null;
 
     return SingleChildScrollView(
@@ -464,20 +479,22 @@ class _Step2DateTime extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'ORGANIZZA LA TUA FESTA!',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'DICHIARAZIONE DI RESPONSABILITA\'',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -512,24 +529,15 @@ class _Step2DateTime extends StatelessWidget {
 
           ElevatedButton(
             onPressed: canProceed ? onNext : null,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: Colors.grey,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Avanti', style: TextStyle(fontSize: 16)),
+            child: const Text('Avanti'),
           ),
           const SizedBox(height: 16),
 
           TextButton(
             onPressed: onBack,
-            child: const Text(
+            child: Text(
               'Indietro',
-              style: TextStyle(color: Colors.black54, fontSize: 16),
+              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
             ),
           ),
         ],
@@ -541,8 +549,8 @@ class _Step2DateTime extends StatelessWidget {
 // STEP 3: Gestione Staff
 class _Step3Staff extends StatefulWidget {
   final String eventId;
-  final List<StaffMember> initialStaff;
-  final Function(List<StaffMember>) onStaffUpdated;
+  final List<EventStaff> initialStaff;
+  final Function(List<EventStaff>) onStaffUpdated;
   final VoidCallback onNext;
   final VoidCallback onBack;
 
@@ -561,7 +569,7 @@ class _Step3Staff extends StatefulWidget {
 class _Step3StaffState extends State<_Step3Staff> {
   String? _inviteLink;
   bool _isLoading = true;
-  late List<StaffMember> _staffList;
+  late List<EventStaff> _staffList;
 
 
   @override
@@ -609,25 +617,29 @@ class _Step3StaffState extends State<_Step3Staff> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'ORGANIZZA LA TUA FESTA!',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'GESTISCI LO STAFF',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -635,16 +647,19 @@ class _Step3StaffState extends State<_Step3Staff> {
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.grey[300]!),
+              side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
             ),
+            color: theme.cardTheme.color,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Link di invito Staff',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   if (_isLoading)
@@ -656,16 +671,13 @@ class _Step3StaffState extends State<_Step3Staff> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
+                            color: theme.colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
                           ),
                           child: SelectableText(
                             _inviteLink ?? 'Nessun link disponibile',
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontSize: 14,
-                            ),
+                            style: theme.textTheme.bodyMedium,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -676,8 +688,6 @@ class _Step3StaffState extends State<_Step3Staff> {
                           label: const Text('Copia link'),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: Colors.black87,
-                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -708,12 +718,15 @@ class _Step3StaffState extends State<_Step3Staff> {
                 ),
               );
             },
-            icon: const Icon(Icons.person_add, size: 20),
-            label: const Text('Aggiungi manualmente staff'),
+            icon: Icon(Icons.person_add, size: 20, color: theme.colorScheme.primary),
+            label: Text(
+              'Aggiungi manualmente staff',
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.white.withOpacity(0.7),
-              side: const BorderSide(color: Colors.black26),
+              backgroundColor: theme.cardTheme.color,
+              side: BorderSide(color: theme.colorScheme.outline),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -723,23 +736,15 @@ class _Step3StaffState extends State<_Step3Staff> {
 
           ElevatedButton(
             onPressed: widget.onNext,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Avanti', style: TextStyle(fontSize: 16)),
+            child: const Text('Avanti'),
           ),
           const SizedBox(height: 16),
 
           TextButton(
             onPressed: widget.onBack,
-            child: const Text(
+            child: Text(
               'Indietro',
-              style: TextStyle(color: Colors.black54, fontSize: 16),
+              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
             ),
           ),
         ],
@@ -752,6 +757,9 @@ class _Step3StaffState extends State<_Step3Staff> {
 class _Step4Settings extends StatelessWidget {
   final String? eventId;
   final bool menuCreated;
+  final String? menuName;
+  final String? menuDescription;
+  final List<Map<String, dynamic>>? menuItemsData;
   final int? ageRestriction;
   final int? maxDrinksPerPerson;
   final ValueChanged<int?> onAgeRestrictionChanged;
@@ -768,6 +776,9 @@ class _Step4Settings extends StatelessWidget {
   const _Step4Settings({
     this.eventId,
     required this.menuCreated,
+    this.menuName,
+    this.menuDescription,
+    this.menuItemsData,
     required this.ageRestriction,
     required this.maxDrinksPerPerson,
     required this.onAgeRestrictionChanged,
@@ -779,25 +790,29 @@ class _Step4Settings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'ORGANIZZA LA TUA FESTA!',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
               letterSpacing: 1.2,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'Personalizza la tua festa!',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -810,6 +825,9 @@ class _Step4Settings extends StatelessWidget {
                   builder:
                       (context) => CreateMenuScreen(
                         eventId: eventId, // Passa eventId se disponibile
+                        initialMenuName: menuName,
+                        initialMenuDescription: menuDescription,
+                        initialMenuItems: menuItemsData,
                       ),
                 ),
               );
@@ -825,10 +843,10 @@ class _Step4Settings extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               backgroundColor:
                   menuCreated
-                      ? Colors.green.withOpacity(0.2)
-                      : Colors.white.withOpacity(0.7),
+                      ? theme.colorScheme.secondary.withOpacity(0.1)
+                      : theme.cardTheme.color,
               side: BorderSide(
-                color: menuCreated ? Colors.green : Colors.black26,
+                color: menuCreated ? theme.colorScheme.secondary : theme.colorScheme.outline,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -838,9 +856,9 @@ class _Step4Settings extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  menuCreated ? 'Menù creato ✓' : 'Crea menù e preziario',
+                  menuCreated ? 'Modifica Menù ✓' : 'Crea menù e preziario',
                   style: TextStyle(
-                    color: menuCreated ? Colors.green : Colors.black87,
+                    color: menuCreated ? theme.colorScheme.secondary : theme.colorScheme.onSurface,
                     fontSize: 16,
                   ),
                 ),
@@ -877,8 +895,8 @@ class _Step4Settings extends StatelessWidget {
             onPressed: onComplete,
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -889,9 +907,9 @@ class _Step4Settings extends StatelessWidget {
 
           TextButton(
             onPressed: onBack,
-            child: const Text(
+            child: Text(
               'Indietro',
-              style: TextStyle(color: Colors.black54, fontSize: 16),
+              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 16),
             ),
           ),
         ],
@@ -951,30 +969,32 @@ class _InputFieldState extends State<_InputField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           widget.label,
-          style: const TextStyle(
-            fontSize: 14,
+          style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.7),
+            color: theme.cardTheme.color,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.black12),
+            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
           ),
           child: TextField(
             controller: _controller,
             keyboardType: widget.keyboardType,
             maxLines: widget.maxLines,
+            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: widget.hint,
+              hintStyle: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.3)),
               contentPadding: const EdgeInsets.all(16),
               border: InputBorder.none,
             ),
@@ -1002,15 +1022,15 @@ class _DateTimeField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 14,
+          style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -1024,22 +1044,35 @@ class _DateTimeField extends StatelessWidget {
                     initialDate: date ?? DateTime.now(),
                     firstDate: DateTime.now(),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
+                    builder: (context, child) {
+                      return Theme(
+                        data: theme.copyWith(
+                          colorScheme: theme.colorScheme.copyWith(
+                            primary: theme.colorScheme.primary,
+                            onPrimary: theme.colorScheme.onPrimary,
+                            surface: theme.colorScheme.surface,
+                            onSurface: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
                   );
                   onDateChanged(picked);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: theme.cardTheme.color,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.black12),
+                    border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
                   ),
                   child: Text(
                     date != null
                         ? '${date!.day}/${date!.month}/${date!.year}'
                         : 'Seleziona data',
-                    style: TextStyle(
-                      color: date != null ? Colors.black87 : Colors.grey,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: date != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -1052,22 +1085,35 @@ class _DateTimeField extends StatelessWidget {
                   final picked = await showTimePicker(
                     context: context,
                     initialTime: time ?? TimeOfDay.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: theme.copyWith(
+                          colorScheme: theme.colorScheme.copyWith(
+                            primary: theme.colorScheme.primary,
+                            onPrimary: theme.colorScheme.onPrimary,
+                            surface: theme.colorScheme.surface,
+                            onSurface: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
                   );
                   onTimeChanged(picked);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: theme.cardTheme.color,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.black12),
+                    border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
                   ),
                   child: Text(
                     time != null
                         ? '${time!.hour.toString().padLeft(2, '0')}:${time!.minute.toString().padLeft(2, '0')}'
                         : 'Seleziona ora',
-                    style: TextStyle(
-                      color: time != null ? Colors.black87 : Colors.grey,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: time != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                 ),

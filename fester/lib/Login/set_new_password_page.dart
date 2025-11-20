@@ -48,57 +48,81 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFE8F0FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
-        child: Container(
-          padding: const EdgeInsets.all(40),
-          width: 400,
-          decoration: BoxDecoration(
-            color: const Color(0xFFB8D4F1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Imposta una nuova password',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Nuova password',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (v) => v != null && v.length >= 8 ? null : 'Minimo 8 caratteri',
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5B8BC9),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                color: theme.cardTheme.color,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Imposta una nuova password',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          style: theme.textTheme.bodyLarge,
+                          decoration: const InputDecoration(
+                            labelText: 'Nuova password',
+                            prefixIcon: Icon(Icons.lock_outline),
+                          ),
+                          validator: (v) => v != null && v.length >= 8 ? null : 'Minimo 8 caratteri',
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _submit,
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Salva'),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacementNamed('/login');
+                          },
+                          child: Text(
+                            'Annulla',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                    child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Salva'),
                   ),
                 ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/login');
-                  },
-                  child: const Text('Annulla'),
-                )
-              ],
+              ),
             ),
           ),
         ),

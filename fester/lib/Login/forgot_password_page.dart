@@ -50,68 +50,73 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFE8F0FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              color: const Color(0xFFB8D4F1),
-              borderRadius: BorderRadius.circular(20),
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                color: theme.cardTheme.color,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: _emailSent ? _buildSuccessView(theme) : _buildFormView(theme),
+                ),
+              ),
             ),
-            child: _emailSent ? _buildSuccessView() : _buildFormView(),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFormView() {
+  Widget _buildFormView(ThemeData theme) {
     return Form(
       key: _formKey,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'FESTER 3.0',
-            style: TextStyle(
-              fontSize: 32,
+            style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A1A),
+              color: theme.colorScheme.primary,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'ORGANIZZA LA TUA FESTA!',
-            style: TextStyle(
-              fontSize: 12,
-              color: Color(0xFF4A4A4A),
+            style: theme.textTheme.bodySmall?.copyWith(
               letterSpacing: 1.2,
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
           const SizedBox(height: 50),
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'Recupera Password',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1A1A),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
           const SizedBox(height: 10),
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'Inserisci la tua email per ricevere\nil link di reset della password',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF4A4A4A),
+              style: theme.textTheme.bodyMedium?.copyWith(
                 height: 1.5,
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
             ),
           ),
@@ -119,18 +124,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
-              hintText: 'Mail',
-              filled: true,
-              fillColor: Colors.white.withAlpha(230),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
+            style: theme.textTheme.bodyLarge,
+            decoration: const InputDecoration(
+              labelText: 'Email',
+              prefixIcon: Icon(Icons.email_outlined),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -148,14 +145,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             height: 50,
             child: ElevatedButton(
               onPressed: _isLoading ? null : _handleResetPassword,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5B8BC9),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
               child:
                   _isLoading
                       ? const SizedBox(
@@ -166,24 +155,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           color: Colors.white,
                         ),
                       )
-                      : const Text(
-                        'Invia Link',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      : const Text('Invia Link'),
             ),
           ),
           const SizedBox(height: 20),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              '< Back',
+            child: Text(
+              '< Indietro',
               style: TextStyle(
-                color: Color(0xFF1A1A1A),
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
-                fontSize: 16,
               ),
             ),
           ),
@@ -192,25 +174,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildSuccessView() {
+  Widget _buildSuccessView(ThemeData theme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
+        Text(
           'FESTER 3.0',
-          style: TextStyle(
-            fontSize: 32,
+          style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1A1A1A),
+            color: theme.colorScheme.primary,
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'ORGANIZZA LA TUA FESTA!',
-          style: TextStyle(
-            fontSize: 12,
-            color: Color(0xFF4A4A4A),
+          style: theme.textTheme.bodySmall?.copyWith(
             letterSpacing: 1.2,
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
           ),
         ),
         const SizedBox(height: 50),
@@ -218,32 +198,29 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           width: 150,
           height: 150,
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha(80),
+            color: theme.colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(75),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.check_circle_outline,
             size: 80,
-            color: Color(0xFF5B8BC9),
+            color: theme.colorScheme.primary,
           ),
         ),
         const SizedBox(height: 30),
-        const Text(
+        Text(
           'Email Inviata!',
-          style: TextStyle(
-            fontSize: 22,
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1A1A1A),
           ),
         ),
         const SizedBox(height: 16),
         Text(
           'Abbiamo inviato un link per il reset\ndella password a:\n${_emailController.text}',
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 15,
-            color: Color(0xFF4A4A4A),
+          style: theme.textTheme.bodyMedium?.copyWith(
             height: 1.5,
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 40),
@@ -258,27 +235,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 (route) => false,
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5B8BC9),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 0,
-            ),
-            child: const Text(
-              'Torna al Login',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
+            child: const Text('Torna al Login'),
           ),
         ),
         const SizedBox(height: 20),
         TextButton(
           onPressed: _isLoading ? null : () => _handleResetPassword(),
-          child: const Text(
+          child: Text(
             'Reinvia email',
             style: TextStyle(
-              color: Color(0xFF1A1A1A),
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),

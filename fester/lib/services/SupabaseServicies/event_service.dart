@@ -3,25 +3,31 @@ import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/event.dart';
 import 'models/event_settings.dart';
+import 'models/event_staff.dart';
 
 class EventService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// Get all events for current user (where user is staff)
+  /// Get all events for current staff_user
+  /// Uses RLS policies: automatically filters events where user is creator or staff
   Future<List<Event>> getMyEvents() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
+      print('[EventService] Getting events for staff_user: $userId');
+
+      // Simplified query thanks to RLS policies (event_select_unified)
       final response = await _supabase
           .from('event')
-          .select('''
-            *
-          ''')
+          .select()
+          .isFilter('deleted_at', null)
           .order('created_at', ascending: false);
 
+      print('[EventService] Found ${(response as List).length} events');
       return (response as List).map((json) => Event.fromJson(json)).toList();
     } catch (e) {
+      print('[EventService] ERROR: $e');
       rethrow;
     }
   }
@@ -47,12 +53,13 @@ class EventService {
   String _generateInviteCode(String userId) {
     final random = Random.secure();
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final randomString = List.generate(5, (index) => 
-      chars[random.nextInt(chars.length)]).join();
-    
+    final randomString =
+        List.generate(5, (index) => chars[random.nextInt(chars.length)]).join();
+
     final now = DateTime.now();
-    final timeString = '${now.year}${now.month}${now.day}${now.hour}${now.minute}';
-    
+    final timeString =
+        '${now.year}${now.month}${now.day}${now.hour}${now.minute}';
+
     return '${userId.substring(0, 6)}$timeString$randomString';
   }
 
@@ -63,7 +70,7 @@ class EventService {
       if (userId == null) throw Exception('User not authenticated');
 
       final inviteCode = _generateInviteCode(userId);
-      
+
       final response =
           await _supabase
               .from('event')
@@ -76,11 +83,14 @@ class EventService {
               .select()
               .single();
 
-      // Add creator as staff
+      // Add creator as staff (use staff_user_id consistently)
+      // Note: RLS policy event_insert_admin_only might restrict this if not handled by trigger or policy
+      // Assuming creator has permission to insert into event_staff for their own event
       await _supabase.from('event_staff').insert({
         'event_id': response['id'],
-        'user_id': userId,
-        'role': 'admin',
+        'staff_user_id': userId,
+        'role_id': 1, // Default to admin role (id=1 usually, check your seed data)
+        'assigned_by': userId,
       });
 
       return Event.fromJson(response);
@@ -88,15 +98,16 @@ class EventService {
       rethrow;
     }
   }
-  
+
   /// Get event by invite code
   Future<Event?> getEventByInviteCode(String inviteCode) async {
     try {
-      final response = await _supabase
-          .from('event')
-          .select()
-          .eq('invite_code', inviteCode)
-          .maybeSingle();
+      final response =
+          await _supabase
+              .from('event')
+              .select()
+              .eq('invite_code', inviteCode)
+              .maybeSingle();
 
       if (response == null) return null;
       return Event.fromJson(response);
@@ -223,7 +234,7 @@ class EventService {
   }
 
   /// Get event staff members
-  Future<List<Map<String, dynamic>>> getEventStaff(String eventId) async {
+  Future<List<EventStaff>> getEventStaff(String eventId) async {
     try {
       final response = await _supabase
           .from('event_staff')
@@ -235,7 +246,7 @@ class EventService {
           .eq('event_id', eventId)
           .order('created_at', ascending: false);
 
-      return List<Map<String, dynamic>>.from(response);
+      return (response as List).map((json) => EventStaff.fromJson(json)).toList();
     } catch (e) {
       rethrow;
     }
@@ -287,3 +298,4 @@ class EventService {
         .map((data) => Event.fromJson(data.first));
   }
 }
+

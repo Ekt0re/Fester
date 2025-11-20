@@ -9,7 +9,10 @@ import 'services/SupabaseServicies/supabase_config.dart';
 import 'services/SupabaseServicies/deep_link_handler.dart';
 import 'Login/set_new_password_page.dart';
 import 'screens/event_selection_screen.dart';
+import 'screens/dashboard/event_dashboard_screen.dart';
 import 'package:logger/logger.dart';
+
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,10 +29,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fester 3.0',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       initialRoute: initialRoute,
       routes: {
         '/': (context) => const SplashScreen(),
@@ -37,6 +39,10 @@ class MyApp extends StatelessWidget {
         '/event-selection': (context) => const EventSelectionScreen(),
         '/login': (context) => const LoginPage(),
         '/set-new-password': (context) => const SetNewPasswordPage(),
+        '/event-detail': (context) {
+          final eventId = ModalRoute.of(context)!.settings.arguments as String;
+          return EventDashboardScreen(eventId: eventId);
+        },
       },
       onGenerateRoute: (settings) {
         return MaterialPageRoute(
