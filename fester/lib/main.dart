@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:uni_links/uni_links.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -9,13 +10,22 @@ import 'services/SupabaseServicies/supabase_config.dart';
 import 'services/SupabaseServicies/deep_link_handler.dart';
 import 'Login/set_new_password_page.dart';
 import 'screens/event_selection_screen.dart';
+import 'screens/dashboard/event_dashboard_screen.dart';
 import 'package:logger/logger.dart';
+
+import 'theme/app_theme.dart';
+import 'providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy(); // Rimuove il # dagli URL
   await SupabaseConfig.initialize();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -24,23 +34,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Fester 3.0',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      initialRoute: initialRoute,
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/home': (context) => const HomePage(),
-        '/event-selection': (context) => const EventSelectionScreen(),
-        '/login': (context) => const LoginPage(),
-        '/set-new-password': (context) => const SetNewPasswordPage(),
-      },
-      onGenerateRoute: (settings) {
-        return MaterialPageRoute(
-          builder: (context) => const SplashScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Fester 3.0',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
+          initialRoute: initialRoute,
+          routes: {
+            '/': (context) => const SplashScreen(),
+            '/home': (context) => const HomePage(),
+            '/event-selection': (context) => const EventSelectionScreen(),
+            '/login': (context) => const LoginPage(),
+            '/set-new-password': (context) => const SetNewPasswordPage(),
+            '/event-detail': (context) {
+              final eventId = ModalRoute.of(context)!.settings.arguments as String;
+              return EventDashboardScreen(eventId: eventId);
+            },
+          },
+          onGenerateRoute: (settings) {
+            return MaterialPageRoute(
+              builder: (context) => const SplashScreen(),
+            );
+          },
         );
       },
     );

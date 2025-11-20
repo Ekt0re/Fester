@@ -4,7 +4,9 @@ import '../services/SupabaseServicies/event_service.dart';
 import '../services/SupabaseServicies/staff_user_service.dart';
 import '../services/SupabaseServicies/models/event.dart';
 import '../services/SupabaseServicies/models/event_settings.dart';
+import '../widgets/animated_settings_icon.dart';
 import 'create_event/create_event_flow.dart';
+import 'settings/settings_screen.dart';
 
 class EventSelectionScreen extends StatefulWidget {
   const EventSelectionScreen({super.key});
@@ -46,15 +48,18 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
 
         // Trova il ruolo dell'utente corrente
         final currentUser = await _staffUserService.getCurrentStaffUser();
-        final userStaff = staffList.firstWhere(
-          (staff) => staff['staff_user_id'] == currentUser?.id,
-          orElse: () => {},
+        
+        // Use where().firstOrNull pattern which is safer and cleaner
+        // If firstOrNull is not available in older Dart, we can use isEmpty check
+        final matchingStaff = staffList.where(
+          (staff) => staff.staffUserId == currentUser?.id,
         );
+        final userStaff = matchingStaff.isNotEmpty ? matchingStaff.first : null;
 
         final eventDetails = EventWithDetails(
           event: event,
           settings: settings,
-          userRole: userStaff['role_name'] as String? ?? 'Staff',
+          userRole: userStaff?.roleName ?? 'Staff',
         );
 
         // Separa in base a deleted_at (archiviati)
@@ -116,24 +121,32 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFB8D4E8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFB8D4E8),
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'FESTER 3.0',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 32,
+          style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.party_mode, color: Colors.pinkAccent),
-            onPressed: () {},
+          AnimatedSettingsIcon(
+            color: theme.colorScheme.secondary,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -145,118 +158,122 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'ORGANIZZA LA TUA FESTA!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      const Text(
-                        'Seleziona l\'evento che vuoi gestire!',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Eventi attivi
-                      if (_activeEvents.isEmpty && !_showArchived)
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'Nessun evento attivo.\nCrea il tuo primo evento!',
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 800),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'ORGANIZZA LA TUA FESTA!',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 1.2,
+                              color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            ),
                           ),
-                        )
-                      else
-                        ...(_showArchived ? _archivedEvents : _activeEvents)
-                            .map(
-                              (eventDetails) => _EventCard(
-                                eventDetails: eventDetails,
-                                status: _getEventStatus(eventDetails),
-                                statusColor: _getStatusColor(
-                                  _getEventStatus(eventDetails),
+                          const SizedBox(height: 32),
+                          Text(
+                            'Seleziona l\'evento che vuoi gestire!',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Eventi attivi
+                          if (_activeEvents.isEmpty && !_showArchived)
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: theme.cardTheme.color,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Nessun evento attivo.\nCrea il tuo primo evento!',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            )
+                          else
+                            ...(_showArchived ? _archivedEvents : _activeEvents)
+                                .map(
+                                  (eventDetails) => _EventCard(
+                                    eventDetails: eventDetails,
+                                    status: _getEventStatus(eventDetails),
+                                    statusColor: _getStatusColor(
+                                      _getEventStatus(eventDetails),
+                                    ),
+                                    onTap: () {
+                                      // Naviga alla schermata di gestione evento
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/event-detail',
+                                        arguments: eventDetails.event.id,
+                                      );
+                                    },
+                                  ),
                                 ),
-                                onTap: () {
-                                  // Naviga alla schermata di gestione evento
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/event-detail',
-                                    arguments: eventDetails.event.id,
-                                  );
-                                },
+
+                          const SizedBox(height: 16),
+
+                          // Pulsante visualizza eventi archiviati
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              setState(() => _showArchived = !_showArchived);
+                            },
+                            icon: Icon(
+                              _showArchived ? Icons.event_available : Icons.archive,
+                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                            label: Text(
+                              _showArchived
+                                  ? 'Mostra eventi attivi'
+                                  : 'Visualizza eventi passati',
+                              style: TextStyle(color: theme.colorScheme.onSurface),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: theme.cardTheme.color,
+                              side: BorderSide(color: theme.colorScheme.outline),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-
-                      const SizedBox(height: 16),
-
-                      // Pulsante visualizza eventi archiviati
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          setState(() => _showArchived = !_showArchived);
-                        },
-                        icon: Icon(
-                          _showArchived ? Icons.event_available : Icons.archive,
-                          color: Colors.black54,
-                        ),
-                        label: Text(
-                          _showArchived
-                              ? 'Mostra eventi attivi'
-                              : 'Visualizza eventi passati',
-                          style: const TextStyle(color: Colors.black87),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.white.withOpacity(0.7),
-                          side: const BorderSide(color: Colors.black26),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ),
-                      ),
 
-                      const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
-                      // Pulsante crea evento
-                      ElevatedButton(
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CreateEventFlow(),
+                          // Pulsante crea evento
+                          ElevatedButton(
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CreateEventFlow(),
+                                ),
+                              );
+                              _loadEvents();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              backgroundColor: theme.colorScheme.surface,
+                              foregroundColor: theme.colorScheme.onSurface,
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          );
-                          _loadEvents();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          backgroundColor: Colors.white.withOpacity(0.9),
-                          foregroundColor: Colors.black87,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            child: Text(
+                              'Crea il tuo evento!',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Crea il tuo evento!',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -270,8 +287,8 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
           );
           _loadEvents();
         },
-        backgroundColor: Colors.white,
-        child: const Icon(Icons.add, color: Color(0xFF9B59B6)),
+        backgroundColor: theme.colorScheme.secondary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -292,11 +309,14 @@ class _EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: Colors.white.withOpacity(0.85),
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
+        elevation: 2,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -310,15 +330,16 @@ class _EventCard extends StatelessWidget {
                     children: [
                       Text(
                         eventDetails.event.name,
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         eventDetails.userRole,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
                       ),
                     ],
                   ),

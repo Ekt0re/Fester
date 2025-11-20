@@ -7,6 +7,7 @@ class Person {
   final String? email;
   final String? phone;
   final String? imagePath;
+  final String? idEvent;
   final bool isActive;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -20,6 +21,7 @@ class Person {
     this.email,
     this.phone,
     this.imagePath,
+    this.idEvent,
     this.isActive = true,
     required this.createdAt,
     this.updatedAt,
@@ -51,6 +53,7 @@ class Person {
       email: json['email'] as String?,
       phone: json['phone'] as String?,
       imagePath: json['image_path'] as String?,
+      idEvent: json['id_event'] as String?,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt:
@@ -73,6 +76,7 @@ class Person {
       'email': email,
       'phone': phone,
       'image_path': imagePath,
+      'id_event': idEvent,
       'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),

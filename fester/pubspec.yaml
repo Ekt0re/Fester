@@ -67,6 +67,8 @@ dependencies:
   logger: ^2.3.0                 # Logging strutturato
 
   path_provider: ^2.1.3          # Path file system
+  shared_preferences: ^2.2.2     # Persistent key-value storage
+  provider: ^6.1.1               # State management
   pdf: ^3.10.8                   # Export PDF report
   csv: ^6.0.0                    # Export CSV
   share_plus: ^9.0.0             # Condivisione file
@@ -86,6 +88,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   universal_platform: ^1.1.0
+  google_fonts: ^6.3.2
   
 
   

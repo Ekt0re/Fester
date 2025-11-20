@@ -36,107 +36,103 @@ class RegistrationConfirmationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFE8F0FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(40),
-          decoration: BoxDecoration(
-            color: const Color(0xFFB8D4F1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'FESTER 3.0',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A1A),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'ORGANIZZA LA TUA FESTA!',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF4A4A4A),
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 50),
-              Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(80),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: const Icon(
-                  Icons.email_outlined,
-                  size: 100,
-                  color: Color(0xFF5B8BC9),
-                ),
-              ),
-              const SizedBox(height: 30),
-              const Text(
-                'Conferma il tuo account',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A1A),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Ti abbiamo inviato un\'email di conferma.\nClicca sul link per attivare il tuo account.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF4A4A4A),
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginPage()),
-                      (route) => false,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5B8BC9),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Accedi',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextButton(
-                onPressed: () => _resendConfirmationEmail(context),
-                child: const Text(
-                  'Non hai ricevuto l\'email? Rinvia',
-                  style: TextStyle(
-                    color: Color(0xFF1A1A1A),
-                    fontWeight: FontWeight.w600,
+                color: theme.cardTheme.color,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'FESTER 3.0',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'ORGANIZZA LA TUA FESTA!',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          letterSpacing: 1.2,
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                      const SizedBox(height: 50),
+                      Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: Icon(
+                          Icons.email_outlined,
+                          size: 100,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      Text(
+                        'Conferma il tuo account',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Ti abbiamo inviato un\'email di conferma.\nClicca sul link per attivare il tuo account.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          height: 1.5,
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginPage()),
+                              (route) => false,
+                            );
+                          },
+                          child: const Text('Accedi'),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () => _resendConfirmationEmail(context),
+                        child: Text(
+                          'Non hai ricevuto l\'email? Rinvia',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

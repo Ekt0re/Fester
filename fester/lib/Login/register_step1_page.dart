@@ -79,183 +79,153 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFE8F0FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
-          child: Container(
-            width: 400,
-            padding: const EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              color: const Color(0xFFB8D4F1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'FESTER 3.0',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'ORGANIZZA LA TUA FESTA!',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF4A4A4A),
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Registrati',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      hintText: 'Nome',
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Inserisci il tuo nome';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _surnameController,
-                    decoration: InputDecoration(
-                      hintText: 'Cognome',
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Inserisci il tuo cognome';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  InkWell(
-                    onTap: _selectDate,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _selectedDate == null
-                                ? 'Data di nascita'
-                                : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                            style: TextStyle(
-                              color:
-                                  _selectedDate == null
-                                      ? Colors.grey.shade600
-                                      : const Color(0xFF1A1A1A),
-                              fontSize: 16,
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                color: theme.cardTheme.color,
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'FESTER 3.0',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'ORGANIZZA LA TUA FESTA!',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            letterSpacing: 1.2,
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Registrati - Step 1/3',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const Icon(
-                            Icons.calendar_today,
-                            color: Colors.grey,
-                            size: 20,
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: _nameController,
+                          style: theme.textTheme.bodyLarge,
+                          decoration: const InputDecoration(
+                            labelText: 'Nome',
+                            prefixIcon: Icon(Icons.person_outline),
                           ),
-                        ],
-                      ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Inserisci il tuo nome';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _surnameController,
+                          style: theme.textTheme.bodyLarge,
+                          decoration: const InputDecoration(
+                            labelText: 'Cognome',
+                            prefixIcon: Icon(Icons.person_outline),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Inserisci il tuo cognome';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        InkWell(
+                          onTap: _selectDate,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.inputDecorationTheme.fillColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.transparent),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _selectedDate == null
+                                      ? 'Data di nascita'
+                                      : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color:
+                                        _selectedDate == null
+                                            ? theme.hintColor
+                                            : theme.textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.calendar_today,
+                                  color: theme.iconTheme.color?.withOpacity(0.6),
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _goToNextStep,
+                            child: const Text('Avanti >'),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: theme.colorScheme.onSurface,
+                              side: BorderSide(
+                                color: theme.colorScheme.primary,
+                                width: 2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('ACCEDI'),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _goToNextStep,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5B8BC9),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Avanti >',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF1A1A1A),
-                        side: const BorderSide(
-                          color: Color(0xFF5B8BC9),
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'ACCEDI',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
