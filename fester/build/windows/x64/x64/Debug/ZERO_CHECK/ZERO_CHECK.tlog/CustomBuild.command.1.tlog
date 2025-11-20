@@ -1,0 +1,10 @@
+^D:\PROGETTI\FESTER 3.0\FESTER\BUILD\WINDOWS\X64\CMAKEFILES\554308209C36E906ABA746EFB5FBC56A\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SD:/Progetti/Fester 3.0/fester/windows" "-BD:/Progetti/Fester 3.0/fester/build/windows/x64" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "D:/Progetti/Fester 3.0/fester/build/windows/x64/fester.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

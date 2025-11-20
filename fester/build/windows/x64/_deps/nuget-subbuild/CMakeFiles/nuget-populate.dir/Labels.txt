@@ -1,0 +1,15 @@
+# Target labels
+ nuget-populate
+# Source files and their labels
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/nuget-populate
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/17e444ed82a903f6cfb5512bca1d53a1/nuget-populate.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/b06659ef6e789fbe3492454f00d7381b/nuget-populate-complete.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-build.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-configure.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-copyfile.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-download.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-install.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-mkdir.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-patch.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-test.rule
+D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-update.rule
