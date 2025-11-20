@@ -213,6 +213,38 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 label: Text('Bar'),
               ),
             ],
+            trailing: Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 24.0),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.settings, color: theme.colorScheme.onPrimary.withOpacity(0.7)),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Impostazioni',
+                          style: GoogleFonts.outfit(
+                            color: theme.colorScheme.onPrimary.withOpacity(0.7),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
           const VerticalDivider(thickness: 1, width: 1),
           Expanded(
@@ -264,17 +296,18 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       ),
       centerTitle: true,
       actions: [
-        AnimatedSettingsIcon(
-          color: theme.colorScheme.secondary,
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SettingsScreen(),
-              ),
-            );
-          },
-        ),
+        if (!isDesktop)
+          AnimatedSettingsIcon(
+            color: theme.colorScheme.secondary,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
         if (isDesktop) const SizedBox(width: 16),
       ],
     );
@@ -534,7 +567,7 @@ class _DashboardCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

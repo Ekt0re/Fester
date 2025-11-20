@@ -1557,4 +1557,20 @@ WITH CHECK (
     )
 );
 
+-- Fix RLS Policy per la tabella person
+-- Esegui questo script nell'editor SQL di Supabase per risolvere l'errore 42501
+
+DROP POLICY IF EXISTS person_insert_staff2 ON person;
+
+CREATE POLICY person_insert_authenticated ON person
+FOR INSERT
+TO authenticated
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS person_select_by_staff ON person;
+
+CREATE POLICY person_select_by_staff ON person
+FOR SELECT
+TO authenticated
+USING (true);
 
