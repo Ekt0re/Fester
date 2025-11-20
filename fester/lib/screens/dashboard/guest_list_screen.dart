@@ -178,35 +178,36 @@ class _GuestListScreenState extends State<GuestListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final arrivedCount = _allParticipations.where((p) {
        final status = p['status']?['name'];
        return status == 'inside' || status == 'checked_in'; // Example logic
     }).length;
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundLight,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppTheme.primaryLight,
+        backgroundColor: theme.colorScheme.primary,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios, color: theme.colorScheme.onPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
           children: [
             Text(
               'Elenco ospiti',
-              style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold),
             ),
             Text(
               'Totale: ${_allParticipations.length} - Arrivati: $arrivedCount',
-              style: GoogleFonts.outfit(color: Colors.white70, fontSize: 12),
+              style: GoogleFonts.outfit(color: theme.colorScheme.onPrimary.withOpacity(0.7), fontSize: 12),
             ),
           ],
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.sync, color: Colors.white),
+            icon: Icon(Icons.sync, color: theme.colorScheme.onPrimary),
             onPressed: _loadData,
           ),
         ],
@@ -216,7 +217,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
           // Search & QR
           Container(
             padding: const EdgeInsets.all(16),
-            color: AppTheme.primaryLight.withOpacity(0.1),
+            color: theme.colorScheme.primary.withOpacity(0.1),
             child: Row(
               children: [
                 Expanded(
@@ -226,7 +227,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
                     decoration: InputDecoration(
                       hintText: 'Ricerca invitato...',
                       prefixIcon: const Icon(Icons.search),
-                      fillColor: Colors.white,
+                      fillColor: theme.colorScheme.surface,
                       filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -238,11 +239,11 @@ class _GuestListScreenState extends State<GuestListScreen> {
                 const SizedBox(width: 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
+                    color: theme.colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                    icon: Icon(Icons.qr_code_scanner, color: theme.colorScheme.onPrimary),
                     onPressed: () {
                       // TODO: Open QR Scanner
                     },

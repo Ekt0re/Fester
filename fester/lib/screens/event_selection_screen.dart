@@ -4,7 +4,9 @@ import '../services/SupabaseServicies/event_service.dart';
 import '../services/SupabaseServicies/staff_user_service.dart';
 import '../services/SupabaseServicies/models/event.dart';
 import '../services/SupabaseServicies/models/event_settings.dart';
+import '../widgets/animated_settings_icon.dart';
 import 'create_event/create_event_flow.dart';
+import 'settings/settings_screen.dart';
 
 class EventSelectionScreen extends StatefulWidget {
   const EventSelectionScreen({super.key});
@@ -135,9 +137,16 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.party_mode, color: theme.colorScheme.secondary),
-            onPressed: () {},
+          AnimatedSettingsIcon(
+            color: theme.colorScheme.secondary,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),

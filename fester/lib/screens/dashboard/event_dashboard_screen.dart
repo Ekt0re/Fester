@@ -5,7 +5,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/models/event.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/animated_settings_icon.dart';
 import 'guest_list_screen.dart';
+import '../settings/settings_screen.dart';
 
 class EventDashboardScreen extends StatefulWidget {
   final String eventId;
@@ -262,10 +264,15 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       ),
       centerTitle: true,
       actions: [
-        IconButton(
-          icon: Icon(Icons.settings, color: theme.colorScheme.secondary),
+        AnimatedSettingsIcon(
+          color: theme.colorScheme.secondary,
           onPressed: () {
-            // TODO: Navigate to settings
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SettingsScreen(),
+              ),
+            );
           },
         ),
         if (isDesktop) const SizedBox(width: 16),
