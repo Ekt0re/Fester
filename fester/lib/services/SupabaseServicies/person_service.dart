@@ -31,6 +31,7 @@ class PersonService {
     String? email,
     String? phone,
     String? imagePath,
+    String? idEvent,
   }) async {
     try {
       final response =
@@ -43,6 +44,7 @@ class PersonService {
                 'email': email,
                 'phone': phone,
                 'image_path': imagePath,
+                'id_event': idEvent,
               })
               .select()
               .single();
@@ -62,6 +64,7 @@ class PersonService {
     String? email,
     String? phone,
     String? imagePath,
+    String? idEvent,
   }) async {
     try {
       final updates = <String, dynamic>{
@@ -76,6 +79,7 @@ class PersonService {
       if (email != null) updates['email'] = email;
       if (phone != null) updates['phone'] = phone;
       if (imagePath != null) updates['image_path'] = imagePath;
+      if (idEvent != null) updates['id_event'] = idEvent;
 
       final response =
           await _supabase

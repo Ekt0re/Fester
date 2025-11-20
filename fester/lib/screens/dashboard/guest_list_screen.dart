@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/participation_service.dart';
+import '../../services/SupabaseServicies/event_service.dart';
 import '../../theme/app_theme.dart';
 import 'widgets/guest_card.dart';
 import '../profile/person_profile_screen.dart';
+import 'add_guest_screen.dart';
 
 class GuestListScreen extends StatefulWidget {
   final String eventId;
@@ -17,6 +19,7 @@ class GuestListScreen extends StatefulWidget {
 
 class _GuestListScreenState extends State<GuestListScreen> {
   final ParticipationService _participationService = ParticipationService();
+  final EventService _eventService = EventService();
   final TextEditingController _searchController = TextEditingController();
   
   List<Map<String, dynamic>> _allParticipations = [];
@@ -24,6 +27,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
   List<Map<String, dynamic>> _statuses = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  String? _userRole;
 
   @override
   void initState() {
@@ -42,11 +46,25 @@ class _GuestListScreenState extends State<GuestListScreen> {
 
       final participations = await _participationService.getEventParticipations(widget.eventId);
       
+      // Load user role for this event
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      String? userRole;
+      if (userId != null) {
+        try {
+          final staffList = await _eventService.getEventStaff(widget.eventId);
+          final userStaff = staffList.firstWhere((s) => s.staffUserId == userId);
+          userRole = userStaff.roleName?.toLowerCase();
+        } catch (_) {
+          // User might not be in staff list
+        }
+      }
+      
       if (mounted) {
         setState(() {
           _allParticipations = participations;
           _filteredParticipations = participations;
           _statuses = _statuses;
+          _userRole = userRole;
           _isLoading = false;
         });
       }
@@ -184,6 +202,8 @@ class _GuestListScreenState extends State<GuestListScreen> {
        return status == 'inside' || status == 'checked_in'; // Example logic
     }).length;
 
+    final canAddGuests = _userRole == 'staff3' || _userRole == 'admin';
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -299,6 +319,23 @@ class _GuestListScreenState extends State<GuestListScreen> {
           ),
         ],
       ),
+      floatingActionButton: canAddGuests ? FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddGuestScreen(eventId: widget.eventId),
+            ),
+          );
+          // Reload list if guest was added
+          if (result == true) {
+            _loadData();
+          }
+        },
+        backgroundColor: theme.colorScheme.secondary,
+        child: Icon(Icons.person_add, color: theme.colorScheme.onSecondary),
+      ) : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
