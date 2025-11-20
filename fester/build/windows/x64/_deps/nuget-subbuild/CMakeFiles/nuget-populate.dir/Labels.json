@@ -1,0 +1,49 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/nuget-populate"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/17e444ed82a903f6cfb5512bca1d53a1/nuget-populate.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/b06659ef6e789fbe3492454f00d7381b/nuget-populate-complete.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-build.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-configure.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-copyfile.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-download.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-install.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-mkdir.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-patch.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-test.rule"
+		},
+		{
+			"file" : "D:/Progetti/Fester 3.0/fester/build/windows/x64/_deps/nuget-subbuild/CMakeFiles/79588d869b39ece7d780ca38e0aa88a7/nuget-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"nuget-populate"
+		],
+		"name" : "nuget-populate"
+	}
+}
