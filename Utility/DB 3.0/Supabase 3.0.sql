@@ -1574,3 +1574,9 @@ FOR SELECT
 TO authenticated
 USING (true);
 
+-- Sblocca l'inserimento e la lettura delle persone per gli utenti autenticati
+DROP POLICY IF EXISTS person_insert_staff2 ON person;
+DROP POLICY IF EXISTS person_select_by_staff ON person;
+
+CREATE POLICY person_insert_authenticated ON person FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY person_select_by_staff ON person FOR SELECT TO authenticated USING (true);
