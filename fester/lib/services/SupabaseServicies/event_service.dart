@@ -297,5 +297,20 @@ class EventService {
         .eq('id', eventId)
         .map((data) => Event.fromJson(data.first));
   }
+
+  /// Get event menu items
+  Future<List<Map<String, dynamic>>> getEventMenuItems(String eventId) async {
+    try {
+      final response = await _supabase
+          .from('menu_item')
+          .select('*, menu!inner(event_id)')
+          .eq('menu.event_id', eventId)
+          .order('name');
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 

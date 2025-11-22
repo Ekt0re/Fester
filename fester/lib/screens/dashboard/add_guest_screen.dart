@@ -7,8 +7,15 @@ import '../../theme/app_theme.dart';
 
 class AddGuestScreen extends StatefulWidget {
   final String eventId;
+  final String? personId;
+  final Map<String, dynamic>? initialData;
 
-  const AddGuestScreen({super.key, required this.eventId});
+  const AddGuestScreen({
+    super.key,
+    required this.eventId,
+    this.personId,
+    this.initialData,
+  });
 
   @override
   State<AddGuestScreen> createState() => _AddGuestScreenState();
@@ -19,15 +26,36 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
   final PersonService _personService = PersonService();
   final ParticipationService _participationService = ParticipationService();
   
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
   
   DateTime? _dateOfBirth;
   int _selectedRoleId = 2; // Default: guest (id=2)
   int _selectedStatusId = 1; // Default: invited (id=1)
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final data = widget.initialData;
+    _firstNameController = TextEditingController(text: data?['first_name']);
+    _lastNameController = TextEditingController(text: data?['last_name']);
+    _emailController = TextEditingController(text: data?['email']);
+    _phoneController = TextEditingController(text: data?['phone']);
+    
+    if (data?['date_of_birth'] != null) {
+      _dateOfBirth = DateTime.tryParse(data!['date_of_birth']);
+    }
+    
+    // If editing, we might want to load role/status too, but those are participation details.
+    // Assuming initialData contains person details. 
+    // If we want to edit role/status, we need participation data.
+    // Let's assume initialData might have 'role_id' and 'status_id' if passed correctly.
+    if (data?['role_id'] != null) _selectedRoleId = data!['role_id'];
+    if (data?['status_id'] != null) _selectedStatusId = data!['status_id'];
+  }
 
   @override
   void dispose() {
@@ -40,26 +68,20 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
 
   Future<String> _generateNextIdEvent() async {
     try {
-      // Get all participations for this event to find the max id_event
       final participations = await _participationService.getEventParticipations(widget.eventId);
-      
       int maxId = 0;
       for (var participation in participations) {
         final person = participation['person'];
         if (person != null && person['id_event'] != null) {
           final idEvent = person['id_event'].toString();
-          // Try to parse as int, if fails skip
           final numId = int.tryParse(idEvent);
           if (numId != null && numId > maxId) {
             maxId = numId;
           }
         }
       }
-      
-      // Return next sequential number
       return (maxId + 1).toString();
     } catch (e) {
-      // If error, start from 1
       return '1';
     }
   }
@@ -72,32 +94,52 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Generate next sequential id_event
-      final idEvent = await _generateNextIdEvent();
-
-      // Create person
-      final person = await _personService.createPerson(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-        dateOfBirth: _dateOfBirth,
-        idEvent: idEvent,
-      );
-
-      // Create participation
-      await _participationService.createParticipation(
-        personId: person.id,
-        eventId: widget.eventId,
-        statusId: _selectedStatusId,
-        roleId: _selectedRoleId,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ospite aggiunto con successo!')),
+      if (widget.personId != null) {
+        // Update existing person
+        await _personService.updatePerson(
+          personId: widget.personId!,
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+          dateOfBirth: _dateOfBirth,
         );
-        Navigator.pop(context, true); // Return true to indicate success
+        
+        // Note: Role and Status update logic would go here if we want to update participation too.
+        // For now, focusing on Person details as per requirement.
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ospite aggiornato con successo!')),
+          );
+          Navigator.pop(context, true);
+        }
+      } else {
+        // Create new person
+        final idEvent = await _generateNextIdEvent();
+
+        final person = await _personService.createPerson(
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+          phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+          dateOfBirth: _dateOfBirth,
+          idEvent: idEvent,
+        );
+
+        await _participationService.createParticipation(
+          personId: person['id'],
+          eventId: widget.eventId,
+          statusId: _selectedStatusId,
+          roleId: _selectedRoleId,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ospite aggiunto con successo!')),
+          );
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       if (mounted) {

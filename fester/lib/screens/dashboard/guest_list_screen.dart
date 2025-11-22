@@ -296,11 +296,10 @@ class _GuestListScreenState extends State<GuestListScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => PersonProfileScreen(
+                                builder: (context) => PersonProfileScreen(
                                 personId: person['id'],
-                                name: person['first_name'] ?? '',
-                                surname: person['last_name'] ?? '',
-                                idEvent: person['id_event'] ?? '',
+                                eventId: widget.eventId,
+                                currentUserRole: _userRole,
                               ),
                             ),
                           );
