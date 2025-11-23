@@ -10,6 +10,7 @@ class TransactionCreationSheet extends StatefulWidget {
   final String eventId;
   final String participationId;
   final String? initialTransactionType;
+  final bool? initialIsAlcoholic; // New parameter
   final VoidCallback onSuccess;
 
   const TransactionCreationSheet({
@@ -17,6 +18,7 @@ class TransactionCreationSheet extends StatefulWidget {
     required this.eventId,
     required this.participationId,
     this.initialTransactionType,
+    this.initialIsAlcoholic,
     required this.onSuccess,
   });
 
@@ -35,33 +37,32 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
   
   // Form State
   String? _selectedMenuItemId;
-  dynamic _selectedTypeId; // Changed to dynamic to handle int or String (UUID)
+  dynamic _selectedTypeId; 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   int _quantity = 1;
-  
+  bool _isAlcoholic = true; // Default to true
+
   @override
   void initState() {
     super.initState();
+    if (widget.initialIsAlcoholic != null) {
+      _isAlcoholic = widget.initialIsAlcoholic!;
+    }
     _loadData();
   }
 
   Future<void> _loadData() async {
     try {
-      print('Loading transaction creation data...');
-      
       // Load transaction types first (CRITICAL)
       final types = await _personService.getTransactionTypes();
-      print('Loaded ${types.length} transaction types');
       
       // Load menu items (OPTIONAL)
       List<Map<String, dynamic>> items = [];
       try {
         items = await _eventService.getEventMenuItems(widget.eventId);
-        print('Loaded ${items.length} menu items');
       } catch (e) {
-        print('Error loading menu items (non-fatal): $e');
         // We continue without menu items
       }
       
@@ -86,13 +87,9 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
           if (_selectedTypeId == null && _transactionTypes.isNotEmpty) {
              _selectedTypeId = _transactionTypes.first['id'];
           }
-          
-          print('Selected Type ID: $_selectedTypeId');
         });
       }
-    } catch (e, stackTrace) {
-      print('Error loading critical data: $e');
-      print(stackTrace);
+    } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -137,6 +134,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       return;
     }
 
+    final typeName = (type['name'] as String).toLowerCase();
     final isMonetary = type['is_monetary'] ?? true;
 
     if (_nameController.text.isEmpty) {
@@ -162,6 +160,13 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       amount = parsedAmount;
     }
 
+    // Handle Non-Alcoholic Logic
+    String? description = _descriptionController.text.isEmpty ? null : _descriptionController.text;
+    if (typeName == 'drink' && !_isAlcoholic) {
+      // Append tag to description
+      description = description == null ? '[NON-ALCOHOLIC]' : '$description [NON-ALCOHOLIC]';
+    }
+
     setState(() => _isLoading = true);
     try {
       await _transactionService.createTransaction(
@@ -169,7 +174,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
         transactionTypeId: _selectedTypeId!,
         menuItemId: _selectedMenuItemId,
         name: _nameController.text,
-        description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+        description: description,
         quantity: _quantity,
         amount: amount,
       );
@@ -191,6 +196,29 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     }
   }
 
+  IconData _getIconForType(String? typeName) {
+    switch (typeName?.toLowerCase()) {
+      case 'drink':
+        return Icons.local_bar;
+      case 'food':
+        return Icons.restaurant;
+      case 'ticket':
+        return Icons.confirmation_number;
+      case 'fine':
+        return Icons.gavel;
+      case 'sanction':
+        return Icons.block;
+      case 'report':
+        return Icons.warning_amber_rounded;
+      case 'refund':
+        return Icons.replay;
+      case 'fee':
+        return Icons.attach_money;
+      default:
+        return Icons.receipt;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -198,6 +226,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     
     // Determine if current type is monetary
     bool isMonetary = true;
+    String? currentTypeName;
     if (_selectedTypeId != null && _transactionTypes.isNotEmpty) {
       final type = _transactionTypes.firstWhere(
         (t) => t['id'] == _selectedTypeId,
@@ -205,6 +234,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       );
       if (type.isNotEmpty) {
         isMonetary = type['is_monetary'] ?? true;
+        currentTypeName = (type['name'] as String).toLowerCase();
       }
     }
 
@@ -278,16 +308,14 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                 decoration: _inputDecoration('Tipo Transazione', theme),
                 items: _transactionTypes.map((type) {
                   final name = (type['name'] as String).toUpperCase();
-                  final affectsDrink = type['affects_drink_count'] == true;
+                  final typeName = (type['name'] as String).toLowerCase();
                   return DropdownMenuItem<dynamic>(
                     value: type['id'],
                     child: Row(
                       children: [
+                        Icon(_getIconForType(typeName), size: 20, color: colorScheme.primary),
+                        const SizedBox(width: 12),
                         Text(name, style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: theme.textTheme.bodyLarge?.color)),
-                        if (affectsDrink) ...[
-                          const SizedBox(width: 8),
-                          const Icon(Icons.local_bar, size: 16, color: Colors.grey),
-                        ],
                       ],
                     ),
                   );
@@ -296,6 +324,20 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                 dropdownColor: theme.cardColor,
               ),
             const SizedBox(height: 16),
+
+            // Alcohol Checkbox (Only for Drink)
+            if (currentTypeName == 'drink')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: CheckboxListTile(
+                  value: _isAlcoholic,
+                  onChanged: (val) => setState(() => _isAlcoholic = val ?? true),
+                  title: Text('Bevanda Alcolica', style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color)),
+                  activeColor: colorScheme.primary,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              ),
 
             // Menu Item Dropdown
             DropdownButtonFormField<String>(

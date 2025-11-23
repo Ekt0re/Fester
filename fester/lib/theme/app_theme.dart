@@ -23,6 +23,9 @@ class AppTheme {
   static const Color statusLeft = Color(0xFFF44336);
   static const Color statusPending = Color(0xFFFFC107);
   static const Color statusVip = Color(0xFFFFD700);
+  static const Color statusCheckedIn = Color(0xFF2196F3); // Blue
+  static const Color statusOutside = Color(0xFFFF9800); // Orange
+  static const Color statusInvited = Color(0xFF9E9E9E); // Grey
 
   // Layout Constants
   static const double desktopBreakpoint = 900.0;
@@ -162,4 +165,42 @@ class AppTheme {
       ),
     );
   }
+  // Icon Maps
+  static const Map<String, IconData> roleIcons = {
+    'admin': Icons.admin_panel_settings,
+    'staff': Icons.badge,
+    'guest': Icons.person,
+    'vip': Icons.star,
+    'pr': Icons.people,
+  };
+
+  static const Map<String, IconData> transactionIcons = {
+    'drink': Icons.local_bar,
+    'food': Icons.local_pizza,
+    'ticket': Icons.confirmation_number,
+    'entry': Icons.door_front_door,
+    'cloakroom': Icons.checkroom,
+    'other': Icons.attach_money,
+    'report': Icons.warning_amber_rounded,
+    'fine': Icons.money_off,
+    'sanction': Icons.gavel,
+  };
+
+  static const Map<String, IconData> statusIcons = {
+    'confirmed': Icons.check_circle_outline,
+    'confermato': Icons.check_circle_outline,
+    'checked_in': Icons.how_to_reg,
+    'registrato': Icons.how_to_reg,
+    'inside': Icons.login,
+    'dentro': Icons.login,
+    'arrivato': Icons.login,
+    'outside': Icons.logout,
+    'fuori': Icons.logout,
+    'left': Icons.exit_to_app,
+    'uscito': Icons.exit_to_app,
+    'partito': Icons.exit_to_app,
+    'invited': Icons.mail_outline,
+    'invitato': Icons.mail_outline,
+    'in arrivo': Icons.mail_outline,
+  };
 }

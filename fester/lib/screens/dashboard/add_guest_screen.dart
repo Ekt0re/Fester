@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../profile/widgets/transaction_list_sheet.dart';
 import '../../services/SupabaseServicies/person_service.dart';
 import '../../services/SupabaseServicies/participation_service.dart';
 import '../../theme/app_theme.dart';
@@ -32,9 +32,12 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
   late TextEditingController _phoneController;
   
   DateTime? _dateOfBirth;
-  int _selectedRoleId = 2; // Default: guest (id=2)
-  int _selectedStatusId = 1; // Default: invited (id=1)
-  bool _isLoading = false;
+  int _selectedRoleId = 2; // Default fallback
+  int _selectedStatusId = 1; // Default fallback
+  bool _isLoading = true;
+  
+  List<Map<String, dynamic>> _roles = [];
+  List<Map<String, dynamic>> _statuses = [];
 
   @override
   void initState() {
@@ -49,12 +52,52 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       _dateOfBirth = DateTime.tryParse(data!['date_of_birth']);
     }
     
-    // If editing, we might want to load role/status too, but those are participation details.
-    // Assuming initialData contains person details. 
-    // If we want to edit role/status, we need participation data.
-    // Let's assume initialData might have 'role_id' and 'status_id' if passed correctly.
-    if (data?['role_id'] != null) _selectedRoleId = data!['role_id'];
-    if (data?['status_id'] != null) _selectedStatusId = data!['status_id'];
+    _loadFormData();
+  }
+
+  Future<void> _loadFormData() async {
+    try {
+      final roles = await _participationService.getRoles();
+      final statuses = await _participationService.getParticipationStatuses();
+      
+      if (mounted) {
+        setState(() {
+          _roles = roles;
+          _statuses = statuses;
+          
+          // Set initial values from data or defaults
+          final initialRoleId = widget.initialData?['role_id'];
+          final initialStatusId = widget.initialData?['status_id'];
+
+          // Verify if initial values exist in fetched lists, otherwise use defaults or first available
+          if (initialRoleId != null && _roles.any((r) => r['id'] == initialRoleId)) {
+            _selectedRoleId = initialRoleId;
+          } else if (_roles.isNotEmpty) {
+             // If default 2 is not in list, pick first
+             if (!_roles.any((r) => r['id'] == _selectedRoleId)) {
+               _selectedRoleId = _roles.first['id'];
+             }
+          }
+
+          if (initialStatusId != null && _statuses.any((s) => s['id'] == initialStatusId)) {
+            _selectedStatusId = initialStatusId;
+          } else if (_statuses.isNotEmpty) {
+             if (!_statuses.any((s) => s['id'] == _selectedStatusId)) {
+               _selectedStatusId = _statuses.first['id'];
+             }
+          }
+          
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore caricamento dati: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -105,8 +148,15 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
           dateOfBirth: _dateOfBirth,
         );
         
-        // Note: Role and Status update logic would go here if we want to update participation too.
-        // For now, focusing on Person details as per requirement.
+        // Update Participation (Role & Status)
+        final participationId = widget.initialData?['participation_id'];
+        if (participationId != null) {
+           await _participationService.updateParticipation(
+             participationId: participationId,
+             roleId: _selectedRoleId,
+             statusId: _selectedStatusId,
+           );
+        }
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -190,7 +240,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Aggiungi Ospite',
+          widget.personId != null ? 'Modifica Ospite' : 'Aggiungi Ospite',
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
@@ -309,33 +359,62 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                     const SizedBox(height: 16),
 
                     // Role Dropdown
-                    _buildDropdown(
-                      label: 'Ruolo',
-                      value: _selectedRoleId,
-                      icon: Icons.star_outline,
-                      items: const [
-                        {'id': 2, 'name': 'Guest'},
-                        {'id': 3, 'name': 'VIP'},
-                      ],
-                      onChanged: (value) {
-                        setState(() => _selectedRoleId = value!);
-                      },
-                    ),
+                    if (_roles.isNotEmpty)
+                      _buildDropdown(
+                        label: 'Ruolo',
+                        value: _selectedRoleId,
+                        icon: Icons.star_outline,
+                        items: _roles,
+                        onChanged: (value) {
+                          setState(() => _selectedRoleId = value!);
+                        },
+                      ),
                     const SizedBox(height: 16),
 
                     // Status Dropdown
-                    _buildDropdown(
-                      label: 'Stato Iniziale',
-                      value: _selectedStatusId,
-                      icon: Icons.pending_outlined,
-                      items: const [
-                        {'id': 1, 'name': 'Invited'},
-                        {'id': 2, 'name': 'Confirmed'},
-                      ],
-                      onChanged: (value) {
-                        setState(() => _selectedStatusId = value!);
-                      },
-                    ),
+                    if (_statuses.isNotEmpty)
+                      _buildDropdown(
+                        label: 'Stato',
+                        value: _selectedStatusId,
+                        icon: Icons.pending_outlined,
+                        items: _statuses,
+                        onChanged: (value) {
+                          setState(() => _selectedStatusId = value!);
+                        },
+                      ),
+                    // Transaction Management Button (Only if editing)
+                    if (widget.personId != null) ...[
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          // We need to fetch transactions first or pass them.
+                          // Since we don't have them here, we'll open the sheet and let it handle it?
+                          // But TransactionListSheet expects a list.
+                          // We should probably fetch them here or modify TransactionListSheet.
+                          // Given the constraint, let's fetch them quickly or just pass empty and let it load?
+                          // Actually, the user wants to open it "con già spuntata la checkbox 'mostra tutto'".
+                          // We can pass a flag to TransactionListSheet to fetch data if empty?
+                          // Or better, fetch here.
+                          _openTransactionList();
+                        },
+                        icon: Icon(Icons.receipt_long, color: theme.colorScheme.primary),
+                        label: Text(
+                          'Gestisci Transazioni',
+                          style: GoogleFonts.outfit(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: theme.colorScheme.primary),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                    
                     const SizedBox(height: 32),
 
                     // Save Button
@@ -362,6 +441,44 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
               ),
             ),
     );
+  }
+
+  void _openTransactionList() async {
+    // Fetch transactions
+    setState(() => _isLoading = true);
+    try {
+      final participationId = widget.initialData?['participation_id'];
+      if (participationId != null) {
+        final transactions = await _personService.getPersonTransactions(participationId);
+        if (mounted) {
+           setState(() => _isLoading = false);
+           showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => TransactionListSheet(
+              transactions: transactions,
+              canEdit: true, // Always true here as it's admin/staff area
+              onTransactionUpdated: () {
+                // Refresh transactions if needed, but we might just close
+                // Or refresh the list locally if we keep it open
+                // For now, just refresh the list
+                _openTransactionList(); 
+              },
+            ),
+          );
+        }
+      } else {
+         setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore caricamento transazioni: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildTextField({

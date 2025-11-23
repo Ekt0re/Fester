@@ -1348,7 +1348,7 @@ INSERT INTO transaction_type (name, description, affects_drink_count, is_monetar
 ('drink', 'Consumazione bevanda', TRUE, TRUE),
 ('food', 'Consumazione cibo', FALSE, TRUE),
 ('ticket', 'Biglietto ingresso', FALSE, TRUE),
-('fine', 'Multa/PenalitÃ ', FALSE, TRUE),
+('fine', 'Multa/Penalità', FALSE, TRUE),
 ('sanction', 'Sanzione disciplinare', FALSE, FALSE),
 ('report', 'Segnalazione', FALSE, FALSE),
 ('refund', 'Rimborso', FALSE, TRUE),
