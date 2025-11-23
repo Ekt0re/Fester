@@ -1580,3 +1580,54 @@ DROP POLICY IF EXISTS person_select_by_staff ON person;
 
 CREATE POLICY person_insert_authenticated ON person FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY person_select_by_staff ON person FOR SELECT TO authenticated USING (true);
+
+
+-- Enable RLS
+ALTER TABLE event_staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE staff_user ENABLE ROW LEVEL SECURITY;
+
+-- Function to check if current user is staff for an event
+-- SECURITY DEFINER allows this function to run with privileges of the creator, 
+-- bypassing RLS on event_staff to avoid infinite recursion.
+DROP FUNCTION IF EXISTS is_event_staff(uuid);
+
+CREATE OR REPLACE FUNCTION is_event_staff(check_event_id uuid)
+RETURNS boolean AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM event_staff
+    WHERE event_id = check_event_id
+    AND staff_user_id = auth.uid()
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Policy: Allow staff to view other staff members in the same event
+-- Uses the function to break recursion
+DROP POLICY IF EXISTS "Staff can view other staff in same event" ON event_staff;
+CREATE POLICY "Staff can view other staff in same event" ON event_staff
+FOR SELECT
+USING (
+  is_event_staff(event_id)
+);
+
+-- Policy: Allow staff to view staff_user details of people in their events
+DROP POLICY IF EXISTS "Staff can view colleagues profiles" ON staff_user;
+CREATE POLICY "Staff can view colleagues profiles" ON staff_user
+FOR SELECT
+USING (
+  id IN (
+    SELECT es1.staff_user_id
+    FROM event_staff es1
+    JOIN event_staff es2 ON es1.event_id = es2.event_id
+    WHERE es2.staff_user_id = auth.uid()
+  )
+);
+
+-- Policy: Allow users to update their own profile
+DROP POLICY IF EXISTS "Users can update their own profile" ON staff_user;
+CREATE POLICY "Users can update their own profile" ON staff_user
+FOR UPDATE
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);

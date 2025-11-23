@@ -1,14 +1,16 @@
-// lib/models/event_staff.dart
+import 'staff_user.dart';
+
 class EventStaff {
   final String id;
   final String eventId;
   final String? staffUserId;
   final int roleId;
-  final String? roleName; // Added field
+  final String? roleName;
   final String? mail;
   final String? assignedBy;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final StaffUser? staff; // Added field
 
   EventStaff({
     required this.id,
@@ -20,6 +22,7 @@ class EventStaff {
     this.assignedBy,
     required this.createdAt,
     this.updatedAt,
+    this.staff,
   });
 
   factory EventStaff.fromJson(Map<String, dynamic> json) {
@@ -28,7 +31,6 @@ class EventStaff {
       eventId: json['event_id'] as String,
       staffUserId: json['staff_user_id'] as String?,
       roleId: json['role_id'] as int,
-      // Extract role name from nested role object if available
       roleName: (json['role'] as Map<String, dynamic>?)?['name'] as String?,
       mail: json['mail'] as String?,
       assignedBy: json['assigned_by'] as String?,
@@ -37,6 +39,7 @@ class EventStaff {
           json['updated_at'] != null
               ? DateTime.parse(json['updated_at'])
               : null,
+      staff: json['staff'] != null ? StaffUser.fromJson(json['staff']) : null,
     );
   }
 
@@ -51,6 +54,8 @@ class EventStaff {
       'assigned_by': assignedBy,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      // staff is usually not serialized back to DB in this context
     };
   }
 }
+

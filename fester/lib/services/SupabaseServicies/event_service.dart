@@ -236,18 +236,39 @@ class EventService {
   /// Get event staff members
   Future<List<EventStaff>> getEventStaff(String eventId) async {
     try {
+      print('[DEBUG] getEventStaff: Fetching staff for event $eventId');
       final response = await _supabase
           .from('event_staff')
           .select('''
             *,
-            staff:staff_user_id(first_name, last_name, email, image_path),
+            staff:staff_user_id(id, first_name, last_name, email, phone, date_of_birth, image_path, created_at, is_active),
             role:role_id(name, description)
           ''')
           .eq('event_id', eventId)
           .order('created_at', ascending: false);
 
-      return (response as List).map((json) => EventStaff.fromJson(json)).toList();
-    } catch (e) {
+      print('[DEBUG] getEventStaff: Received ${(response as List).length} staff members');
+      
+      final staffList = (response as List)
+          .map((json) => EventStaff.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      // Debug print first staff member to verify data
+      if (staffList.isNotEmpty) {
+        final firstStaff = staffList.first;
+        print('[DEBUG] getEventStaff: Sample staff data:');
+        print('  - Name: ${firstStaff.staff?.firstName} ${firstStaff.staff?.lastName}');
+        print('  - Email: ${firstStaff.staff?.email}');
+        print('  - Phone: ${firstStaff.staff?.phone}');
+        print('  - DOB: ${firstStaff.staff?.dateOfBirth}');
+        print('  - Image: ${firstStaff.staff?.imagePath}');
+        print('  - Role: ${firstStaff.roleName} (ID: ${firstStaff.roleId})');
+      }
+
+      return staffList;
+    } catch (e, stackTrace) {
+      print('[ERROR] getEventStaff: $e');
+      print('[ERROR] Stack trace: $stackTrace');
       rethrow;
     }
   }
@@ -285,6 +306,27 @@ class EventService {
           .eq('event_id', eventId)
           .eq('staff_user_id', staffUserId);
     } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Update staff role in event
+  Future<void> updateStaffRole({
+    required String eventId,
+    required String staffUserId,
+    required int newRoleId,
+  }) async {
+    try {
+      print('[DEBUG] updateStaffRole: Updating role for user $staffUserId in event $eventId to role $newRoleId');
+      await _supabase
+          .from('event_staff')
+          .update({'role_id': newRoleId})
+          .eq('event_id', eventId)
+          .eq('staff_user_id', staffUserId);
+      print('[DEBUG] updateStaffRole: Role updated successfully');
+    } catch (e, stackTrace) {
+      print('[ERROR] updateStaffRole: $e');
+      print('[ERROR] Stack trace: $stackTrace');
       rethrow;
     }
   }

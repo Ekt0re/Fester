@@ -94,6 +94,38 @@ class ParticipationService {
               .select()
               .single();
 
+      // If status was updated, record history
+      if (statusId != null) {
+        String? changedByPersonId;
+        final user = _supabase.auth.currentUser;
+        
+        if (user != null && user.email != null) {
+          try {
+            final eventId = response['event_id'];
+            // Try to find a person record for this user in this event
+            final personData = await _supabase
+                .from('person')
+                .select('id')
+                .eq('email', user.email!)
+                .eq('id_event', eventId)
+                .maybeSingle();
+            
+            if (personData != null) {
+              changedByPersonId = personData['id'] as String;
+            }
+          } catch (e) {
+            // Ignore error, leave changedByPersonId as null
+            print('Error finding person for history: $e');
+          }
+        }
+
+        await _supabase.from('participation_status_history').insert({
+          'participation_id': participationId,
+          'status_id': statusId,
+          'changed_by': changedByPersonId,
+        });
+      }
+
       return Participation.fromJson(response);
     } catch (e) {
       rethrow;

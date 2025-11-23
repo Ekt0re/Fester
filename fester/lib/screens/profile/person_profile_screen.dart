@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../theme/app_theme.dart';
 import '../../services/SupabaseServicies/person_service.dart';
 import '../../services/SupabaseServicies/event_service.dart';
@@ -290,32 +290,395 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     }
   }
 
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-      case 'confermato':
-        return Icons.check_circle_outline;
-      case 'checked_in':
-      case 'registrato':
-        return Icons.how_to_reg;
-      case 'inside':
-      case 'dentro':
-      case 'arrivato':
-        return Icons.login;
-      case 'outside':
-      case 'fuori':
-        return Icons.logout;
-      case 'left':
-      case 'uscito':
-      case 'partito':
-        return Icons.exit_to_app;
-      case 'invited':
-      case 'invitato':
-      case 'in arrivo':
-        return Icons.mail_outline;
-      default:
-        return Icons.help_outline;
-    }
+
+
+
+  Widget _buildAvatarAndName(ThemeData theme, ColorScheme colorScheme, String fullName) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 50,
+          backgroundColor: colorScheme.primary,
+          child: Icon(Icons.person, size: 60, color: colorScheme.onPrimary),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          fullName.toUpperCase(),
+          style: GoogleFonts.outfit(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConsumptions(ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: _cardDecoration(theme),
+      child: Column(
+        children: [
+          Text('CONSUMAZIONI', style: _headerStyle(theme)),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ConsumptionGraph(
+                label: 'ALCOL',
+                count: _alcoholCount,
+                maxCount: _maxDrinks,
+                icon: AppTheme.transactionIcons['drink']!,
+                color: Colors.blueGrey,
+                onLongPress: () => _showTransactionMenu('drink', isAlcoholic: true),
+              ),
+              ConsumptionGraph(
+                label: 'ANALCOL',
+                count: _nonAlcoholCount,
+                maxCount: null, 
+                icon: Icons.free_breakfast, 
+                color: Colors.blueGrey,
+                onLongPress: () => _showTransactionMenu('drink', isAlcoholic: false),
+              ),
+              ConsumptionGraph(
+                label: 'CIBO',
+                count: _foodCount,
+                maxCount: null,
+                icon: AppTheme.transactionIcons['food']!,
+                color: Colors.blueGrey,
+                onLongPress: () => _showTransactionMenu('food'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Totale: ',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  color: theme.textTheme.bodyMedium?.color,
+                ),
+              ),
+              Text(
+                '${_calculateTotal() >= 0 ? '+' : ''}${_calculateTotal().toStringAsFixed(2)} €',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: _calculateTotal() >= 0 ? Colors.green : Colors.red,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _showTransactionList,
+            child: Text(
+              'Visualizza elenco transazioni',
+              style: GoogleFonts.outfit(
+                color: theme.textTheme.bodyLarge?.color,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailsAndContact(ThemeData theme, ColorScheme colorScheme, String firstName, String lastName, String age, String roleName, bool isVip, String? email, String? phone, bool hasContact) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            flex: 3,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: _cardDecoration(theme),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('DETTAGLI', style: _headerStyle(theme)),
+                  const SizedBox(height: 12),
+                  _detailRow('NOME', firstName, theme),
+                  _detailRow('COGNOME', lastName, theme),
+                  _detailRow('ETÀ', age, theme),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(AppTheme.roleIcons[roleName.toLowerCase()] ?? Icons.person, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text(roleName, style: _valueStyle(theme)),
+                      if (isVip) ...[
+                        const SizedBox(width: 8),
+                        Icon(AppTheme.roleIcons['vip'], size: 16, color: AppTheme.statusVip),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 2,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: _cardDecoration(theme),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('CONTATTO', style: _headerStyle(theme)),
+                  const SizedBox(height: 12),
+                  if (email != null && email.toString().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.email, size: 16, color: theme.colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              email, 
+                              style: _valueStyle(theme).copyWith(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (phone != null && phone.toString().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.phone, size: 16, color: theme.colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              phone, 
+                              style: _valueStyle(theme).copyWith(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const Spacer(),
+                  if (hasContact)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _contactUser(email, phone),
+                        icon: const Icon(Icons.contact_phone, size: 16),
+                        label: Text(
+                          'CONTATTA',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Text('Nessun contatto', style: _labelStyle(theme)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParticipationStatus(ThemeData theme, ColorScheme colorScheme, int statusId) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: _cardDecoration(theme),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('STATO PARTECIPAZIONE', style: _headerStyle(theme)),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: statusId,
+                isExpanded: true,
+                items: _statuses.map((s) {
+                  final name = (s['name'] as String).toUpperCase();
+                  final color = _getStatusColor(s['name']);
+                  final icon = AppTheme.statusIcons[s['name'].toString().toLowerCase()] ?? Icons.help_outline;
+                  
+                  return DropdownMenuItem<int>(
+                    value: s['id'] as int,
+                    child: Row(
+                      children: [
+                        Icon(icon, color: color, size: 20),
+                        const SizedBox(width: 12),
+                        Text(
+                          name,
+                          style: GoogleFonts.outfit(
+                            color: theme.textTheme.bodyLarge?.color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null && val != statusId) {
+                    _updateStatus(val);
+                  }
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: _showStatusHistory,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Visualizza cronologia stati',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    color: colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, size: 14, color: colorScheme.primary),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportsArea(ThemeData theme, ColorScheme colorScheme, bool canEdit, List<Map<String, dynamic>> reports) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'AREA SEGNALAZIONI', 
+              style: GoogleFonts.outfit(
+                fontSize: 14, 
+                fontWeight: FontWeight.bold,
+                color: theme.textTheme.bodyLarge?.color
+              )
+            ),
+            if (canEdit)
+            TextButton.icon(
+              onPressed: () => _showTransactionMenu('report'),
+              icon: Icon(Icons.add, size: 16, color: colorScheme.error),
+              label: Text(
+                'AGGIUNGI',
+                style: GoogleFonts.outfit(
+                  color: colorScheme.error,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (reports.isNotEmpty) ...[
+           ...reports.map((r) {
+             final typeName = (r['type']?['name'] ?? '').toString().toUpperCase();
+             final name = r['name'] ?? '';
+             final description = r['description'] ?? '';
+             
+             final title = name.isNotEmpty ? '$typeName - $name' : typeName;
+
+             return Container(
+               width: double.infinity,
+               margin: const EdgeInsets.only(bottom: 12),
+               padding: const EdgeInsets.all(16),
+               decoration: _cardDecoration(theme).copyWith(
+                 boxShadow: [
+                   BoxShadow(
+                     color: colorScheme.error.withOpacity(0.1),
+                     blurRadius: 8,
+                     offset: const Offset(0, 4),
+                   )
+                 ]
+               ),
+               child: Row(
+                 children: [
+                   Icon(AppTheme.transactionIcons['report'] ?? Icons.warning_amber_rounded, color: colorScheme.error, size: 32),
+                   const SizedBox(width: 16),
+                   Expanded(
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         Text(
+                           title,
+                           style: GoogleFonts.outfit(
+                             color: colorScheme.error,
+                             fontWeight: FontWeight.bold,
+                             fontSize: 18,
+                           ),
+                         ),
+                         if (description.isNotEmpty)
+                           Text(
+                             description,
+                             style: GoogleFonts.outfit(color: Colors.grey[700]),
+                           ),
+                       ],
+                     ),
+                   ),
+                   if (canEdit)
+                     IconButton(
+                       icon: const Icon(Icons.edit, size: 20),
+                       onPressed: () {
+                         _showTransactionList();
+                       },
+                     ),
+                 ],
+               ),
+             );
+           }),
+        ] else ...[
+           Container(
+             width: double.infinity,
+             padding: const EdgeInsets.all(20),
+             decoration: _cardDecoration(theme),
+             child: Center(
+               child: Text(
+                 'Nessuna segnalazione',
+                 style: GoogleFonts.outfit(color: Colors.grey),
+               ),
+             ),
+           ),
+        ],
+      ],
+    );
   }
 
   @override
@@ -350,12 +713,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     final email = person['email'];
     final phone = person['phone'];
     
-    // Check permissions (case insensitive)
     final userRole = widget.currentUserRole?.toLowerCase();
     final canEdit = userRole == 'staff3' || userRole == 'admin';
     final hasContact = email != null || phone != null;
 
-    // Filter reports
     final reports = _transactions.where((t) {
       final typeName = (t['type']?['name'] ?? '').toString().toLowerCase();
       return ['fine', 'sanction', 'report'].contains(typeName);
@@ -385,409 +746,74 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Column(
-          children: [
-            // Avatar & Name
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: colorScheme.primary,
-              child: Icon(Icons.person, size: 60, color: colorScheme.onPrimary),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              fullName.toUpperCase(),
-              style: GoogleFonts.outfit(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 1. CONSUMPTIONS (Moved to top)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: _cardDecoration(theme),
-              child: Column(
-                children: [
-                  Text('CONSUMAZIONI', style: _headerStyle(theme)),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 900;
+          
+          if (isDesktop) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: Column(
                     children: [
-                      ConsumptionGraph(
-                        label: 'ALCOL',
-                        count: _alcoholCount,
-                        maxCount: _maxDrinks,
-                        icon: AppTheme.transactionIcons['drink']!,
-                        color: Colors.blueGrey,
-                        onLongPress: () => _showTransactionMenu('drink', isAlcoholic: true),
-                      ),
-                      ConsumptionGraph(
-                        label: 'ANALCOL',
-                        count: _nonAlcoholCount,
-                        maxCount: null, 
-                        icon: Icons.free_breakfast, 
-                        color: Colors.blueGrey,
-                        onLongPress: () => _showTransactionMenu('drink', isAlcoholic: false),
-                      ),
-                      ConsumptionGraph(
-                        label: 'CIBO',
-                        count: _foodCount,
-                        maxCount: null,
-                        icon: AppTheme.transactionIcons['food']!,
-                        color: Colors.blueGrey,
-                        onLongPress: () => _showTransactionMenu('food'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Total Spent / Earned
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Totale: ',
-                        style: GoogleFonts.outfit(
-                          fontSize: 16,
-                          color: theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                      Text(
-                        '${_calculateTotal() >= 0 ? '+' : ''}${_calculateTotal().toStringAsFixed(2)} €',
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: _calculateTotal() >= 0 ? Colors.green : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: _showTransactionList,
-                    child: Text(
-                      'Visualizza elenco transazioni',
-                      style: GoogleFonts.outfit(
-                        color: theme.textTheme.bodyLarge?.color,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 2. DETAILS + CONTACT (Side by Side)
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Personal Details
-                  Expanded(
-                    flex: 3,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: _cardDecoration(theme),
-                      child: Column(
+                      _buildAvatarAndName(theme, colorScheme, fullName),
+                      const SizedBox(height: 32),
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('DETTAGLI', style: _headerStyle(theme)),
-                          const SizedBox(height: 12),
-                          _detailRow('NOME', firstName, theme),
-                          _detailRow('COGNOME', lastName, theme),
-                          _detailRow('ETÀ', age, theme),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(AppTheme.roleIcons[roleName.toLowerCase()] ?? Icons.person, size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(roleName, style: _valueStyle(theme)),
-                              if (isVip) ...[
-                                const SizedBox(width: 8),
-                                Icon(AppTheme.roleIcons['vip'], size: 16, color: AppTheme.statusVip),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Contact
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: _cardDecoration(theme),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('CONTATTO', style: _headerStyle(theme)),
-                          const SizedBox(height: 12),
-                          if (email != null && email.toString().isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.email, size: 16, color: theme.colorScheme.primary),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      email, 
-                                      style: _valueStyle(theme).copyWith(fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          if (phone != null && phone.toString().isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.phone, size: 16, color: theme.colorScheme.primary),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      phone, 
-                                      style: _valueStyle(theme).copyWith(fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          const Spacer(), // Push button to bottom if needed, or just let it sit
-                          if (hasContact)
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _contactUser(email, phone),
-                                icon: const Icon(Icons.contact_phone, size: 16),
-                                label: Text(
-                                  'CONTATTA',
-                                  style: GoogleFonts.outfit(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colorScheme.primary,
-                                  foregroundColor: colorScheme.onPrimary,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            Text('Nessun contatto', style: _labelStyle(theme)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 3. PARTICIPATION STATUS
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: _cardDecoration(theme),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('STATO PARTECIPAZIONE', style: _headerStyle(theme)),
-                  const SizedBox(height: 12),
-                  
-                  // Status Dropdown
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: theme.scaffoldBackgroundColor,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: statusId,
-                        isExpanded: true,
-                        items: _statuses.map((s) {
-                          final name = (s['name'] as String).toUpperCase();
-                          final color = _getStatusColor(s['name']);
-                          final icon = _getStatusIcon(s['name']);
-                          
-                          return DropdownMenuItem<int>(
-                            value: s['id'] as int,
-                            child: Row(
+                          // Left Column
+                          Expanded(
+                            flex: 4,
+                            child: Column(
                               children: [
-                                Icon(icon, color: color, size: 20),
-                                const SizedBox(width: 12),
-                                Text(
-                                  name,
-                                  style: GoogleFonts.outfit(
-                                    color: theme.textTheme.bodyLarge?.color,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                                _buildDetailsAndContact(theme, colorScheme, firstName, lastName, age, roleName, isVip, email, phone, hasContact),
+                                const SizedBox(height: 24),
+                                _buildParticipationStatus(theme, colorScheme, statusId),
                               ],
                             ),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null && val != statusId) {
-                            _updateStatus(val);
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // History Link
-                  InkWell(
-                    onTap: _showStatusHistory,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Visualizza cronologia stati',
-                          style: GoogleFonts.outfit(
-                            fontSize: 14,
-                            color: colorScheme.primary,
-                            decoration: TextDecoration.underline,
                           ),
-                        ),
-                        Icon(Icons.arrow_forward_ios, size: 14, color: colorScheme.primary),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 4. REPORTS AREA
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'AREA SEGNALAZIONI', 
-                      style: GoogleFonts.outfit(
-                        fontSize: 14, 
-                        fontWeight: FontWeight.bold,
-                        color: theme.textTheme.bodyLarge?.color
-                      )
-                    ),
-                    if (canEdit) // Only show add button if staff/admin
-                    TextButton.icon(
-                      onPressed: () => _showTransactionMenu('report'),
-                      icon: Icon(Icons.add, size: 16, color: colorScheme.error),
-                      label: Text(
-                        'AGGIUNGI',
-                        style: GoogleFonts.outfit(
-                          color: colorScheme.error,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+                          const SizedBox(width: 32),
+                          // Right Column
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              children: [
+                                _buildConsumptions(theme),
+                                const SizedBox(height: 24),
+                                _buildReportsArea(theme, colorScheme, canEdit, reports),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                if (reports.isNotEmpty) ...[
-                   ...reports.map((r) {
-                     final typeName = (r['type']?['name'] ?? '').toString().toUpperCase();
-                     final name = r['name'] ?? '';
-                     final description = r['description'] ?? '';
-                     
-                     // Format: TYPE - NAME
-                     final title = name.isNotEmpty ? '$typeName - $name' : typeName;
+              ),
+            );
+          }
 
-                     return Container(
-                       width: double.infinity,
-                       margin: const EdgeInsets.only(bottom: 12),
-                       padding: const EdgeInsets.all(16),
-                       decoration: _cardDecoration(theme).copyWith(
-                         boxShadow: [
-                           BoxShadow(
-                             color: colorScheme.error.withOpacity(0.1),
-                             blurRadius: 8,
-                             offset: const Offset(0, 4),
-                           )
-                         ]
-                       ),
-                       child: Row(
-                         children: [
-                           Icon(AppTheme.transactionIcons['report'] ?? Icons.warning_amber_rounded, color: colorScheme.error, size: 32),
-                           const SizedBox(width: 16),
-                           Expanded(
-                             child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 Text(
-                                   title,
-                                   style: GoogleFonts.outfit(
-                                     color: colorScheme.error,
-                                     fontWeight: FontWeight.bold,
-                                     fontSize: 18,
-                                   ),
-                                 ),
-                                 if (description.isNotEmpty)
-                                   Text(
-                                     description,
-                                     style: GoogleFonts.outfit(color: Colors.grey[700]),
-                                   ),
-                               ],
-                             ),
-                           ),
-                           // Edit Button for Reports (if staff/admin)
-                           if (canEdit)
-                             IconButton(
-                               icon: const Icon(Icons.edit, size: 20),
-                               onPressed: () {
-                                 // Open edit dialog or sheet
-                                 // We can reuse TransactionListSheet logic or create a simple dialog
-                                 // For now, let's open TransactionListSheet filtered? 
-                                 // Or better, just open the full list since we added edit there.
-                                 _showTransactionList();
-                               },
-                             ),
-                         ],
-                       ),
-                     );
-                   }),
-                ] else ...[
-                   Container(
-                     width: double.infinity,
-                     padding: const EdgeInsets.all(20),
-                     decoration: _cardDecoration(theme),
-                     child: Center(
-                       child: Text(
-                         'Nessuna segnalazione',
-                         style: GoogleFonts.outfit(color: Colors.grey),
-                       ),
-                     ),
-                   ),
-                ],
+          // Mobile Layout
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Column(
+              children: [
+                _buildAvatarAndName(theme, colorScheme, fullName),
+                const SizedBox(height: 24),
+                _buildConsumptions(theme),
+                const SizedBox(height: 16),
+                _buildDetailsAndContact(theme, colorScheme, firstName, lastName, age, roleName, isVip, email, phone, hasContact),
+                const SizedBox(height: 16),
+                _buildParticipationStatus(theme, colorScheme, statusId),
+                const SizedBox(height: 16),
+                _buildReportsArea(theme, colorScheme, canEdit, reports),
+                const SizedBox(height: 80),
               ],
             ),
-            const SizedBox(height: 80), // Space for FAB
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: canEdit ? FloatingActionButton(
         onPressed: () async {

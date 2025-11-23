@@ -7,6 +7,7 @@ import '../../services/SupabaseServicies/models/event.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_settings_icon.dart';
 import 'guest_list_screen.dart';
+import 'staff_list_screen.dart';
 import '../settings/settings_screen.dart';
 
 class EventDashboardScreen extends StatefulWidget {
@@ -449,7 +450,14 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     iconColor: const Color(0xFFD291BC),
                     label: 'Gestisci staff',
                     value: '$_staffCount',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StaffListScreen(eventId: widget.eventId),
+                        ),
+                      );
+                    },
                   ),
                   _DashboardCard(
                     icon: Icons.bar_chart,
