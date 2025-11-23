@@ -9,3 +9,9 @@ sb_publishable_eFPKG8kUCxXFvrx_x7bBLQ_7TaKcVSY
 Chiavi segreta
 sb_secret_tRlqkdA0WgyoXNXqMpZihQ_OlN-2F5O
 
+Credenziali Supabase S3
+url: https://tzrjlnvdeqmmlnivoszq.storage.supabase.co/storage/v1/s3
+REGIONE: eu-central-1
+ACCESS KEY ID: d1763c8657eb93abcc9f69b06e2054a5
+SECRET ACCESS KEY:
+6bc3a5e9b44fe3083c753baaf26ee9d18bf568a4cc4b599bab9a605b073c1465

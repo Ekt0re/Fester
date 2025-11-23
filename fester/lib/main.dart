@@ -8,13 +8,33 @@ import 'Login/login_page.dart';
 import 'home_page.dart';
 import 'services/SupabaseServicies/supabase_config.dart';
 import 'services/SupabaseServicies/deep_link_handler.dart';
+import 'services/SupabaseServicies/event_service.dart';
+import 'services/SupabaseServicies/models/event_staff.dart';
 import 'Login/set_new_password_page.dart';
 import 'screens/event_selection_screen.dart';
 import 'screens/dashboard/event_dashboard_screen.dart';
+import 'screens/profile/staff_profile_screen.dart';
 import 'package:logger/logger.dart';
 
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
+
+// Helper function to load staff profile data
+Future<Map<String, dynamic>> _loadStaffProfile(String eventId, String staffUserId) async {
+  final eventService = EventService();
+  final staffList = await eventService.getEventStaff(eventId);
+  final eventStaff = staffList.firstWhere(
+    (s) => s.staffUserId == staffUserId,
+    orElse: () => throw Exception('Staff member not found'),
+  );
+  
+  return {
+    'screen': StaffProfileScreen(
+      eventStaff: eventStaff,
+      eventId: eventId,
+    ),
+  };
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +74,39 @@ class MyApp extends StatelessWidget {
             },
           },
           onGenerateRoute: (settings) {
+            if (settings.name == '/staff-profile') {
+              final args = settings.arguments as Map<String, dynamic>?;
+              if (args != null) {
+                final eventId = args['eventId'] as String;
+                final staffUserId = args['staffUserId'] as String;
+                
+                return MaterialPageRoute(
+                  builder: (context) => FutureBuilder(
+                    future: _loadStaffProfile(eventId, staffUserId),
+                    builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Scaffold(
+                          body: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      
+                      if (snapshot.hasError || !snapshot.hasData) {
+                        return Scaffold(
+                          appBar: AppBar(title: const Text('Errore')),
+                          body: Center(
+                            child: Text('Errore caricamento profilo: ${snapshot.error}'),
+                          ),
+                        );
+                      }
+                      
+                      final data = snapshot.data!;
+                      return data['screen'] as Widget;
+                    },
+                  ),
+                );
+              }
+            }
+            
             return MaterialPageRoute(
               builder: (context) => const SplashScreen(),
             );

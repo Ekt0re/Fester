@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../models/app_settings.dart';
 import '../../services/settings_service.dart';
+import '../../services/SupabaseServicies/staff_user_service.dart';
+import '../../services/SupabaseServicies/models/staff_user.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/settings_tile.dart';
 import 'language_settings_screen.dart';
@@ -22,12 +24,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   AppSettings _settings = AppSettings.defaultSettings;
   String _appVersion = '';
   bool _isLoading = true;
+  StaffUser? _currentStaffUser;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
     _loadAppVersion();
+    _loadStaffUser();
   }
 
   Future<void> _loadSettings() async {
@@ -46,6 +50,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
       });
+    }
+  }
+
+  Future<void> _loadStaffUser() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final staffService = StaffUserService();
+        final staffUser = await staffService.getStaffUserById(userId);
+        if (mounted) {
+          setState(() {
+            _currentStaffUser = staffUser;
+          });
+        }
+      }
+    } catch (e) {
+      // Silently fail - user might not have staff profile yet
     }
   }
 
@@ -206,16 +227,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         children: [
           CircleAvatar(
+            key: ValueKey(_currentStaffUser?.imagePath ?? 'default'),
             radius: 32,
             backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-            child: Text(
-              firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
-              style: GoogleFonts.outfit(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
-            ),
+            backgroundImage: (_currentStaffUser?.imagePath != null && 
+                              _currentStaffUser!.imagePath!.isNotEmpty)
+                ? NetworkImage(_currentStaffUser!.imagePath!) as ImageProvider
+                : null,
+            child: (_currentStaffUser?.imagePath == null || 
+                    _currentStaffUser!.imagePath!.isEmpty)
+                ? Text(
+                    firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
+                    style: GoogleFonts.outfit(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -247,11 +276,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           IconButton(
             icon: Icon(Icons.edit, color: theme.colorScheme.primary),
-            onPressed: () {
-              // TODO: Navigate to profile edit
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit profile - Coming soon')),
-              );
+            onPressed: () async {
+              // Navigate to staff profile screen for editing
+              final currentUserId = user?.id;
+              if (currentUserId == null) return;
+
+              // Get current user's event_staff record to pass to StaffProfileScreen
+              // For now, we'll try to find any active event the user is staff of
+              try {
+                final response = await Supabase.instance.client
+                    .from('event_staff')
+                    .select('event_id')
+                    .eq('staff_user_id', currentUserId)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (response != null && mounted) {
+                  final eventId = response['event_id'] as String;
+                  // Navigate to staff profile screen
+                  Navigator.pushNamed(
+                    context,
+                    '/staff-profile',
+                    arguments: {
+                      'eventId': eventId,
+                      'staffUserId': currentUserId,
+                    },
+                  );
+                } else if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Nessun evento trovato')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Errore: $e')),
+                  );
+                }
+              }
             },
           ),
         ],

@@ -160,118 +160,138 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                   padding: const EdgeInsets.all(24.0),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 800),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'ORGANIZZA LA TUA FESTA!',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 1.2,
-                              color: theme.colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          Text(
-                            'Seleziona l\'evento che vuoi gestire!',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 24),
+                      constraints: const BoxConstraints(maxWidth: 1200), // Increased max width for grid
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isDesktop = constraints.maxWidth > 900;
+                          final crossAxisCount = isDesktop ? 2 : 1;
+                          final spacing = 16.0;
 
-                          // Eventi attivi
-                          if (_activeEvents.isEmpty && !_showArchived)
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: theme.cardTheme.color,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Nessun evento attivo.\nCrea il tuo primo evento!',
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                'ORGANIZZA LA TUA FESTA!',
                                 textAlign: TextAlign.center,
-                                style: theme.textTheme.bodyLarge,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 1.2,
+                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                ),
                               ),
-                            )
-                          else
-                            ...(_showArchived ? _archivedEvents : _activeEvents)
-                                .map(
-                                  (eventDetails) => _EventCard(
-                                    eventDetails: eventDetails,
-                                    status: _getEventStatus(eventDetails),
-                                    statusColor: _getStatusColor(
-                                      _getEventStatus(eventDetails),
-                                    ),
-                                    onTap: () {
-                                      // Naviga alla schermata di gestione evento
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/event-detail',
-                                        arguments: eventDetails.event.id,
-                                      );
-                                    },
+                              const SizedBox(height: 32),
+                              Text(
+                                'Seleziona l\'evento che vuoi gestire!',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 24),
+
+                              // Eventi attivi
+                              if (_activeEvents.isEmpty && !_showArchived)
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: theme.cardTheme.color,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Nessun evento attivo.\nCrea il tuo primo evento!',
+                                    textAlign: TextAlign.center,
+                                    style: theme.textTheme.bodyLarge,
+                                  ),
+                                )
+                              else
+                                GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: spacing,
+                                    mainAxisSpacing: spacing,
+                                    childAspectRatio: isDesktop ? 3 : 2.5, // Adjust ratio as needed
+                                    mainAxisExtent: 100, // Fixed height for cards
+                                  ),
+                                  itemCount: (_showArchived ? _archivedEvents : _activeEvents).length,
+                                  itemBuilder: (context, index) {
+                                    final list = _showArchived ? _archivedEvents : _activeEvents;
+                                    final eventDetails = list[index];
+                                    return _EventCard(
+                                      eventDetails: eventDetails,
+                                      status: _getEventStatus(eventDetails),
+                                      statusColor: _getStatusColor(
+                                        _getEventStatus(eventDetails),
+                                      ),
+                                      onTap: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          '/event-detail',
+                                          arguments: eventDetails.event.id,
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+
+                              const SizedBox(height: 16),
+
+                              // Pulsante visualizza eventi archiviati
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  setState(() => _showArchived = !_showArchived);
+                                },
+                                icon: Icon(
+                                  _showArchived ? Icons.event_available : Icons.archive,
+                                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                ),
+                                label: Text(
+                                  _showArchived
+                                      ? 'Mostra eventi attivi'
+                                      : 'Visualizza eventi passati',
+                                  style: TextStyle(color: theme.colorScheme.onSurface),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  backgroundColor: theme.cardTheme.color,
+                                  side: BorderSide(color: theme.colorScheme.outline),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-
-                          const SizedBox(height: 16),
-
-                          // Pulsante visualizza eventi archiviati
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() => _showArchived = !_showArchived);
-                            },
-                            icon: Icon(
-                              _showArchived ? Icons.event_available : Icons.archive,
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                            label: Text(
-                              _showArchived
-                                  ? 'Mostra eventi attivi'
-                                  : 'Visualizza eventi passati',
-                              style: TextStyle(color: theme.colorScheme.onSurface),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: theme.cardTheme.color,
-                              side: BorderSide(color: theme.colorScheme.outline),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ),
-                          ),
 
-                          const SizedBox(height: 32),
+                              const SizedBox(height: 32),
 
-                          // Pulsante crea evento
-                          ElevatedButton(
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const CreateEventFlow(),
+                              // Pulsante crea evento
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const CreateEventFlow(),
+                                    ),
+                                  );
+                                  _loadEvents();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  backgroundColor: theme.colorScheme.surface,
+                                  foregroundColor: theme.colorScheme.onSurface,
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                              );
-                              _loadEvents();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              backgroundColor: theme.colorScheme.surface,
-                              foregroundColor: theme.colorScheme.onSurface,
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                child: Text(
+                                  'Crea il tuo evento!',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              'Crea il tuo evento!',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),

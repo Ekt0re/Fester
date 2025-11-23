@@ -127,4 +127,19 @@ class PersonService {
       throw Exception('Error updating person: $e');
     }
   }
+
+  /// Get all guests (persons) for a specific event
+  Future<List<Map<String, dynamic>>> getEventGuests(String eventId) async {
+    try {
+      final response = await _supabase
+          .from('person')
+          .select()
+          .eq('id_event', eventId)
+          .order('first_name', ascending: true);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Error fetching event guests: $e');
+    }
+  }
 }

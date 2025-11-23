@@ -47,9 +47,11 @@ dependencies:
 
   go_router: ^14.2.0             # Routing dichiarativo
   url_strategy: ^0.2.0           # URL strategy for web apps
+  url_launcher: ^6.2.5           # Launch URLs
 
   cached_network_image: ^3.3.1   # Cache immagini profilo
   image_picker: ^1.1.2           # Upload foto profilo
+  flutter_image_compress: ^2.3.0 # Compressione immagini
   shimmer: ^3.0.0                # Loading skeleton
   flutter_svg: ^2.0.10           # Icone SVG custom
   intl: ^0.19.0                  # Formattazione date/valute

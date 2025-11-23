@@ -7,6 +7,7 @@ import '../../theme/app_theme.dart';
 import 'widgets/guest_card.dart';
 import '../profile/person_profile_screen.dart';
 import 'add_guest_screen.dart';
+import '../profile/widgets/transaction_creation_sheet.dart';
 
 class GuestListScreen extends StatefulWidget {
   final String eventId;
@@ -194,12 +195,66 @@ class _GuestListScreenState extends State<GuestListScreen> {
     );
   }
 
+  void _showTransactionCreation(String participationId, String type) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: TransactionCreationSheet(
+          eventId: widget.eventId,
+          participationId: participationId,
+          initialTransactionType: type,
+          onSuccess: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Transazione creata con successo')),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuestItem(BuildContext context, int index) {
+    final participation = _filteredParticipations[index];
+    final person = participation['person'] ?? {};
+    final status = participation['status'] ?? {};
+    final role = participation['role'] ?? {};
+    
+    return GuestCard(
+      name: person['first_name'] ?? 'Sconosciuto',
+      surname: person['last_name'] ?? '',
+      idEvent: person['id_event'] ?? '---',
+      statusName: status['name'] ?? 'unknown',
+      isVip: (role['name'] ?? '').toString().toLowerCase() == 'vip',
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PersonProfileScreen(
+              personId: person['id'],
+              eventId: widget.eventId,
+              currentUserRole: _userRole,
+            ),
+          ),
+        );
+      },
+      onDoubleTap: () => _updateStatus(participation['id'], participation['status_id']),
+      onLongPress: () => _showStatusMenu(participation['id'], participation['status_id']),
+      onReport: () => _showTransactionCreation(participation['id'], 'report'),
+      onDrink: () => _showTransactionCreation(participation['id'], 'drink'),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final arrivedCount = _allParticipations.where((p) {
        final status = p['status']?['name'];
-       return status == 'inside' || status == 'checked_in'; // Example logic
+       return status == 'inside' || status == 'checked_in'; 
     }).length;
 
     final canAddGuests = _userRole == 'staff3' || _userRole == 'admin';
@@ -277,41 +332,30 @@ class _GuestListScreenState extends State<GuestListScreen> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _filteredParticipations.length,
-                    itemBuilder: (context, index) {
-                      final participation = _filteredParticipations[index];
-                      final person = participation['person'] ?? {};
-                      final status = participation['status'] ?? {};
-                      final role = participation['role'] ?? {};
-                      
-                      return GuestCard(
-                        name: person['first_name'] ?? 'Sconosciuto',
-                        surname: person['last_name'] ?? '',
-                        idEvent: person['id_event'] ?? '---',
-                        statusName: status['name'] ?? 'unknown',
-                        isVip: (role['name'] ?? '').toString().toLowerCase() == 'vip',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => PersonProfileScreen(
-                                personId: person['id'],
-                                eventId: widget.eventId,
-                                currentUserRole: _userRole,
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (constraints.maxWidth > 900) {
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 1200),
+                            child: GridView.builder(
+                              padding: const EdgeInsets.all(16),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 3.5, 
                               ),
+                              itemCount: _filteredParticipations.length,
+                              itemBuilder: _buildGuestItem,
                             ),
-                          );
-                        },
-                        onDoubleTap: () => _updateStatus(participation['id'], participation['status_id']),
-                        onLongPress: () => _showStatusMenu(participation['id'], participation['status_id']),
-                        onReport: () {
-                          // TODO: Open Report
-                        },
-                        onDrink: () {
-                          // TODO: Open Transaction
-                        },
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _filteredParticipations.length,
+                        itemBuilder: _buildGuestItem,
                       );
                     },
                   ),

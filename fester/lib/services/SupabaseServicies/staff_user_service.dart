@@ -1,7 +1,9 @@
 // lib/services/staff_user_service.dart
+// ignore_for_file: avoid_print
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/staff_user.dart';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StaffUserService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -71,6 +73,8 @@ class StaffUserService {
     String? imagePath,
   }) async {
     try {
+      print('[DEBUG] updateStaffUser: Updating user $userId');
+      
       final updates = <String, dynamic>{
         'updated_at': DateTime.now().toIso8601String(),
       };
@@ -92,9 +96,54 @@ class StaffUserService {
               .select()
               .single();
 
+      // Update Auth metadata if firstName or lastName changed
+      if (firstName != null || lastName != null) {
+        print('[DEBUG] updateStaffUser: Updating Auth metadata');
+        await updateAuthMetadata(
+          userId: userId,
+          firstName: firstName,
+          lastName: lastName,
+        );
+      }
+
+      print('[DEBUG] updateStaffUser: Update successful');
       return StaffUser.fromJson(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('[ERROR] updateStaffUser: $e');
+      print('[ERROR] Stack trace: $stackTrace');
       rethrow;
+    }
+  }
+
+  /// Update Auth user metadata (nome e cognome)
+  Future<void> updateAuthMetadata({
+    required String userId,
+    String? firstName,
+    String? lastName,
+  }) async {
+    try {
+      print('[DEBUG] updateAuthMetadata: Updating Auth for user $userId');
+      
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null || currentUser.id != userId) {
+        print('[WARN] updateAuthMetadata: Can only update own Auth metadata');
+        return;
+      }
+
+      final metadata = <String, dynamic>{};
+      if (firstName != null) metadata['first_name'] = firstName;
+      if (lastName != null) metadata['last_name'] = lastName;
+
+      if (metadata.isNotEmpty) {
+        await _supabase.auth.updateUser(
+          UserAttributes(data: metadata),
+        );
+        print('[DEBUG] updateAuthMetadata: Auth metadata updated successfully');
+      }
+    } catch (e, stackTrace) {
+      print('[ERROR] updateAuthMetadata: $e');
+      print('[ERROR] Stack trace: $stackTrace');
+      // Non rethrow - Auth metadata update è secondario
     }
   }
 
@@ -105,27 +154,50 @@ class StaffUserService {
     required List<int> fileBytes,
   }) async {
     try {
-      final fileExt = filePath.split('.').last;
-      final fileName =
-          '$userId-${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final storagePath = 'staff-avatars/$fileName';
+      print('[DEBUG] uploadProfileImage: Starting upload for user $userId');
+      print('[DEBUG] uploadProfileImage: Platform: ${kIsWeb ? "Web" : "Mobile"}');
+      print('[DEBUG] uploadProfileImage: Original file size: ${fileBytes.length} bytes');
+      
+      // Convert to Uint8List - no compression on web due to flutter_image_compress incompatibility
+      final Uint8List bytesToUpload = Uint8List.fromList(fileBytes);
+      
+      if (kIsWeb) {
+        print('[DEBUG] uploadProfileImage: Uploading without compression (Web platform)');
+      }
 
-      // Convert List<int> to Uint8List
-      final uint8ListBytes = Uint8List.fromList(fileBytes);
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storagePath = '$userId/$fileName';
+      
+      print('[DEBUG] uploadProfileImage: Uploading to StaffProfiles/$storagePath');
 
       await _supabase.storage
-          .from('avatars')
-          .uploadBinary(storagePath, uint8ListBytes);
+          .from('StaffProfiles')
+          .uploadBinary(
+            storagePath,
+            bytesToUpload,
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true,
+            ),
+          );
+
+      print('[DEBUG] uploadProfileImage: Upload successful');
 
       final publicUrl = _supabase.storage
-          .from('avatars')
+          .from('StaffProfiles')
           .getPublicUrl(storagePath);
 
+      print('[DEBUG] uploadProfileImage: Public URL: $publicUrl');
+
       // Update staff_user with new image path
-      await updateStaffUser(userId: userId, imagePath: storagePath);
+      await updateStaffUser(userId: userId, imagePath: publicUrl);
+
+      print('[DEBUG] uploadProfileImage: Database updated with new image path');
 
       return publicUrl;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('[ERROR] uploadProfileImage: $e');
+      print('[ERROR] Stack trace: $stackTrace');
       rethrow;
     }
   }
