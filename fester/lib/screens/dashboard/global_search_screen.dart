@@ -79,7 +79,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           id: guest['id'] ?? '',
           name: '${guest['first_name'] ?? ''} ${guest['last_name'] ?? ''}'.trim(),
           email: guest['email'] ?? '',
-          phone: guest['number_phone'] ?? '',
+          phone: guest['phone'] ?? '',
           imagePath: null,
           type: SearchResultType.guest,
           roleName: 'Ospite',
