@@ -73,24 +73,83 @@ class ParticipationService {
     }
   }
 
-  /// Update participation status
-  Future<Participation> updateParticipationStatus({
+  /// Update participation (status and role)
+  Future<Participation> updateParticipation({
     required String participationId,
-    required int newStatusId,
+    int? statusId,
+    int? roleId,
   }) async {
     try {
+      final updates = <String, dynamic>{
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      if (statusId != null) updates['status_id'] = statusId;
+      if (roleId != null) updates['role_id'] = roleId;
+
       final response =
           await _supabase
               .from('participation')
-              .update({
-                'status_id': newStatusId,
-                'updated_at': DateTime.now().toIso8601String(),
-              })
+              .update(updates)
               .eq('id', participationId)
               .select()
               .single();
 
       return Participation.fromJson(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Update participation status (legacy wrapper)
+  Future<Participation> updateParticipationStatus({
+    required String participationId,
+    required int newStatusId,
+  }) async {
+    return updateParticipation(participationId: participationId, statusId: newStatusId);
+  }
+
+  /// Get participation status history
+  Future<List<Map<String, dynamic>>> getParticipationStatusHistory(
+    String participationId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('participation_status_history')
+          .select('''
+            *,
+            status:status_id(name, description),
+            changed_by_person:person(first_name, last_name)
+          ''')
+          .eq('participation_id', participationId)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get participation statuses
+  Future<List<Map<String, dynamic>>> getParticipationStatuses() async {
+    try {
+      final response = await _supabase
+          .from('participation_status')
+          .select()
+          .order('id');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get available roles
+  Future<List<Map<String, dynamic>>> getRoles() async {
+    try {
+      final response = await _supabase
+          .from('role')
+          .select()
+          .order('id');
+      return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       rethrow;
     }
@@ -119,9 +178,9 @@ class ParticipationService {
     String participationId,
     int checkedInStatusId,
   ) async {
-    return updateParticipationStatus(
+    return updateParticipation(
       participationId: participationId,
-      newStatusId: checkedInStatusId,
+      statusId: checkedInStatusId,
     );
   }
 

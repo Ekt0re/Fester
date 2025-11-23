@@ -296,12 +296,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         const SizedBox(height: 8),
         SettingsTile(
-          icon: _settings.themeMode == ThemeMode.dark
+          icon: Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
               ? Icons.dark_mode
               : Icons.light_mode,
           title: 'Dark mode',
           trailing: Switch(
-            value: _settings.themeMode == ThemeMode.dark,
+            value: Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark,
             onChanged: (value) {
               final newMode = value ? ThemeMode.dark : ThemeMode.light;
               _updateSettings(_settings.copyWith(themeMode: newMode));

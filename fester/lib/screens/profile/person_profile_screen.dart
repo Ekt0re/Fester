@@ -4,10 +4,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../services/SupabaseServicies/person_service.dart';
 import '../../services/SupabaseServicies/event_service.dart';
+import '../../services/SupabaseServicies/participation_service.dart';
 import 'widgets/consumption_graph.dart';
 import 'widgets/transaction_creation_sheet.dart';
 import 'widgets/transaction_list_sheet.dart';
+import 'widgets/status_history_sheet.dart';
 import '../dashboard/add_guest_screen.dart';
+import '../../widgets/animated_settings_icon.dart';
+import '../settings/settings_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PersonProfileScreen extends StatefulWidget {
@@ -29,9 +33,13 @@ class PersonProfileScreen extends StatefulWidget {
 class _PersonProfileScreenState extends State<PersonProfileScreen> {
   final PersonService _personService = PersonService();
   final EventService _eventService = EventService();
+  final ParticipationService _participationService = ParticipationService();
+  
   bool _isLoading = true;
   Map<String, dynamic>? _profileData;
   List<Map<String, dynamic>> _transactions = [];
+  List<Map<String, dynamic>> _statusHistory = [];
+  List<Map<String, dynamic>> _statuses = [];
   
   // Stats
   int _alcoholCount = 0;
@@ -51,8 +59,19 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     try {
       final profile = await _personService.getPersonProfile(widget.personId, widget.eventId);
       final participationId = profile['id'];
-      final transactions = await _personService.getPersonTransactions(participationId);
-      final settings = await _eventService.getEventSettings(widget.eventId);
+      
+      // Parallel requests for better performance
+      final results = await Future.wait([
+        _personService.getPersonTransactions(participationId),
+        _eventService.getEventSettings(widget.eventId),
+        _participationService.getParticipationStatusHistory(participationId),
+        _participationService.getParticipationStatuses(),
+      ]);
+
+      final transactions = results[0] as List<Map<String, dynamic>>;
+      final settings = results[1] as dynamic; // EventSettings?
+      final history = results[2] as List<Map<String, dynamic>>;
+      final statuses = results[3] as List<Map<String, dynamic>>;
 
       // Calculate stats
       int alcohol = 0;
@@ -62,7 +81,16 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       for (var t in transactions) {
         final type = t['type'] ?? {};
         final typeName = (type['name'] ?? '').toString().toLowerCase();
-        final affectsDrinkCount = type['affects_drink_count'] == true;
+        final description = (t['description'] ?? '').toString();
+        
+        // Determine if alcoholic based on type AND description tag
+        bool affectsDrinkCount = type['affects_drink_count'] == true;
+        
+        // Override if tagged as non-alcoholic
+        if (description.contains('[NON-ALCOHOLIC]')) {
+          affectsDrinkCount = false;
+        }
+
         final quantity = (t['quantity'] as num?)?.toInt() ?? 0;
 
         if (typeName == 'drink') {
@@ -80,6 +108,8 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
         setState(() {
           _profileData = profile;
           _transactions = transactions;
+          _statusHistory = history;
+          _statuses = statuses;
           _alcoholCount = alcohol;
           _nonAlcoholCount = nonAlcohol;
           _foodCount = food;
@@ -157,7 +187,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     );
   }
 
-  void _showTransactionMenu(String? type) {
+  void _showTransactionMenu(String? type, {bool? isAlcoholic}) {
     if (_profileData == null) return;
     
     showModalBottomSheet(
@@ -172,6 +202,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           eventId: widget.eventId,
           participationId: _profileData!['id'],
           initialTransactionType: type,
+          initialIsAlcoholic: isAlcoholic,
           onSuccess: () {
             _loadData(); // Refresh data
           },
@@ -181,14 +212,110 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
   }
   
   void _showTransactionList() {
+    final canEdit = widget.currentUserRole?.toLowerCase() == 'staff3' || widget.currentUserRole?.toLowerCase() == 'admin';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => TransactionListSheet(
         transactions: _transactions,
+        canEdit: canEdit,
+        onTransactionUpdated: _loadData,
       ),
     );
+  }
+
+  void _showStatusHistory() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatusHistorySheet(
+        history: _statusHistory,
+      ),
+    );
+  }
+
+  Future<void> _updateStatus(int newStatusId) async {
+    if (_profileData == null) return;
+    
+    try {
+      await _participationService.updateParticipation(
+        participationId: _profileData!['id'],
+        statusId: newStatusId,
+      );
+      
+      // Refresh data to show new status and history
+      await _loadData();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Stato aggiornato')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore aggiornamento stato: $e')),
+        );
+      }
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'confermato':
+        return AppTheme.statusConfirmed;
+      case 'checked_in':
+      case 'registrato':
+        return AppTheme.statusCheckedIn;
+      case 'inside':
+      case 'dentro':
+      case 'arrivato':
+        return AppTheme.statusConfirmed;
+      case 'outside':
+      case 'fuori':
+        return AppTheme.statusOutside;
+      case 'left':
+      case 'uscito':
+      case 'partito':
+        return AppTheme.statusLeft;
+      case 'invited':
+      case 'invitato':
+      case 'in arrivo':
+        return AppTheme.statusInvited;
+      default:
+        return AppTheme.statusInvited;
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'confermato':
+        return Icons.check_circle_outline;
+      case 'checked_in':
+      case 'registrato':
+        return Icons.how_to_reg;
+      case 'inside':
+      case 'dentro':
+      case 'arrivato':
+        return Icons.login;
+      case 'outside':
+      case 'fuori':
+        return Icons.logout;
+      case 'left':
+      case 'uscito':
+      case 'partito':
+        return Icons.exit_to_app;
+      case 'invited':
+      case 'invitato':
+      case 'in arrivo':
+        return Icons.mail_outline;
+      default:
+        return Icons.help_outline;
+    }
   }
 
   @override
@@ -214,6 +341,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     final role = _profileData!['role'] ?? {};
     final roleName = (role['name'] ?? 'Ospite').toString();
     final isVip = roleName.toLowerCase() == 'vip';
+    final statusId = _profileData!['status_id'] as int;
     
     final firstName = person['first_name'] ?? '';
     final lastName = person['last_name'] ?? '';
@@ -221,7 +349,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     final age = _calculateAge(person['date_of_birth']);
     final email = person['email'];
     final phone = person['phone'];
-    final canEdit = widget.currentUserRole == 'Staff3' || widget.currentUserRole == 'Admin';
+    
+    // Check permissions (case insensitive)
+    final userRole = widget.currentUserRole?.toLowerCase();
+    final canEdit = userRole == 'staff3' || userRole == 'admin';
     final hasContact = email != null || phone != null;
 
     // Filter reports
@@ -240,12 +371,18 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.settings, color: theme.textTheme.bodyLarge?.color),
+          AnimatedSettingsIcon(
+            color: theme.colorScheme.onSurface,
             onPressed: () {
-              // Settings or Edit
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
@@ -269,50 +406,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Personal Details Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: _cardDecoration(theme),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('DETTAGLI PERSONALI', style: _headerStyle(theme)),
-                  const SizedBox(height: 12),
-                  _detailRow('NOME', firstName, theme),
-                  _detailRow('COGNOME', lastName, theme),
-                  _detailRow('ETÀ', age, theme),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text('RUOLO: ', style: _labelStyle(theme)),
-                      Text(roleName, style: _valueStyle(theme)),
-                      if (isVip) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.statusVip,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            'VIP',
-                            style: GoogleFonts.outfit(
-                              color: Colors.black,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Consumptions Card
+            // 1. CONSUMPTIONS (Moved to top)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -328,29 +422,51 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                         label: 'ALCOL',
                         count: _alcoholCount,
                         maxCount: _maxDrinks,
-                        icon: Icons.local_bar,
+                        icon: AppTheme.transactionIcons['drink']!,
                         color: Colors.blueGrey,
-                        onLongPress: () => _showTransactionMenu('drink'),
+                        onLongPress: () => _showTransactionMenu('drink', isAlcoholic: true),
                       ),
                       ConsumptionGraph(
                         label: 'ANALCOL',
                         count: _nonAlcoholCount,
-                        maxCount: null, // Usually unlimited?
-                        icon: Icons.free_breakfast, // Using closest match for now
+                        maxCount: null, 
+                        icon: Icons.free_breakfast, 
                         color: Colors.blueGrey,
-                        onLongPress: () => _showTransactionMenu('drink'), // Default to drink, toggle in sheet
+                        onLongPress: () => _showTransactionMenu('drink', isAlcoholic: false),
                       ),
                       ConsumptionGraph(
                         label: 'CIBO',
                         count: _foodCount,
                         maxCount: null,
-                        icon: Icons.local_pizza,
+                        icon: AppTheme.transactionIcons['food']!,
                         color: Colors.blueGrey,
                         onLongPress: () => _showTransactionMenu('food'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
+                  // Total Spent / Earned
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Totale: ',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          color: theme.textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                      Text(
+                        '${_calculateTotal() >= 0 ? '+' : ''}${_calculateTotal().toStringAsFixed(2)} €',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: _calculateTotal() >= 0 ? Colors.green : Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   TextButton(
                     onPressed: _showTransactionList,
                     child: Text(
@@ -366,56 +482,114 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Contact Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: _cardDecoration(theme),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // 2. DETAILS + CONTACT (Side by Side)
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('CONTATTO', style: _headerStyle(theme)),
-                  const SizedBox(height: 12),
-                  if (email != null && email.toString().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
+                  // Personal Details
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: _cardDecoration(theme),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.email, size: 16, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(email, style: _valueStyle(theme))),
+                          Text('DETTAGLI', style: _headerStyle(theme)),
+                          const SizedBox(height: 12),
+                          _detailRow('NOME', firstName, theme),
+                          _detailRow('COGNOME', lastName, theme),
+                          _detailRow('ETÀ', age, theme),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(AppTheme.roleIcons[roleName.toLowerCase()] ?? Icons.person, size: 16, color: Colors.grey),
+                              const SizedBox(width: 4),
+                              Text(roleName, style: _valueStyle(theme)),
+                              if (isVip) ...[
+                                const SizedBox(width: 8),
+                                Icon(AppTheme.roleIcons['vip'], size: 16, color: AppTheme.statusVip),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
                     ),
-                  if (phone != null && phone.toString().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Row(
+                  ),
+                  const SizedBox(width: 16),
+                  // Contact
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: _cardDecoration(theme),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.phone, size: 16, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(phone, style: _valueStyle(theme))),
+                          Text('CONTATTO', style: _headerStyle(theme)),
+                          const SizedBox(height: 12),
+                          if (email != null && email.toString().isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.email, size: 16, color: theme.colorScheme.primary),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      email, 
+                                      style: _valueStyle(theme).copyWith(fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (phone != null && phone.toString().isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.phone, size: 16, color: theme.colorScheme.primary),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      phone, 
+                                      style: _valueStyle(theme).copyWith(fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          const Spacer(), // Push button to bottom if needed, or just let it sit
+                          if (hasContact)
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () => _contactUser(email, phone),
+                                icon: const Icon(Icons.contact_phone, size: 16),
+                                label: Text(
+                                  'CONTATTA',
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: colorScheme.primary,
+                                  foregroundColor: colorScheme.onPrimary,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            Text('Nessun contatto', style: _labelStyle(theme)),
                         ],
-                      ),
-                    ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: hasContact ? () => _contactUser(email, phone) : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        disabledBackgroundColor: Colors.grey[300],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text(
-                        'CONTATTA',
-                        style: GoogleFonts.outfit(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
                       ),
                     ),
                   ),
@@ -424,7 +598,86 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Reports Area
+            // 3. PARTICIPATION STATUS
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: _cardDecoration(theme),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('STATO PARTECIPAZIONE', style: _headerStyle(theme)),
+                  const SizedBox(height: 12),
+                  
+                  // Status Dropdown
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: theme.scaffoldBackgroundColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: statusId,
+                        isExpanded: true,
+                        items: _statuses.map((s) {
+                          final name = (s['name'] as String).toUpperCase();
+                          final color = _getStatusColor(s['name']);
+                          final icon = _getStatusIcon(s['name']);
+                          
+                          return DropdownMenuItem<int>(
+                            value: s['id'] as int,
+                            child: Row(
+                              children: [
+                                Icon(icon, color: color, size: 20),
+                                const SizedBox(width: 12),
+                                Text(
+                                  name,
+                                  style: GoogleFonts.outfit(
+                                    color: theme.textTheme.bodyLarge?.color,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null && val != statusId) {
+                            _updateStatus(val);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // History Link
+                  InkWell(
+                    onTap: _showStatusHistory,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Visualizza cronologia stati',
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            color: colorScheme.primary,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios, size: 14, color: colorScheme.primary),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 4. REPORTS AREA
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -439,6 +692,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                         color: theme.textTheme.bodyLarge?.color
                       )
                     ),
+                    if (canEdit) // Only show add button if staff/admin
                     TextButton.icon(
                       onPressed: () => _showTransactionMenu('report'),
                       icon: Icon(Icons.add, size: 16, color: colorScheme.error),
@@ -457,7 +711,12 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 if (reports.isNotEmpty) ...[
                    ...reports.map((r) {
                      final typeName = (r['type']?['name'] ?? '').toString().toUpperCase();
+                     final name = r['name'] ?? '';
                      final description = r['description'] ?? '';
+                     
+                     // Format: TYPE - NAME
+                     final title = name.isNotEmpty ? '$typeName - $name' : typeName;
+
                      return Container(
                        width: double.infinity,
                        margin: const EdgeInsets.only(bottom: 12),
@@ -473,14 +732,14 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                        ),
                        child: Row(
                          children: [
-                           Icon(Icons.warning_amber_rounded, color: colorScheme.error, size: 32),
+                           Icon(AppTheme.transactionIcons['report'] ?? Icons.warning_amber_rounded, color: colorScheme.error, size: 32),
                            const SizedBox(width: 16),
                            Expanded(
                              child: Column(
                                crossAxisAlignment: CrossAxisAlignment.start,
                                children: [
                                  Text(
-                                   typeName,
+                                   title,
                                    style: GoogleFonts.outfit(
                                      color: colorScheme.error,
                                      fontWeight: FontWeight.bold,
@@ -495,6 +754,18 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                                ],
                              ),
                            ),
+                           // Edit Button for Reports (if staff/admin)
+                           if (canEdit)
+                             IconButton(
+                               icon: const Icon(Icons.edit, size: 20),
+                               onPressed: () {
+                                 // Open edit dialog or sheet
+                                 // We can reuse TransactionListSheet logic or create a simple dialog
+                                 // For now, let's open TransactionListSheet filtered? 
+                                 // Or better, just open the full list since we added edit there.
+                                 _showTransactionList();
+                               },
+                             ),
                          ],
                        ),
                      );
@@ -531,6 +802,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             'date_of_birth': person['date_of_birth'],
             'role_id': _profileData!['role_id'],
             'status_id': _profileData!['status_id'],
+            'participation_id': _profileData!['id'],
           };
 
           final result = await Navigator.push(
@@ -617,5 +889,15 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     } catch (_) {
       return '--';
     }
+  }
+
+  double _calculateTotal() {
+    double total = 0;
+    for (var t in _transactions) {
+      final amount = (t['amount'] as num?)?.toDouble() ?? 0.0;
+      final quantity = (t['quantity'] as num?)?.toInt() ?? 1;
+      total += amount * quantity;
+    }
+    return total;
   }
 }
