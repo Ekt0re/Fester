@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Servizio per la gestione delle notifiche di eventi.
@@ -11,11 +12,12 @@ class NotificationService {
   Future<void> notifyEventStart({required String eventId}) async {
     try {
       // Recupera i dettagli dell'evento
-      final eventResponse = await _supabase
-          .from('events')
-          .select('title, description, start')
-          .eq('id', eventId)
-          .single();
+      final eventResponse =
+          await _supabase
+              .from('events')
+              .select('title, description, start')
+              .eq('id', eventId)
+              .single();
 
       // Recupera gli utenti partecipanti
       final participants = await _supabase
@@ -32,9 +34,9 @@ class NotificationService {
         );
       }
 
-      print('Notifiche di inizio evento inviate per: $eventId');
+      debugPrint('Notifiche di inizio evento inviate per: $eventId');
     } catch (e) {
-      print('Errore nell\'invio notifica inizio evento: $e');
+      debugPrint('Errore nell\'invio notifica inizio evento: $e');
     }
   }
 
@@ -44,11 +46,12 @@ class NotificationService {
   Future<void> notifyEventEnd({required String eventId}) async {
     try {
       // Recupera i dettagli dell'evento
-      final eventResponse = await _supabase
-          .from('events')
-          .select('title, description, end')
-          .eq('id', eventId)
-          .single();
+      final eventResponse =
+          await _supabase
+              .from('events')
+              .select('title, description, end')
+              .eq('id', eventId)
+              .single();
 
       // Recupera gli utenti partecipanti
       final participants = await _supabase
@@ -61,13 +64,14 @@ class NotificationService {
         await _sendNotification(
           userId: participant['person_id'],
           title: 'Evento in conclusione',
-          body: 'L\'evento "${eventResponse['title']}" terminerà tra 30 minuti.',
+          body:
+              'L\'evento "${eventResponse['title']}" terminerà tra 30 minuti.',
         );
       }
 
-      print('Notifiche di fine evento inviate per: $eventId');
+      debugPrint('Notifiche di fine evento inviate per: $eventId');
     } catch (e) {
-      print('Errore nell\'invio notifica fine evento: $e');
+      debugPrint('Errore nell\'invio notifica fine evento: $e');
     }
   }
 
@@ -84,10 +88,10 @@ class NotificationService {
       // - Email
       // - Notifiche in-app
       // - WebSocket per notifiche real-time
-      
+
       // Per ora, stampiamo solo i dettagli della notifica
-      print('Notifica per utente $userId: $title - $body');
-      
+      debugPrint('Notifica per utente $userId: $title - $body');
+
       // Esempio di implementazione con Supabase Realtime:
       // await _supabase.channel('notifications').send({
       //   'user_id': userId,
@@ -95,9 +99,8 @@ class NotificationService {
       //   'body': body,
       //   'created_at': DateTime.now().toIso8601String(),
       // });
-      
     } catch (e) {
-      print('Errore nell\'invio della notifica: $e');
+      debugPrint('Errore nell\'invio della notifica: $e');
     }
   }
 }

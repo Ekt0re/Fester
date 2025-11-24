@@ -37,12 +37,13 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
     setState(() => _isLoading = true);
     try {
       // 1. Get event settings for max capacity
-      final eventSettings = await _supabase
-          .from('event_settings')
-          .select('max_participants')
-          .eq('event_id', widget.eventId)
-          .maybeSingle();
-      
+      final eventSettings =
+          await _supabase
+              .from('event_settings')
+              .select('max_participants')
+              .eq('event_id', widget.eventId)
+              .maybeSingle();
+
       _maxCapacity = eventSettings?['max_participants'] ?? 0;
 
       // 2. Count participations (total attendance)
@@ -53,12 +54,12 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
 
       int totalAttendance = 0;
       Map<String, int> statusCounts = {};
-      
+
       for (var p in participations) {
         final statusData = p['participation_status'];
         final statusName = statusData?['name'] ?? 'Unknown';
         final isInside = statusData?['is_inside'] ?? false;
-        
+
         statusCounts[statusName] = (statusCounts[statusName] ?? 0) + 1;
         if (isInside) totalAttendance++;
       }
@@ -68,14 +69,16 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
           .from('event_staff')
           .select('id')
           .eq('event_id', widget.eventId);
-      
+
       _totalStaff = (staff as List).length;
       _activeStaff = _totalStaff; // Could be enhanced to track active/inactive
 
       // 4. Calculate total revenue and get transactions
       final transactions = await _supabase
           .from('transaction')
-          .select('amount, quantity, menu_item_id, menu_item(name), participation!inner(event_id)')
+          .select(
+            'amount, quantity, menu_item_id, menu_item(name), participation!inner(event_id)',
+          )
           .eq('participation.event_id', widget.eventId);
 
       double totalRevenue = 0;
@@ -95,18 +98,20 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
         }
       }
 
-      final topProducts = productCounts.entries.toList()
-        ..sort((a, b) => b.value.compareTo(a.value));
+      final topProducts =
+          productCounts.entries.toList()
+            ..sort((a, b) => b.value.compareTo(a.value));
 
       setState(() {
         _totalAttendance = totalAttendance;
         _totalRevenue = totalRevenue;
         _statusCounts = statusCounts;
         _activeStaff = _activeStaff;
-        _topProducts = topProducts
-            .take(5)
-            .map((e) => {'name': e.key, 'count': e.value})
-            .toList();
+        _topProducts =
+            topProducts
+                .take(5)
+                .map((e) => {'name': e.key, 'count': e.value})
+                .toList();
         _totalItemsSold = totalItemsSold;
         _isLoading = false;
       });
@@ -123,14 +128,11 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: const Text('Statistiche Evento'),
-        ),
+        appBar: AppBar(title: const Text('Statistiche Evento')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -176,7 +178,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Active Staff Card
           _buildSmallMetricCard(
             theme: theme,
@@ -191,7 +193,9 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
           // Partecipazioni per Status (Pie Chart)
           Card(
             color: theme.cardColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -208,60 +212,67 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                   const SizedBox(height: 24),
                   SizedBox(
                     height: 200,
-                    child: _statusCounts.isEmpty
-                        ? Center(
-                            child: Text(
-                              'Nessun dato disponibile',
-                              style: theme.textTheme.bodyMedium,
+                    child:
+                        _statusCounts.isEmpty
+                            ? Center(
+                              child: Text(
+                                'Nessun dato disponibile',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            )
+                            : PieChart(
+                              PieChartData(
+                                sections:
+                                    _statusCounts.entries.map((entry) {
+                                      final index = _statusCounts.keys
+                                          .toList()
+                                          .indexOf(entry.key);
+                                      return PieChartSectionData(
+                                        value: entry.value.toDouble(),
+                                        title: '${entry.value}',
+                                        color: _getColorForIndex(index),
+                                        radius: 70,
+                                        titleStyle: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    }).toList(),
+                                sectionsSpace: 2,
+                                centerSpaceRadius: 50,
+                              ),
                             ),
-                          )
-                        : PieChart(
-                            PieChartData(
-                              sections: _statusCounts.entries.map((entry) {
-                                final index = _statusCounts.keys.toList().indexOf(entry.key);
-                                return PieChartSectionData(
-                                  value: entry.value.toDouble(),
-                                  title: '${entry.value}',
-                                  color: _getColorForIndex(index),
-                                  radius: 70,
-                                  titleStyle: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                );
-                              }).toList(),
-                              sectionsSpace: 2,
-                              centerSpaceRadius: 50,
-                            ),
-                          ),
                   ),
                   const SizedBox(height: 20),
                   // Legend
                   Wrap(
                     spacing: 16,
                     runSpacing: 12,
-                    children: _statusCounts.entries.map((entry) {
-                      final index = _statusCounts.keys.toList().indexOf(entry.key);
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 14,
-                            height: 14,
-                            decoration: BoxDecoration(
-                              color: _getColorForIndex(index),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${entry.key} (${entry.value})',
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ],
-                      );
-                    }).toList(),
+                    children:
+                        _statusCounts.entries.map((entry) {
+                          final index = _statusCounts.keys.toList().indexOf(
+                            entry.key,
+                          );
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  color: _getColorForIndex(index),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${entry.key} (${entry.value})',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ],
+                          );
+                        }).toList(),
                   ),
                 ],
               ),
@@ -273,7 +284,9 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
           if (_topProducts.isNotEmpty)
             Card(
               color: theme.cardColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -305,24 +318,29 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                         children: [
                           PieChart(
                             PieChartData(
-                              sections: _topProducts.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final product = entry.value;
-                                final percentage = (_totalItemsSold > 0
-                                    ? (product['count'] / _totalItemsSold * 100)
-                                    : 0);
-                                return PieChartSectionData(
-                                  value: product['count'].toDouble(),
-                                  title: '${percentage.toStringAsFixed(0)}%',
-                                  color: _getProductColor(index),
-                                  radius: 60,
-                                  titleStyle: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                );
-                              }).toList(),
+                              sections:
+                                  _topProducts.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final product = entry.value;
+                                    final percentage =
+                                        (_totalItemsSold > 0
+                                            ? (product['count'] /
+                                                _totalItemsSold *
+                                                100)
+                                            : 0);
+                                    return PieChartSectionData(
+                                      value: product['count'].toDouble(),
+                                      title:
+                                          '${percentage.toStringAsFixed(0)}%',
+                                      color: _getProductColor(index),
+                                      radius: 60,
+                                      titleStyle: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    );
+                                  }).toList(),
                               sectionsSpace: 3,
                               centerSpaceRadius: 60,
                             ),
@@ -333,7 +351,8 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                               Text(
                                 'Total Items',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.6),
                                 ),
                               ),
                               Text(
@@ -354,9 +373,10 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                     ..._topProducts.asMap().entries.map((entry) {
                       final index = entry.key;
                       final product = entry.value;
-                      final percentage = (_totalItemsSold > 0
-                          ? (product['count'] / _totalItemsSold * 100)
-                          : 0);
+                      final percentage =
+                          (_totalItemsSold > 0
+                              ? (product['count'] / _totalItemsSold * 100)
+                              : 0);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Row(
@@ -386,7 +406,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../theme/app_theme.dart';
 
 class EventSettingsScreen extends StatefulWidget {
   final String eventId;
@@ -53,24 +52,29 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
   Future<void> _loadSettings() async {
     setState(() => _isLoading = true);
     try {
-      final response = await _supabase
-          .from('event_settings')
-          .select()
-          .eq('event_id', widget.eventId)
-          .maybeSingle();
+      final response =
+          await _supabase
+              .from('event_settings')
+              .select()
+              .eq('event_id', widget.eventId)
+              .maybeSingle();
 
       if (response != null) {
         _settingsId = response['id'];
-        _maxParticipantsController.text = response['max_participants']?.toString() ?? '';
+        _maxParticipantsController.text =
+            response['max_participants']?.toString() ?? '';
         _locationController.text = response['location'] ?? '';
-        _ageRestrictionController.text = response['age_restriction']?.toString() ?? '';
-        _maxDrinksController.text = response['default_max_drinks_per_person']?.toString() ?? '';
-        _maxWarningsController.text = response['max_warnings_before_ban']?.toString() ?? '3';
-        
+        _ageRestrictionController.text =
+            response['age_restriction']?.toString() ?? '';
+        _maxDrinksController.text =
+            response['default_max_drinks_per_person']?.toString() ?? '';
+        _maxWarningsController.text =
+            response['max_warnings_before_ban']?.toString() ?? '3';
+
         _allowGuests = response['allow_guests'] ?? true;
         _lateEntryAllowed = response['late_entry_allowed'] ?? true;
         _idCheckRequired = response['id_check_required'] ?? false;
-        
+
         if (response['start_at'] != null) {
           _startAt = DateTime.parse(response['start_at']);
         }
@@ -95,19 +99,24 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
     setState(() => _isSaving = true);
     try {
       final data = {
-        'max_participants': _maxParticipantsController.text.isEmpty
-            ? null
-            : int.parse(_maxParticipantsController.text),
-        'location': _locationController.text.isEmpty ? null : _locationController.text,
-        'age_restriction': _ageRestrictionController.text.isEmpty
-            ? null
-            : int.parse(_ageRestrictionController.text),
-        'default_max_drinks_per_person': _maxDrinksController.text.isEmpty
-            ? null
-            : int.parse(_maxDrinksController.text),
-        'max_warnings_before_ban': _maxWarningsController.text.isEmpty
-            ? 3
-            : int.parse(_maxWarningsController.text),
+        'max_participants':
+            _maxParticipantsController.text.isEmpty
+                ? null
+                : int.parse(_maxParticipantsController.text),
+        'location':
+            _locationController.text.isEmpty ? null : _locationController.text,
+        'age_restriction':
+            _ageRestrictionController.text.isEmpty
+                ? null
+                : int.parse(_ageRestrictionController.text),
+        'default_max_drinks_per_person':
+            _maxDrinksController.text.isEmpty
+                ? null
+                : int.parse(_maxDrinksController.text),
+        'max_warnings_before_ban':
+            _maxWarningsController.text.isEmpty
+                ? 3
+                : int.parse(_maxWarningsController.text),
         'allow_guests': _allowGuests,
         'late_entry_allowed': _lateEntryAllowed,
         'id_check_required': _idCheckRequired,
@@ -134,9 +143,9 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore salvataggio: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore salvataggio: $e')));
       }
     } finally {
       setState(() => _isSaving = false);
@@ -172,10 +181,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               ),
             )
           else
-            TextButton(
-              onPressed: _saveSettings,
-              child: const Text('Salva'),
-            ),
+            TextButton(onPressed: _saveSettings, child: const Text('Salva')),
         ],
       ),
       body: Form(
@@ -191,7 +197,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               icon: Icons.location_on,
             ),
             const SizedBox(height: 16),
-            
+
             _buildDateTimeField(
               context: context,
               label: 'Data Inizio',
@@ -199,7 +205,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               onChanged: (date) => setState(() => _startAt = date),
             ),
             const SizedBox(height: 16),
-            
+
             _buildDateTimeField(
               context: context,
               label: 'Data Fine',
@@ -217,7 +223,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _maxDrinksController,
               label: 'Massimo Drink per Persona',
@@ -236,7 +242,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            
+
             _buildTextField(
               controller: _maxWarningsController,
               label: 'Massimo Warning prima del Ban',
@@ -245,7 +251,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            
+
             _buildSwitchTile(
               theme: theme,
               title: 'Controllo Documento Richiesto',
@@ -263,7 +269,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               onChanged: (val) => setState(() => _allowGuests = val),
             ),
             const SizedBox(height: 8),
-            
+
             _buildSwitchTile(
               theme: theme,
               title: 'Ingresso Tardivo Consentito',
@@ -337,7 +343,9 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
             initialTime: TimeOfDay.fromDateTime(value ?? DateTime.now()),
           );
           if (time != null) {
-            onChanged(DateTime(date.year, date.month, date.day, time.hour, time.minute));
+            onChanged(
+              DateTime(date.year, date.month, date.day, time.hour, time.minute),
+            );
           }
         }
       },
@@ -355,10 +363,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    label,
-                    style: theme.textTheme.bodySmall,
-                  ),
+                  Text(label, style: theme.textTheme.bodySmall),
                   const SizedBox(height: 4),
                   Text(
                     value != null

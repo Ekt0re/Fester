@@ -24,12 +24,12 @@ class _GuestListScreenState extends State<GuestListScreen> {
   final EventService _eventService = EventService();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  
+
   List<Map<String, dynamic>> _allParticipations = [];
   List<Map<String, dynamic>> _filteredParticipations = [];
   List<Map<String, dynamic>> _statuses = [];
   bool _isLoading = true;
-  String _searchQuery = '';
+
   String? _userRole;
 
   @override
@@ -54,21 +54,25 @@ class _GuestListScreenState extends State<GuestListScreen> {
           .order('id');
       _statuses = List<Map<String, dynamic>>.from(statusResponse);
 
-      final participations = await _participationService.getEventParticipations(widget.eventId);
-      
+      final participations = await _participationService.getEventParticipations(
+        widget.eventId,
+      );
+
       // Load user role for this event
       final userId = Supabase.instance.client.auth.currentUser?.id;
       String? userRole;
       if (userId != null) {
         try {
           final staffList = await _eventService.getEventStaff(widget.eventId);
-          final userStaff = staffList.firstWhere((s) => s.staffUserId == userId);
+          final userStaff = staffList.firstWhere(
+            (s) => s.staffUserId == userId,
+          );
           userRole = userStaff.roleName?.toLowerCase();
         } catch (_) {
           // User might not be in staff list
         }
       }
-      
+
       if (mounted) {
         setState(() {
           _allParticipations = participations;
@@ -90,54 +94,70 @@ class _GuestListScreenState extends State<GuestListScreen> {
 
   void _filterList(String query) {
     setState(() {
-      _searchQuery = query;
       if (query.isEmpty) {
         _filteredParticipations = _allParticipations;
       } else {
-        _filteredParticipations = _allParticipations.where((p) {
-          final person = p['person'] ?? {};
-          final name = (person['first_name'] ?? '').toString().toLowerCase();
-          final surname = (person['last_name'] ?? '').toString().toLowerCase();
-          final idEvent = (person['id_event'] ?? '').toString().toLowerCase();
-          final q = query.toLowerCase();
-          return name.contains(q) || surname.contains(q) || idEvent.contains(q);
-        }).toList();
+        _filteredParticipations =
+            _allParticipations.where((p) {
+              final person = p['person'] ?? {};
+              final name =
+                  (person['first_name'] ?? '').toString().toLowerCase();
+              final surname =
+                  (person['last_name'] ?? '').toString().toLowerCase();
+              final idEvent =
+                  (person['id_event'] ?? '').toString().toLowerCase();
+              final q = query.toLowerCase();
+              return name.contains(q) ||
+                  surname.contains(q) ||
+                  idEvent.contains(q);
+            }).toList();
       }
     });
   }
 
-  Future<void> _updateStatus(String participationId, int currentStatusId) async {
+  Future<void> _updateStatus(
+    String participationId,
+    int currentStatusId,
+  ) async {
     // Logic: confirmed -> checked_in -> inside -> outside -> left -> confirmed (loop or back?)
     // User said: confirmed -> checked_in -> inside -> outside -> left.
     // If left -> turn back (maybe to confirmed or just toggle back?)
     // "If you arrive to left turn back whit the double taps." -> implies cycle or reverse.
-    
+
     // Let's implement a simple forward cycle for now based on IDs or Names.
     // Assuming standard IDs or finding next by order.
-    
+
     // Find current status index
-    final currentIndex = _statuses.indexWhere((s) => s['id'] == currentStatusId);
+    final currentIndex = _statuses.indexWhere(
+      (s) => s['id'] == currentStatusId,
+    );
     if (currentIndex == -1) return;
 
     // Define the cycle order by name
-    const statusOrder = ['confirmed', 'checked_in', 'inside', 'outside', 'left'];
-    
+    const statusOrder = [
+      'confirmed',
+      'checked_in',
+      'inside',
+      'outside',
+      'left',
+    ];
+
     final currentStatusName = _statuses[currentIndex]['name'];
     int nextIndex = -1;
-    
+
     // Find next status in our defined order
     for (int i = 0; i < statusOrder.length; i++) {
       if (statusOrder[i] == currentStatusName) {
         if (i < statusOrder.length - 1) {
-           // Find the ID of the next status name
-           final nextName = statusOrder[i+1];
-           nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
+          // Find the ID of the next status name
+          final nextName = statusOrder[i + 1];
+          nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
         } else {
-           // Cycle back to first? Or reverse? User said "turn back".
-           // Let's cycle to start for simplicity or make it smart.
-           // "If you arrive to left turn back whit the double taps" -> maybe reset?
-           final nextName = statusOrder[0];
-           nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
+          // Cycle back to first? Or reverse? User said "turn back".
+          // Let's cycle to start for simplicity or make it smart.
+          // "If you arrive to left turn back whit the double taps" -> maybe reset?
+          final nextName = statusOrder[0];
+          nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
         }
         break;
       }
@@ -145,7 +165,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
 
     // If current status is not in our main flow (e.g. 'invited'), maybe move to 'confirmed'?
     if (nextIndex == -1 && currentStatusName == 'invited') {
-       nextIndex = _statuses.indexWhere((s) => s['name'] == 'confirmed');
+      nextIndex = _statuses.indexWhere((s) => s['name'] == 'confirmed');
     }
 
     if (nextIndex != -1) {
@@ -161,18 +181,24 @@ class _GuestListScreenState extends State<GuestListScreen> {
         newStatusId: newStatusId,
       );
       // Refresh list locally to feel fast
-      final index = _allParticipations.indexWhere((p) => p['id'] == participationId);
+      final index = _allParticipations.indexWhere(
+        (p) => p['id'] == participationId,
+      );
       if (index != -1) {
         setState(() {
           _allParticipations[index]['status_id'] = newStatusId;
-          _allParticipations[index]['status'] = _statuses.firstWhere((s) => s['id'] == newStatusId);
+          _allParticipations[index]['status'] = _statuses.firstWhere(
+            (s) => s['id'] == newStatusId,
+          );
           _filterList(_searchController.text);
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore aggiornamento stato: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore aggiornamento stato: $e')),
+        );
+      }
     }
   }
 
@@ -185,12 +211,24 @@ class _GuestListScreenState extends State<GuestListScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Seleziona Stato', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                'Seleziona Stato',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 16),
               ..._statuses.map((status) {
                 return ListTile(
                   title: Text(status['name'].toString().toUpperCase()),
-                  leading: status['id'] == currentStatusId ? const Icon(Icons.check, color: AppTheme.primaryLight) : null,
+                  leading:
+                      status['id'] == currentStatusId
+                          ? const Icon(
+                            Icons.check,
+                            color: AppTheme.primaryLight,
+                          )
+                          : null,
                   onTap: () {
                     Navigator.pop(context);
                     _changeStatus(participationId, status['id']);
@@ -209,21 +247,24 @@ class _GuestListScreenState extends State<GuestListScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: TransactionCreationSheet(
-          eventId: widget.eventId,
-          participationId: participationId,
-          initialTransactionType: type,
-          onSuccess: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Transazione creata con successo')),
-            );
-          },
-        ),
-      ),
+      builder:
+          (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: TransactionCreationSheet(
+              eventId: widget.eventId,
+              participationId: participationId,
+              initialTransactionType: type,
+              onSuccess: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Transazione creata con successo'),
+                  ),
+                );
+              },
+            ),
+          ),
     );
   }
 
@@ -232,7 +273,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
     final person = participation['person'] ?? {};
     final status = participation['status'] ?? {};
     final role = participation['role'] ?? {};
-    
+
     return GuestCard(
       name: person['first_name'] ?? 'Sconosciuto',
       surname: person['last_name'] ?? '',
@@ -243,16 +284,20 @@ class _GuestListScreenState extends State<GuestListScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => PersonProfileScreen(
-              personId: person['id'],
-              eventId: widget.eventId,
-              currentUserRole: _userRole,
-            ),
+            builder:
+                (context) => PersonProfileScreen(
+                  personId: person['id'],
+                  eventId: widget.eventId,
+                  currentUserRole: _userRole,
+                ),
           ),
         );
       },
-      onDoubleTap: () => _updateStatus(participation['id'], participation['status_id']),
-      onLongPress: () => _showStatusMenu(participation['id'], participation['status_id']),
+      onDoubleTap:
+          () => _updateStatus(participation['id'], participation['status_id']),
+      onLongPress:
+          () =>
+              _showStatusMenu(participation['id'], participation['status_id']),
       onReport: () => _showTransactionCreation(participation['id'], 'report'),
       onDrink: () => _showTransactionCreation(participation['id'], 'drink'),
     );
@@ -261,10 +306,11 @@ class _GuestListScreenState extends State<GuestListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final arrivedCount = _allParticipations.where((p) {
-       final status = p['status']?['name'];
-       return status == 'inside' || status == 'checked_in'; 
-    }).length;
+    final arrivedCount =
+        _allParticipations.where((p) {
+          final status = p['status']?['name'];
+          return status == 'inside' || status == 'checked_in';
+        }).length;
 
     final canAddGuests = _userRole == 'staff3' || _userRole == 'admin';
 
@@ -280,11 +326,17 @@ class _GuestListScreenState extends State<GuestListScreen> {
           children: [
             Text(
               'Elenco ospiti',
-              style: GoogleFonts.outfit(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(
+                color: theme.colorScheme.onPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               'Totale: ${_allParticipations.length} - Arrivati: $arrivedCount',
-              style: GoogleFonts.outfit(color: theme.colorScheme.onPrimary.withOpacity(0.7), fontSize: 12),
+              style: GoogleFonts.outfit(
+                color: theme.colorScheme.onPrimary.withOpacity(0.7),
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -328,20 +380,27 @@ class _GuestListScreenState extends State<GuestListScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: IconButton(
-                    icon: Icon(Icons.qr_code_scanner, color: theme.colorScheme.onPrimary),
+                    icon: Icon(
+                      Icons.qr_code_scanner,
+                      color: theme.colorScheme.onPrimary,
+                    ),
                     onPressed: () async {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => QRScannerScreen(eventId: widget.eventId),
+                          builder:
+                              (context) =>
+                                  QRScannerScreen(eventId: widget.eventId),
                         ),
                       );
-                      
+
                       if (result == 'SEARCH_TRIGGER') {
                         // Wait a bit for the screen to settle
                         Future.delayed(const Duration(milliseconds: 300), () {
                           if (mounted) {
-                            FocusScope.of(context).requestFocus(_searchFocusNode);
+                            FocusScope.of(
+                              context,
+                            ).requestFocus(_searchFocusNode);
                           }
                         });
                       }
@@ -352,57 +411,66 @@ class _GuestListScreenState extends State<GuestListScreen> {
               ],
             ),
           ),
-          
+
           // List
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      if (constraints.maxWidth > 900) {
-                        return Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1200),
-                            child: GridView.builder(
-                              padding: const EdgeInsets.all(16),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                                childAspectRatio: 3.5, 
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 900) {
+                          return Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 1200),
+                              child: GridView.builder(
+                                padding: const EdgeInsets.all(16),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 16,
+                                      mainAxisSpacing: 16,
+                                      childAspectRatio: 3.5,
+                                    ),
+                                itemCount: _filteredParticipations.length,
+                                itemBuilder: _buildGuestItem,
                               ),
-                              itemCount: _filteredParticipations.length,
-                              itemBuilder: _buildGuestItem,
                             ),
-                          ),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredParticipations.length,
+                          itemBuilder: _buildGuestItem,
                         );
-                      }
-                      return ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _filteredParticipations.length,
-                        itemBuilder: _buildGuestItem,
-                      );
-                    },
-                  ),
+                      },
+                    ),
           ),
         ],
       ),
-      floatingActionButton: canAddGuests ? FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddGuestScreen(eventId: widget.eventId),
-            ),
-          );
-          // Reload list if guest was added
-          if (result == true) {
-            _loadData();
-          }
-        },
-        backgroundColor: theme.colorScheme.secondary,
-        child: Icon(Icons.person_add, color: theme.colorScheme.onSecondary),
-      ) : null,
+      floatingActionButton:
+          canAddGuests
+              ? FloatingActionButton(
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => AddGuestScreen(eventId: widget.eventId),
+                    ),
+                  );
+                  // Reload list if guest was added
+                  if (result == true) {
+                    _loadData();
+                  }
+                },
+                backgroundColor: theme.colorScheme.secondary,
+                child: Icon(
+                  Icons.person_add,
+                  color: theme.colorScheme.onSecondary,
+                ),
+              )
+              : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

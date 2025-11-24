@@ -1,13 +1,12 @@
 // lib/services/notification_scheduler.dart
 import 'dart:async';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'notification_service.dart';
 
 /// Scheduler per notifiche di avvio/fine evento.
 /// Viene istanziato una volta per evento e utilizza [Timer] per
 /// inviare le notifiche 10 minuti prima dell'inizio e 30 minuti prima della fine.
 class NotificationScheduler {
-  final SupabaseClient _supabase = Supabase.instance.client;
   final NotificationService _notificationService = NotificationService();
 
   Timer? _startTimer;
@@ -18,7 +17,11 @@ class NotificationScheduler {
   /// [eventId]  ID dell'evento.
   /// [start]    Data/ora di inizio dell'evento (UTC).
   /// [end]      Data/ora di fine dell'evento (UTC).
-  void schedule({required String eventId, required DateTime start, required DateTime end}) {
+  void schedule({
+    required String eventId,
+    required DateTime start,
+    required DateTime end,
+  }) {
     // Cancella eventuali timer preesistenti
     _cancel();
 

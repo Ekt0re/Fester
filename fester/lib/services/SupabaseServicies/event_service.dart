@@ -1,5 +1,6 @@
 // lib/services/event_service.dart
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/event.dart';
 import 'models/event_settings.dart';
@@ -15,7 +16,7 @@ class EventService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
-      print('[EventService] Getting events for staff_user: $userId');
+      debugPrint('[EventService] Getting events for staff_user: $userId');
 
       // Simplified query thanks to RLS policies (event_select_unified)
       final response = await _supabase
@@ -24,10 +25,10 @@ class EventService {
           .isFilter('deleted_at', null)
           .order('created_at', ascending: false);
 
-      print('[EventService] Found ${(response as List).length} events');
+      debugPrint('[EventService] Found ${(response as List).length} events');
       return (response as List).map((json) => Event.fromJson(json)).toList();
     } catch (e) {
-      print('[EventService] ERROR: $e');
+      debugPrint('[EventService] ERROR: $e');
       rethrow;
     }
   }
@@ -89,7 +90,8 @@ class EventService {
       await _supabase.from('event_staff').insert({
         'event_id': response['id'],
         'staff_user_id': userId,
-        'role_id': 1, // Default to admin role (id=1 usually, check your seed data)
+        'role_id':
+            1, // Default to admin role (id=1 usually, check your seed data)
         'assigned_by': userId,
       });
 
@@ -236,7 +238,7 @@ class EventService {
   /// Get event staff members
   Future<List<EventStaff>> getEventStaff(String eventId) async {
     try {
-      print('[DEBUG] getEventStaff: Fetching staff for event $eventId');
+      debugPrint('[DEBUG] getEventStaff: Fetching staff for event $eventId');
       final response = await _supabase
           .from('event_staff')
           .select('''
@@ -247,28 +249,35 @@ class EventService {
           .eq('event_id', eventId)
           .order('created_at', ascending: false);
 
-      print('[DEBUG] getEventStaff: Received ${(response as List).length} staff members');
-      
-      final staffList = (response as List)
-          .map((json) => EventStaff.fromJson(json as Map<String, dynamic>))
-          .toList();
+      debugPrint(
+        '[DEBUG] getEventStaff: Received ${(response as List).length} staff members',
+      );
 
-      // Debug print first staff member to verify data
+      final staffList =
+          (response as List)
+              .map((json) => EventStaff.fromJson(json as Map<String, dynamic>))
+              .toList();
+
+      // Debug debugPrint first staff member to verify data
       if (staffList.isNotEmpty) {
         final firstStaff = staffList.first;
-        print('[DEBUG] getEventStaff: Sample staff data:');
-        print('  - Name: ${firstStaff.staff?.firstName} ${firstStaff.staff?.lastName}');
-        print('  - Email: ${firstStaff.staff?.email}');
-        print('  - Phone: ${firstStaff.staff?.phone}');
-        print('  - DOB: ${firstStaff.staff?.dateOfBirth}');
-        print('  - Image: ${firstStaff.staff?.imagePath}');
-        print('  - Role: ${firstStaff.roleName} (ID: ${firstStaff.roleId})');
+        debugPrint('[DEBUG] getEventStaff: Sample staff data:');
+        debugPrint(
+          '  - Name: ${firstStaff.staff?.firstName} ${firstStaff.staff?.lastName}',
+        );
+        debugPrint('  - Email: ${firstStaff.staff?.email}');
+        debugPrint('  - Phone: ${firstStaff.staff?.phone}');
+        debugPrint('  - DOB: ${firstStaff.staff?.dateOfBirth}');
+        debugPrint('  - Image: ${firstStaff.staff?.imagePath}');
+        debugPrint(
+          '  - Role: ${firstStaff.roleName} (ID: ${firstStaff.roleId})',
+        );
       }
 
       return staffList;
     } catch (e, stackTrace) {
-      print('[ERROR] getEventStaff: $e');
-      print('[ERROR] Stack trace: $stackTrace');
+      debugPrint('[ERROR] getEventStaff: $e');
+      debugPrint('[ERROR] Stack trace: $stackTrace');
       rethrow;
     }
   }
@@ -317,16 +326,18 @@ class EventService {
     required int newRoleId,
   }) async {
     try {
-      print('[DEBUG] updateStaffRole: Updating role for user $staffUserId in event $eventId to role $newRoleId');
+      debugPrint(
+        '[DEBUG] updateStaffRole: Updating role for user $staffUserId in event $eventId to role $newRoleId',
+      );
       await _supabase
           .from('event_staff')
           .update({'role_id': newRoleId})
           .eq('event_id', eventId)
           .eq('staff_user_id', staffUserId);
-      print('[DEBUG] updateStaffRole: Role updated successfully');
+      debugPrint('[DEBUG] updateStaffRole: Role updated successfully');
     } catch (e, stackTrace) {
-      print('[ERROR] updateStaffRole: $e');
-      print('[ERROR] Stack trace: $stackTrace');
+      debugPrint('[ERROR] updateStaffRole: $e');
+      debugPrint('[ERROR] Stack trace: $stackTrace');
       rethrow;
     }
   }
@@ -355,4 +366,3 @@ class EventService {
     }
   }
 }
-

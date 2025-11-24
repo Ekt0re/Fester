@@ -11,6 +11,9 @@ import '../../providers/theme_provider.dart';
 import 'widgets/settings_tile.dart';
 import 'language_settings_screen.dart';
 import 'notification_settings_screen.dart';
+import 'faq_screen.dart';
+import 'support_screen.dart';
+import 'feedback_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -408,9 +411,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           icon: Icons.help_outline,
           title: 'FAQ',
           onTap: () {
-            // TODO: Navigate to FAQ
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('FAQ - Coming soon')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FAQScreen(),
+              ),
             );
           },
         ),
@@ -419,9 +424,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           icon: Icons.support_agent,
           title: 'Contact Support',
           onTap: () {
-            // TODO: Navigate to support
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Contact Support - Coming soon')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SupportScreen(),
+              ),
             );
           },
         ),
@@ -430,9 +437,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           icon: Icons.feedback_outlined,
           title: 'Send Feedback',
           onTap: () {
-            // TODO: Navigate to feedback
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Send Feedback - Coming soon')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FeedbackScreen(),
+              ),
             );
           },
         ),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../theme/app_theme.dart';
 
 class MenuManagementScreen extends StatefulWidget {
   final String eventId;
@@ -50,11 +48,12 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       _transactionTypes = List<Map<String, dynamic>>.from(typesResponse);
 
       // Load menu
-      final menuResponse = await _supabase
-          .from('menu')
-          .select()
-          .eq('event_id', widget.eventId)
-          .maybeSingle();
+      final menuResponse =
+          await _supabase
+              .from('menu')
+              .select()
+              .eq('event_id', widget.eventId)
+              .maybeSingle();
 
       if (menuResponse != null) {
         _menuId = menuResponse['id'];
@@ -68,26 +67,27 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             .eq('menu_id', _menuId!)
             .order('sort_order', ascending: true);
 
-        _menuItems = (itemsResponse as List).map((item) {
-          final menuItem = MenuItemData(
-            id: item['id'] as String?,
-            tempId: item['id'] as String,
-            transactionTypeId: item['transaction_type_id'] as int,
-            name: item['name'] as String,
-            description: item['description'] as String?,
-            price: (item['price'] as num?)?.toDouble(),
-            availableQuantity: item['available_quantity'] as int?,
-            isAlcoholic: item['is_alcoholic'] as bool? ?? false,
-          );
-          _confirmedItems.add(menuItem.tempId);
-          return menuItem;
-        }).toList();
+        _menuItems =
+            (itemsResponse as List).map((item) {
+              final menuItem = MenuItemData(
+                id: item['id'] as String?,
+                tempId: item['id'] as String,
+                transactionTypeId: item['transaction_type_id'] as int,
+                name: item['name'] as String,
+                description: item['description'] as String?,
+                price: (item['price'] as num?)?.toDouble(),
+                availableQuantity: item['available_quantity'] as int?,
+                isAlcoholic: item['is_alcoholic'] as bool? ?? false,
+              );
+              _confirmedItems.add(menuItem.tempId);
+              return menuItem;
+            }).toList();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore caricamento: $e')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -102,16 +102,14 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       final menuData = {
         'event_id': widget.eventId,
         'name': _menuNameController.text.trim(),
-        'description': _menuDescriptionController.text.trim().isEmpty
-            ? null
-            : _menuDescriptionController.text.trim(),
+        'description':
+            _menuDescriptionController.text.trim().isEmpty
+                ? null
+                : _menuDescriptionController.text.trim(),
       };
 
-      final menuResponse = await _supabase
-          .from('menu')
-          .insert(menuData)
-          .select()
-          .single();
+      final menuResponse =
+          await _supabase.from('menu').insert(menuData).select().single();
 
       _menuId = menuResponse['id'];
 
@@ -123,9 +121,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore creazione menu: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore creazione menu: $e')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -157,7 +155,8 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
         'menu_id': _menuId!,
         'transaction_type_id': item.transactionTypeId!,
         'name': item.name!,
-        'description': item.description?.isEmpty ?? true ? null : item.description,
+        'description':
+            item.description?.isEmpty ?? true ? null : item.description,
         'price': item.price,
         'available_quantity': item.availableQuantity,
         'is_alcoholic': item.isAlcoholic,
@@ -166,18 +165,16 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
 
       if (item.id == null) {
         // Create new
-        final response = await _supabase
-            .from('menu_item')
-            .insert(itemData)
-            .select()
-            .single();
+        final response =
+            await _supabase
+                .from('menu_item')
+                .insert(itemData)
+                .select()
+                .single();
         item.id = response['id'];
       } else {
         // Update existing
-        await _supabase
-            .from('menu_item')
-            .update(itemData)
-            .eq('id', item.id!);
+        await _supabase.from('menu_item').update(itemData).eq('id', item.id!);
       }
 
       setState(() {
@@ -185,9 +182,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
         _expandedItems.remove(itemId);
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore salvataggio: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Errore salvataggio: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -206,9 +203,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       try {
         await _supabase.from('menu_item').delete().eq('id', item.id!);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore eliminazione: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore eliminazione: $e')));
         return;
       }
     }
@@ -226,9 +223,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: const Text('Gestione Menù'),
-        ),
+        appBar: AppBar(title: const Text('Gestione Menù')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -237,9 +232,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     if (_menuId == null) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: const Text('Crea Menù'),
-        ),
+        appBar: AppBar(title: const Text('Crea Menù')),
         body: Form(
           key: _formKey,
           child: ListView(
@@ -291,10 +284,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       appBar: AppBar(
         title: Text(_menuNameController.text),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addMenuItem,
-          ),
+          IconButton(icon: const Icon(Icons.add), onPressed: _addMenuItem),
         ],
       ),
       body: ListView(
@@ -351,7 +341,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                 onConfirm: () => _confirmMenuItem(item.tempId),
                 onEdit: () => _editMenuItem(item.tempId),
               );
-            }).toList(),
+            }),
         ],
       ),
     );
@@ -380,7 +370,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
           decoration: BoxDecoration(
             color: theme.cardTheme.color,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: TextFormField(
             controller: controller,
@@ -435,17 +427,25 @@ class _MenuItemCardState extends State<_MenuItemCard> {
       orElse: () => {},
     );
     final name = (type['name'] as String?)?.toLowerCase() ?? '';
-    
+
     // Match icons from reference image
-    if (name.contains('drink') || name.contains('bevanda')) return Icons.local_bar;
+    if (name.contains('drink') || name.contains('bevanda')) {
+      return Icons.local_bar;
+    }
     if (name.contains('food') || name.contains('cibo')) return Icons.restaurant;
-    if (name.contains('ticket') || name.contains('biglietto')) return Icons.confirmation_number;
+    if (name.contains('ticket') || name.contains('biglietto')) {
+      return Icons.confirmation_number;
+    }
     if (name.contains('sanction')) return Icons.block;
     if (name.contains('report')) return Icons.warning;
-    if (name.contains('refund') || name.contains('rimborso')) return Icons.replay_circle_filled;
-    if (name.contains('fee') || name.contains('tassa')) return Icons.monetization_on;
+    if (name.contains('refund') || name.contains('rimborso')) {
+      return Icons.replay_circle_filled;
+    }
+    if (name.contains('fee') || name.contains('tassa')) {
+      return Icons.monetization_on;
+    }
     if (name.contains('fine') || name.contains('multa')) return Icons.gavel;
-    
+
     return Icons.attach_money;
   }
 
@@ -472,9 +472,10 @@ class _MenuItemCardState extends State<_MenuItemCard> {
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isConfirmed
-              ? theme.colorScheme.primary.withOpacity(0.5)
-              : theme.colorScheme.outline.withOpacity(0.1),
+          color:
+              isConfirmed
+                  ? theme.colorScheme.primary.withOpacity(0.5)
+                  : theme.colorScheme.outline.withOpacity(0.1),
         ),
       ),
       child: Column(
@@ -493,16 +494,18 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isConfirmed
-                          ? theme.colorScheme.primary.withOpacity(0.2)
-                          : theme.colorScheme.surface,
+                      color:
+                          isConfirmed
+                              ? theme.colorScheme.primary.withOpacity(0.2)
+                              : theme.colorScheme.surface,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       _getTypeIcon(widget.item.transactionTypeId),
-                      color: isConfirmed
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withOpacity(0.6),
+                      color:
+                          isConfirmed
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurface.withOpacity(0.6),
                       size: 20,
                     ),
                   ),
@@ -531,9 +534,13 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                       ],
                     ),
                   ),
-                  if (isConfirmed) ...[ if (widget.item.availableQuantity != null)
+                  if (isConfirmed) ...[
+                    if (widget.item.availableQuantity != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.secondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -706,7 +713,9 @@ class _MenuItemCardState extends State<_MenuItemCard> {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<int>(
@@ -715,12 +724,13 @@ class _MenuItemCardState extends State<_MenuItemCard> {
               hint: Text('Seleziona tipo', style: theme.textTheme.bodyMedium),
               dropdownColor: theme.colorScheme.surface,
               style: theme.textTheme.bodyLarge,
-              items: items.map((item) {
-                return DropdownMenuItem<int>(
-                  value: item['id'] as int,
-                  child: Text(item['name'] as String),
-                );
-              }).toList(),
+              items:
+                  items.map((item) {
+                    return DropdownMenuItem<int>(
+                      value: item['id'] as int,
+                      child: Text(item['name'] as String),
+                    );
+                  }).toList(),
               onChanged: onChanged,
             ),
           ),
@@ -751,13 +761,13 @@ class _MenuItemCardState extends State<_MenuItemCard> {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: TextField(
             controller: TextEditingController(text: value)
-              ..selection = TextSelection.collapsed(
-                offset: value?.length ?? 0,
-              ),
+              ..selection = TextSelection.collapsed(offset: value?.length ?? 0),
             onChanged: onChanged,
             keyboardType: keyboardType,
             style: theme.textTheme.bodyLarge,
@@ -819,7 +829,10 @@ class _PriceTextFieldState extends State<_PriceTextField> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-      text: widget.initialValue != null ? widget.initialValue!.toStringAsFixed(2).replaceAll('.', ',') : '',
+      text:
+          widget.initialValue != null
+              ? widget.initialValue!.toStringAsFixed(2).replaceAll('.', ',')
+              : '',
     );
   }
 
@@ -845,7 +858,9 @@ class _PriceTextFieldState extends State<_PriceTextField> {
           decoration: BoxDecoration(
             color: widget.theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: widget.theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: widget.theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: TextField(
             controller: _controller,

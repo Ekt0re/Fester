@@ -4,6 +4,7 @@ import '../services/SupabaseServicies/event_service.dart';
 import '../services/SupabaseServicies/staff_user_service.dart';
 import '../services/SupabaseServicies/models/event.dart';
 import '../services/SupabaseServicies/models/event_settings.dart';
+import '../services/SupabaseServicies/models/event_staff.dart';
 import '../widgets/animated_settings_icon.dart';
 import 'create_event/create_event_flow.dart';
 import 'settings/settings_screen.dart';
@@ -41,29 +42,39 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
       final List<EventWithDetails> activeList = [];
       final List<EventWithDetails> archivedList = [];
 
-      for (final event in events) {
-        // Carica settings e ruolo per ogni evento
-        final settings = await _eventService.getEventSettings(event.id);
-        final staffList = await _eventService.getEventStaff(event.id);
+      // Ottieni l'utente corrente una volta sola
+      final currentUser = await _staffUserService.getCurrentStaffUser();
+      final currentUserId = currentUser?.id;
+
+      // Prepara i futures per caricare i dettagli in parallelo
+      final futures = events.map((event) async {
+        // Lancia le richieste in parallelo per questo evento
+        final results = await Future.wait([
+          _eventService.getEventSettings(event.id),
+          _eventService.getEventStaff(event.id),
+        ]);
+
+        final settings = results[0] as EventSettings?;
+        final staffList = results[1] as List<EventStaff>;
 
         // Trova il ruolo dell'utente corrente
-        final currentUser = await _staffUserService.getCurrentStaffUser();
-        
-        // Use where().firstOrNull pattern which is safer and cleaner
-        // If firstOrNull is not available in older Dart, we can use isEmpty check
         final matchingStaff = staffList.where(
-          (staff) => staff.staffUserId == currentUser?.id,
+          (staff) => staff.staffUserId == currentUserId,
         );
         final userStaff = matchingStaff.isNotEmpty ? matchingStaff.first : null;
 
-        final eventDetails = EventWithDetails(
+        return EventWithDetails(
           event: event,
           settings: settings,
           userRole: userStaff?.roleName ?? 'Staff',
         );
+      });
 
-        // Separa in base a deleted_at (archiviati)
-        if (event.deletedAt != null) {
+      // Attendi che tutti gli eventi siano processati
+      final allEventDetails = await Future.wait(futures);
+
+      for (final eventDetails in allEventDetails) {
+        if (eventDetails.event.deletedAt != null) {
           archivedList.add(eventDetails);
         } else {
           activeList.add(eventDetails);
@@ -225,8 +236,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                       onTap: () {
                                         Navigator.pushNamed(
                                           context,
-                                          '/event-detail',
-                                          arguments: eventDetails.event.id,
+                                          '/event/${eventDetails.event.id}',
                                         );
                                       },
                                     );

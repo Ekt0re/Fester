@@ -8,14 +8,14 @@ class CreateMenuScreen extends StatefulWidget {
   final String? initialMenuName;
   final String? initialMenuDescription;
   final List<Map<String, dynamic>>? initialMenuItems;
-  
+
   const CreateMenuScreen({
-    Key? key, 
+    super.key,
     this.eventId,
     this.initialMenuName,
     this.initialMenuDescription,
     this.initialMenuItems,
-  }) : super(key: key);
+  });
 
   @override
   State<CreateMenuScreen> createState() => _CreateMenuScreenState();
@@ -25,7 +25,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
   final _formKey = GlobalKey<FormState>();
   final _menuNameController = TextEditingController();
   final _menuDescriptionController = TextEditingController();
-  
+
   final List<MenuItemData> _menuItems = [];
   final Set<String> _expandedItems = {}; // Item espansi
   final Set<String> _confirmedItems = {}; // Item confermati (collassati)
@@ -42,19 +42,22 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
     if (widget.initialMenuName != null) {
       _menuNameController.text = widget.initialMenuName!;
       _menuDescriptionController.text = widget.initialMenuDescription ?? '';
-      
+
       if (widget.initialMenuItems != null) {
-        final items = widget.initialMenuItems!.map((item) {
-          return MenuItemData(
-            tempId: DateTime.now().millisecondsSinceEpoch.toString() + item['name'], // unique id
-            transactionTypeId: item['transaction_type_id'] as int?,
-            name: item['name'] as String?,
-            description: item['description'] as String?,
-            price: (item['price'] as num?)?.toDouble(),
-            availableQuantity: item['available_quantity'] as int?,
-          );
-        }).toList();
-        
+        final items =
+            widget.initialMenuItems!.map((item) {
+              return MenuItemData(
+                tempId:
+                    DateTime.now().millisecondsSinceEpoch.toString() +
+                    item['name'], // unique id
+                transactionTypeId: item['transaction_type_id'] as int?,
+                name: item['name'] as String?,
+                description: item['description'] as String?,
+                price: (item['price'] as num?)?.toDouble(),
+                availableQuantity: item['available_quantity'] as int?,
+              );
+            }).toList();
+
         setState(() {
           _menuItems.addAll(items);
           // Items caricati sono confermati
@@ -76,40 +79,43 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
 
   Future<void> _loadExistingMenu() async {
     if (widget.eventId == null) return;
-    
+
     setState(() => _isLoading = true);
     try {
       final supabase = Supabase.instance.client;
-      
+
       // Carica menu esistente
-      final menuResponse = await supabase
-          .from('menu')
-          .select()
-          .eq('event_id', widget.eventId!)
-          .maybeSingle();
-      
+      final menuResponse =
+          await supabase
+              .from('menu')
+              .select()
+              .eq('event_id', widget.eventId!)
+              .maybeSingle();
+
       if (menuResponse != null) {
         _menuNameController.text = menuResponse['name'] as String? ?? '';
-        _menuDescriptionController.text = menuResponse['description'] as String? ?? '';
-        
+        _menuDescriptionController.text =
+            menuResponse['description'] as String? ?? '';
+
         // Carica menu items
         final itemsResponse = await supabase
             .from('menu_item')
             .select()
             .eq('menu_id', menuResponse['id'] as String)
             .order('sort_order', ascending: true);
-        
-        final items = (itemsResponse as List).map((item) {
-          return MenuItemData(
-            tempId: item['id'] as String,
-            transactionTypeId: item['transaction_type_id'] as int,
-            name: item['name'] as String,
-            description: item['description'] as String?,
-            price: (item['price'] as num).toDouble(),
-            availableQuantity: item['available_quantity'] as int?,
-          );
-        }).toList();
-        
+
+        final items =
+            (itemsResponse as List).map((item) {
+              return MenuItemData(
+                tempId: item['id'] as String,
+                transactionTypeId: item['transaction_type_id'] as int,
+                name: item['name'] as String,
+                description: item['description'] as String?,
+                price: (item['price'] as num).toDouble(),
+                availableQuantity: item['available_quantity'] as int?,
+              );
+            }).toList();
+
         setState(() {
           _menuItems.addAll(items);
           // Tutti gli item esistenti sono confermati (collassati)
@@ -186,19 +192,22 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
 
     // Prepara i dati del menù da restituire (salvati in memoria)
     final menuName = _menuNameController.text.trim();
-    final menuDescription = _menuDescriptionController.text.trim().isEmpty
-        ? null
-        : _menuDescriptionController.text.trim();
-    
-    final menuItemsData = _menuItems.map((item) {
-      return {
-        'transaction_type_id': item.transactionTypeId!,
-        'name': item.name!,
-        'description': item.description?.isEmpty ?? true ? null : item.description,
-        'price': item.price!,
-        'available_quantity': item.availableQuantity,
-      };
-    }).toList();
+    final menuDescription =
+        _menuDescriptionController.text.trim().isEmpty
+            ? null
+            : _menuDescriptionController.text.trim();
+
+    final menuItemsData =
+        _menuItems.map((item) {
+          return {
+            'transaction_type_id': item.transactionTypeId!,
+            'name': item.name!,
+            'description':
+                item.description?.isEmpty ?? true ? null : item.description,
+            'price': item.price!,
+            'available_quantity': item.availableQuantity,
+          };
+        }).toList();
 
     // Restituisci i dati senza salvare nel database
     if (mounted) {
@@ -232,145 +241,154 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
         ),
         centerTitle: true,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(24.0),
-                children: [
-                  Text(
-                    'CREA MENÙ E PREZIARIO',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(24.0),
+                  children: [
+                    Text(
+                      'CREA MENÙ E PREZIARIO',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-                  // Nome menù
-                  _buildTextField(
-                    context: context,
-                    controller: _menuNameController,
-                    label: 'Nome Menù',
-                    hint: 'Es: Menù Principale',
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Inserisci il nome del menù';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                    // Nome menù
+                    _buildTextField(
+                      context: context,
+                      controller: _menuNameController,
+                      label: 'Nome Menù',
+                      hint: 'Es: Menù Principale',
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Inserisci il nome del menù';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
 
-                  // Descrizione menù
-                  _buildTextField(
-                    context: context,
-                    controller: _menuDescriptionController,
-                    label: 'Descrizione (opzionale)',
-                    hint: 'Descrivi il menù...',
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 32),
+                    // Descrizione menù
+                    _buildTextField(
+                      context: context,
+                      controller: _menuDescriptionController,
+                      label: 'Descrizione (opzionale)',
+                      hint: 'Descrivi il menù...',
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 32),
 
-                  // Header items
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Item del Menù',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                    // Header items
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Item del Menù',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: _addMenuItem,
-                        icon: const Icon(Icons.add_circle),
-                        color: theme.colorScheme.primary,
-                        iconSize: 32,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Lista menu items
-                  if (_menuItems.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: theme.cardTheme.color?.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: theme.colorScheme.outline.withOpacity(0.3),
-                          style: BorderStyle.solid,
+                        IconButton(
+                          onPressed: _addMenuItem,
+                          icon: const Icon(Icons.add_circle),
+                          color: theme.colorScheme.primary,
+                          iconSize: 32,
                         ),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.restaurant_menu,
-                            size: 48,
-                            color: theme.colorScheme.onSurface.withOpacity(0.3),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Lista menu items
+                    if (_menuItems.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          color: theme.cardTheme.color?.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outline.withOpacity(0.3),
+                            style: BorderStyle.solid,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Nessun item aggiunto',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.restaurant_menu,
+                              size: 48,
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.3,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Premi + per aggiungere',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Nessun item aggiunto',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.6,
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )
+                            const SizedBox(height: 8),
+                            Text(
+                              'Premi + per aggiungere',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     else
-                    ..._menuItems.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-                      final isExpanded = _expandedItems.contains(item.tempId);
-                      final isConfirmed = _confirmedItems.contains(item.tempId);
-                      return _MenuItemCard(
-                        item: item,
-                        index: index,
-                        isExpanded: isExpanded,
-                        isConfirmed: isConfirmed,
-                        onRemove: () => _removeMenuItem(index),
-                        onChanged: () => setState(() {}),
-                        onConfirm: () => _confirmMenuItem(item.tempId),
-                        onEdit: () => _editMenuItem(item.tempId),
-                      );
-                    }).toList(),
+                      ..._menuItems.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        final isExpanded = _expandedItems.contains(item.tempId);
+                        final isConfirmed = _confirmedItems.contains(
+                          item.tempId,
+                        );
+                        return _MenuItemCard(
+                          item: item,
+                          index: index,
+                          isExpanded: isExpanded,
+                          isConfirmed: isConfirmed,
+                          onRemove: () => _removeMenuItem(index),
+                          onChanged: () => setState(() {}),
+                          onConfirm: () => _confirmMenuItem(item.tempId),
+                          onEdit: () => _editMenuItem(item.tempId),
+                        );
+                      }),
 
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-                  // Pulsante salva
-                  ElevatedButton(
-                    onPressed: _saveMenu,
-                    child: const Text('Salva Menù'),
-                  ),
-                  const SizedBox(height: 16),
+                    // Pulsante salva
+                    ElevatedButton(
+                      onPressed: _saveMenu,
+                      child: const Text('Salva Menù'),
+                    ),
+                    const SizedBox(height: 16),
 
-                  // Pulsante salta
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      'Salta per ora',
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        fontSize: 16,
+                    // Pulsante salta
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Salta per ora',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          fontSize: 16,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
     );
   }
 
@@ -397,7 +415,9 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
           decoration: BoxDecoration(
             color: theme.cardTheme.color,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: TextFormField(
             controller: controller,
@@ -471,9 +491,10 @@ class _MenuItemCardState extends State<_MenuItemCard> {
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isConfirmed
-              ? theme.colorScheme.primary.withOpacity(0.5)
-              : theme.colorScheme.outline.withOpacity(0.1),
+          color:
+              isConfirmed
+                  ? theme.colorScheme.primary.withOpacity(0.5)
+                  : theme.colorScheme.outline.withOpacity(0.1),
         ),
       ),
       child: Column(
@@ -492,16 +513,18 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isConfirmed
-                          ? theme.colorScheme.primary.withOpacity(0.2)
-                          : theme.colorScheme.surface,
+                      color:
+                          isConfirmed
+                              ? theme.colorScheme.primary.withOpacity(0.2)
+                              : theme.colorScheme.surface,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       _getTypeIcon(widget.item.transactionTypeId),
-                      color: isConfirmed 
-                          ? theme.colorScheme.primary 
-                          : theme.colorScheme.onSurface.withOpacity(0.6),
+                      color:
+                          isConfirmed
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurface.withOpacity(0.6),
                       size: 20,
                     ),
                   ),
@@ -533,7 +556,10 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                   if (isConfirmed) ...[
                     if (widget.item.availableQuantity != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.secondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -563,7 +589,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
               ),
             ),
           ),
-          
+
           // Expanded content
           if (isExpanded)
             Padding(
@@ -573,7 +599,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                 children: [
                   const Divider(),
                   const SizedBox(height: 16),
-                  
+
                   // Tipo transazione
                   _buildDropdown(
                     theme: theme,
@@ -650,7 +676,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Pulsante conferma
                   ElevatedButton.icon(
                     onPressed: widget.onConfirm,
@@ -696,7 +722,9 @@ class _MenuItemCardState extends State<_MenuItemCard> {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<int>(
@@ -705,12 +733,13 @@ class _MenuItemCardState extends State<_MenuItemCard> {
               hint: Text('Seleziona tipo', style: theme.textTheme.bodyMedium),
               dropdownColor: theme.colorScheme.surface,
               style: theme.textTheme.bodyLarge,
-              items: items.map((item) {
-                return DropdownMenuItem<int>(
-                  value: item['id'] as int,
-                  child: Text(item['name'] as String),
-                );
-              }).toList(),
+              items:
+                  items.map((item) {
+                    return DropdownMenuItem<int>(
+                      value: item['id'] as int,
+                      child: Text(item['name'] as String),
+                    );
+                  }).toList(),
               onChanged: onChanged,
             ),
           ),
@@ -742,13 +771,13 @@ class _MenuItemCardState extends State<_MenuItemCard> {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: TextField(
             controller: TextEditingController(text: value)
-              ..selection = TextSelection.collapsed(
-                offset: value?.length ?? 0,
-              ),
+              ..selection = TextSelection.collapsed(offset: value?.length ?? 0),
             onChanged: onChanged,
             keyboardType: keyboardType,
             inputFormatters: inputFormatters,
@@ -811,9 +840,10 @@ class _PriceTextFieldState extends State<_PriceTextField> {
   void initState() {
     super.initState();
     // Inizializza con il valore formattato con la virgola
-    final initialText = widget.initialValue != null 
-        ? widget.initialValue!.toStringAsFixed(2).replaceAll('.', ',')
-        : '';
+    final initialText =
+        widget.initialValue != null
+            ? widget.initialValue!.toStringAsFixed(2).replaceAll('.', ',')
+            : '';
     _controller = TextEditingController(text: initialText);
   }
 
@@ -839,7 +869,9 @@ class _PriceTextFieldState extends State<_PriceTextField> {
           decoration: BoxDecoration(
             color: widget.theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: widget.theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: widget.theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: TextField(
             controller: _controller,

@@ -3,14 +3,13 @@ import 'package:fester/screens/create_event/staff_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 import 'create_menu_screen.dart';
 import '../event_selection_screen.dart';
 
 class CreateEventFlow extends StatefulWidget {
-  const CreateEventFlow({Key? key}) : super(key: key);
+  const CreateEventFlow({super.key});
 
   @override
   State<CreateEventFlow> createState() => _CreateEventFlowState();
@@ -194,15 +193,16 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
           }
 
           // Ottieni l'ID del ruolo
-          final roleResponse = await Supabase.instance.client
-            .from('role')
-            .select('id')
-            .eq('name', dbRoleName)
-            .maybeSingle();
-            
+          final roleResponse =
+              await Supabase.instance.client
+                  .from('role')
+                  .select('id')
+                  .eq('name', dbRoleName)
+                  .maybeSingle();
+
           if (roleResponse == null) {
-             debugPrint('Role $dbRoleName not found');
-             continue;
+            debugPrint('Role $dbRoleName not found');
+            continue;
           }
 
           // Inserisci in event_staff (solo mail, il trigger collegherà l'utente se esiste)
@@ -318,7 +318,8 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
                 _Step3Staff(
                   eventId: _createdEventId ?? '',
                   initialStaff: _staffMembers,
-                  onStaffUpdated: (staff) => setState(() => _staffMembers = staff),
+                  onStaffUpdated:
+                      (staff) => setState(() => _staffMembers = staff),
                   onNext: _nextPage,
                   onBack: _previousPage,
                 ),
@@ -426,7 +427,9 @@ class _Step1BasicInfo extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Indietro',
-              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
             ),
           ),
         ],
@@ -537,7 +540,9 @@ class _Step2DateTime extends StatelessWidget {
             onPressed: onBack,
             child: Text(
               'Indietro',
-              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
             ),
           ),
         ],
@@ -570,7 +575,6 @@ class _Step3StaffState extends State<_Step3Staff> {
   String? _inviteLink;
   bool _isLoading = true;
   late List<EventStaff> _staffList;
-
 
   @override
   void initState() {
@@ -647,7 +651,9 @@ class _Step3StaffState extends State<_Step3Staff> {
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+              side: BorderSide(
+                color: theme.colorScheme.outline.withOpacity(0.3),
+              ),
             ),
             color: theme.cardTheme.color,
             child: Padding(
@@ -673,7 +679,9 @@ class _Step3StaffState extends State<_Step3Staff> {
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+                            border: Border.all(
+                              color: theme.colorScheme.outline.withOpacity(0.3),
+                            ),
                           ),
                           child: SelectableText(
                             _inviteLink ?? 'Nessun link disponibile',
@@ -706,19 +714,24 @@ class _Step3StaffState extends State<_Step3Staff> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => StaffManagementScreen(
-                    initialStaff: _staffList,
-                    onStaffUpdated: (updatedList) {
-                      setState(() {
-                        _staffList = updatedList;
-                      });
-                      widget.onStaffUpdated(updatedList);
-                    },
-                  ),
+                  builder:
+                      (context) => StaffManagementScreen(
+                        initialStaff: _staffList,
+                        onStaffUpdated: (updatedList) {
+                          setState(() {
+                            _staffList = updatedList;
+                          });
+                          widget.onStaffUpdated(updatedList);
+                        },
+                      ),
                 ),
               );
             },
-            icon: Icon(Icons.person_add, size: 20, color: theme.colorScheme.primary),
+            icon: Icon(
+              Icons.person_add,
+              size: 20,
+              color: theme.colorScheme.primary,
+            ),
             label: Text(
               'Aggiungi manualmente staff',
               style: TextStyle(color: theme.colorScheme.onSurface),
@@ -734,17 +747,16 @@ class _Step3StaffState extends State<_Step3Staff> {
           ),
           const SizedBox(height: 32),
 
-          ElevatedButton(
-            onPressed: widget.onNext,
-            child: const Text('Avanti'),
-          ),
+          ElevatedButton(onPressed: widget.onNext, child: const Text('Avanti')),
           const SizedBox(height: 16),
 
           TextButton(
             onPressed: widget.onBack,
             child: Text(
               'Indietro',
-              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
             ),
           ),
         ],
@@ -846,7 +858,10 @@ class _Step4Settings extends StatelessWidget {
                       ? theme.colorScheme.secondary.withOpacity(0.1)
                       : theme.cardTheme.color,
               side: BorderSide(
-                color: menuCreated ? theme.colorScheme.secondary : theme.colorScheme.outline,
+                color:
+                    menuCreated
+                        ? theme.colorScheme.secondary
+                        : theme.colorScheme.outline,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -858,7 +873,10 @@ class _Step4Settings extends StatelessWidget {
                 Text(
                   menuCreated ? 'Modifica Menù ✓' : 'Crea menù e preziario',
                   style: TextStyle(
-                    color: menuCreated ? theme.colorScheme.secondary : theme.colorScheme.onSurface,
+                    color:
+                        menuCreated
+                            ? theme.colorScheme.secondary
+                            : theme.colorScheme.onSurface,
                     fontSize: 16,
                   ),
                 ),
@@ -909,7 +927,10 @@ class _Step4Settings extends StatelessWidget {
             onPressed: onBack,
             child: Text(
               'Indietro',
-              style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 16),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                fontSize: 16,
+              ),
             ),
           ),
         ],
@@ -985,16 +1006,22 @@ class _InputFieldState extends State<_InputField> {
           decoration: BoxDecoration(
             color: theme.cardTheme.color,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
           ),
           child: TextField(
             controller: _controller,
             keyboardType: widget.keyboardType,
             maxLines: widget.maxLines,
-            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
             decoration: InputDecoration(
               hintText: widget.hint,
-              hintStyle: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.3)),
+              hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.3),
+              ),
               contentPadding: const EdgeInsets.all(16),
               border: InputBorder.none,
             ),
@@ -1065,14 +1092,19 @@ class _DateTimeField extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: theme.cardTheme.color,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withOpacity(0.3),
+                    ),
                   ),
                   child: Text(
                     date != null
                         ? '${date!.day}/${date!.month}/${date!.year}'
                         : 'Seleziona data',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: date != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.5),
+                      color:
+                          date != null
+                              ? theme.colorScheme.onSurface
+                              : theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -1106,14 +1138,19 @@ class _DateTimeField extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: theme.cardTheme.color,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withOpacity(0.3),
+                    ),
                   ),
                   child: Text(
                     time != null
                         ? '${time!.hour.toString().padLeft(2, '0')}:${time!.minute.toString().padLeft(2, '0')}'
                         : 'Seleziona ora',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: time != null ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.5),
+                      color:
+                          time != null
+                              ? theme.colorScheme.onSurface
+                              : theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                 ),

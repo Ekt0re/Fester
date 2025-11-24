@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,7 +8,7 @@ class NotificationService {
   NotificationService._internal();
 
   final _supabase = Supabase.instance.client;
-  
+
   // Notification types
   static const String typeWarning = 'warning';
   static const String typeDrinkLimit = 'drink_limit';
@@ -46,7 +47,7 @@ class NotificationService {
         'is_read': false,
       });
     } catch (e) {
-      print('Error saving notification: $e');
+      debugPrint('Error saving notification: $e');
     }
   }
 
@@ -65,7 +66,7 @@ class NotificationService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching notifications: $e');
+      debugPrint('Error fetching notifications: $e');
       return [];
     }
   }
@@ -85,7 +86,7 @@ class NotificationService {
 
       return (response as List).length;
     } catch (e) {
-      print('Error fetching unread count: $e');
+      debugPrint('Error fetching unread count: $e');
       return 0;
     }
   }
@@ -98,7 +99,7 @@ class NotificationService {
           .update({'is_read': true})
           .eq('id', notificationId);
     } catch (e) {
-      print('Error marking notification as read: $e');
+      debugPrint('Error marking notification as read: $e');
     }
   }
 
@@ -115,7 +116,7 @@ class NotificationService {
           .eq('staff_user_id', userId)
           .eq('is_read', false);
     } catch (e) {
-      print('Error marking all as read: $e');
+      debugPrint('Error marking all as read: $e');
     }
   }
 
@@ -146,7 +147,11 @@ class NotificationService {
       type: typeDrinkLimit,
       title: 'Limite Drink Superato',
       message: '$personName ha superato il limite ($drinkCount/$limit drink)',
-      data: {'person_name': personName, 'drink_count': drinkCount, 'limit': limit},
+      data: {
+        'person_name': personName,
+        'drink_count': drinkCount,
+        'limit': limit,
+      },
     );
   }
 

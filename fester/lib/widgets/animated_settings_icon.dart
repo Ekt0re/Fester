@@ -5,11 +5,7 @@ class AnimatedSettingsIcon extends StatefulWidget {
   final VoidCallback onPressed;
   final Color? color;
 
-  const AnimatedSettingsIcon({
-    super.key,
-    required this.onPressed,
-    this.color,
-  });
+  const AnimatedSettingsIcon({super.key, required this.onPressed, this.color});
 
   @override
   State<AnimatedSettingsIcon> createState() => _AnimatedSettingsIconState();
@@ -19,7 +15,6 @@ class _AnimatedSettingsIconState extends State<AnimatedSettingsIcon>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _rotationAnimation;
-  bool _isHovering = false;
 
   @override
   void initState() {
@@ -32,10 +27,7 @@ class _AnimatedSettingsIconState extends State<AnimatedSettingsIcon>
     _rotationAnimation = Tween<double>(
       begin: 0.0,
       end: 30.0 * 3.14159 / 180.0, // 30 gradi in radianti
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -45,10 +37,6 @@ class _AnimatedSettingsIconState extends State<AnimatedSettingsIcon>
   }
 
   void _onHover(bool isHovering) {
-    setState(() {
-      _isHovering = isHovering;
-    });
-
     if (isHovering) {
       _controller.forward();
     } else {
@@ -67,10 +55,7 @@ class _AnimatedSettingsIconState extends State<AnimatedSettingsIcon>
           builder: (context, child) {
             return Transform.rotate(
               angle: _rotationAnimation.value,
-              child: Icon(
-                Icons.settings,
-                color: widget.color,
-              ),
+              child: Icon(Icons.settings, color: widget.color),
             );
           },
         ),
