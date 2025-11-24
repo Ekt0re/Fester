@@ -13,6 +13,8 @@ import '../dashboard/add_guest_screen.dart';
 import '../../widgets/animated_settings_icon.dart';
 import '../settings/settings_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import '../../utils/qr_code_generator.dart';
 
 class PersonProfileScreen extends StatefulWidget {
   final String personId;
@@ -236,6 +238,77 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     );
   }
 
+  void _showQRCode() {
+    if (_profileData == null) return;
+    final participationId = _profileData!['id'];
+    final qrData = QRCodeGenerator.generate(participationId);
+    final person = _profileData!['person'] ?? {};
+    final fullName = '${person['first_name']} ${person['last_name']}';
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'QR Code Ospite',
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                fullName,
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 24),
+              QrImageView(
+                data: qrData,
+                version: QrVersions.auto,
+                size: 250.0,
+                backgroundColor: Colors.white,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                qrData,
+                style: GoogleFonts.robotoMono(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryLight,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Chiudi'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _updateStatus(int newStatusId) async {
     if (_profileData == null) return;
     
@@ -308,6 +381,20 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: _showQRCode,
+          icon: const Icon(Icons.qr_code, size: 18),
+          label: const Text('Mostra QR Code'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+            foregroundColor: theme.colorScheme.primary,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
           ),
         ),
       ],
