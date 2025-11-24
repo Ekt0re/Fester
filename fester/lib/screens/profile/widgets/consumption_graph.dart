@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../theme/app_theme.dart';
 
 class ConsumptionGraph extends StatelessWidget {
   final String label;
@@ -24,13 +23,13 @@ class ConsumptionGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     double progress = 0.0;
     if (maxCount != null && maxCount! > 0) {
       progress = count / maxCount!;
       if (progress > 1.0) progress = 1.0;
     } else {
-      // If no max, just show full circle or some indication? 
+      // If no max, just show full circle or some indication?
       // For now, let's make it full if > 0
       progress = count > 0 ? 1.0 : 0.0;
     }
@@ -53,7 +52,9 @@ class ConsumptionGraph extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: 1.0, // Background circle
                   strokeWidth: 6,
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.dividerColor.withOpacity(0.2)),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    theme.dividerColor.withOpacity(0.2),
+                  ),
                 ),
               ),
               SizedBox(

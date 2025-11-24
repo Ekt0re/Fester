@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vibration/vibration.dart';
 import '../../services/SupabaseServicies/participation_service.dart';
 import '../../services/SupabaseServicies/models/participation.dart';
@@ -24,11 +23,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     returnImage: false,
   );
   final ParticipationService _participationService = ParticipationService();
-  
+
   // Notification system
   final List<ScanNotification> _notifications = [];
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
-  
+
   bool _isProcessing = false;
   bool _isScannerInitialized = false;
   DateTime? _lastScanTime;
@@ -66,9 +65,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     if (code == null || _isProcessing) return;
 
     // Debounce: prevent scanning the same code too quickly
-    if (_lastScanTime != null && 
+    if (_lastScanTime != null &&
         _lastScannedCode == code &&
-        DateTime.now().difference(_lastScanTime!) < const Duration(milliseconds: 1000)) {
+        DateTime.now().difference(_lastScanTime!) <
+            const Duration(seconds: 30)) {
       return;
     }
 
@@ -79,7 +79,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     });
 
     // Feedback tattile immediato
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator() == true) {
       Vibration.vibrate(duration: 50);
     }
 
@@ -95,7 +95,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       }
 
       final String content = code.substring(4); // Remove FEV-
-      if (content.length < 36) { // UUID is 36 chars
+      if (content.length < 36) {
+        // UUID is 36 chars
         _showNotification(
           title: 'Codice Non Valido',
           message: 'Codice troppo corto',
@@ -106,7 +107,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
       final String uuid = content.substring(0, 36);
       final String suffix = content.substring(36);
-      
+
       // Validate Authenticity (Count of 'a's)
       final int countA = uuid.toLowerCase().split('a').length - 1;
       if (suffix != countA.toString()) {
@@ -119,7 +120,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       }
 
       // 2. Fetch Participation
-      final participation = await _participationService.getParticipationById(uuid);
+      final participation = await _participationService.getParticipationById(
+        uuid,
+      );
       if (participation == null) {
         _showNotification(
           title: 'Non Trovato',
@@ -168,19 +171,21 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         (s) => s['name'] == 'inside' || s['name'] == 'dentro',
         orElse: () => {},
       );
-      
+
       if (insideStatus.isNotEmpty) {
         // If currently invited or confirmed, move to inside
-        if (currentStatusName == 'invited' || 
+        if (currentStatusName == 'invited' ||
             currentStatusName == 'invitato' ||
-            currentStatusName == 'confirmed' || 
+            currentStatusName == 'confirmed' ||
             currentStatusName == 'confermato') {
           newStatusId = insideStatus['id'];
           newStatusName = insideStatus['name'];
-        } else if (currentStatusName == 'inside' || currentStatusName == 'dentro') {
-           _showNotification(
+        } else if (currentStatusName == 'inside' ||
+            currentStatusName == 'dentro') {
+          _showNotification(
             title: 'Già Dentro',
-            message: '${participation.person?['first_name']} ${participation.person?['last_name']} è già dentro',
+            message:
+                '${participation.person?['first_name']} ${participation.person?['last_name']} è già dentro',
             personId: participation.personId,
             eventId: widget.eventId,
             isWarning: true,
@@ -194,27 +199,28 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           participationId: uuid,
           newStatusId: newStatusId,
         );
-        
+
         _showNotification(
           title: 'Ingresso Autorizzato',
-          message: '${participation.person?['first_name']} ${participation.person?['last_name']} -> ${newStatusName.toUpperCase()}',
+          message:
+              '${participation.person?['first_name']} ${participation.person?['last_name']} -> ${newStatusName.toUpperCase()}',
           personId: participation.personId,
           eventId: widget.eventId,
           isSuccess: true,
         );
       } else {
         // No status change needed or possible
-         _showNotification(
+        _showNotification(
           title: 'Info Scansione',
-          message: '${participation.person?['first_name']} ${participation.person?['last_name']}: ${currentStatusName.toUpperCase()}',
+          message:
+              '${participation.person?['first_name']} ${participation.person?['last_name']}: ${currentStatusName.toUpperCase()}',
           personId: participation.personId,
           eventId: widget.eventId,
           isWarning: true,
         );
       }
-
     } catch (e) {
-      print('Scan error: $e');
+      debugPrint('Scan error: $e');
       _showNotification(
         title: 'Errore',
         message: 'Si è verificato un errore: $e',
@@ -243,13 +249,23 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       message: message,
       personId: personId,
       eventId: eventId,
-      type: isError ? NotificationType.error : (isSuccess ? NotificationType.success : (isWarning ? NotificationType.warning : NotificationType.info)),
+      type:
+          isError
+              ? NotificationType.error
+              : (isSuccess
+                  ? NotificationType.success
+                  : (isWarning
+                      ? NotificationType.warning
+                      : NotificationType.info)),
       onDismiss: () {}, // Handled by list removal
     );
 
     setState(() {
       _notifications.insert(0, notification);
-      _listKey.currentState?.insertItem(0, duration: const Duration(milliseconds: 300));
+      _listKey.currentState?.insertItem(
+        0,
+        duration: const Duration(milliseconds: 300),
+      );
     });
 
     // Auto dismiss
@@ -267,22 +283,23 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         _notifications.removeAt(index);
         _listKey.currentState?.removeItem(
           index,
-          (context, animation) => _buildNotificationItem(notification, animation),
+          (context, animation) =>
+              _buildNotificationItem(notification, animation),
           duration: const Duration(milliseconds: 300),
         );
       });
     }
   }
 
-  Widget _buildNotificationItem(ScanNotification item, Animation<double> animation) {
+  Widget _buildNotificationItem(
+    ScanNotification item,
+    Animation<double> animation,
+  ) {
     return SizeTransition(
       sizeFactor: animation,
       child: FadeTransition(
         opacity: animation,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: item,
-        ),
+        child: Padding(padding: const EdgeInsets.only(bottom: 8), child: item),
       ),
     );
   }
@@ -297,6 +314,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           MobileScanner(
             controller: _controller,
             onDetect: _handleScan,
+            fit: BoxFit.cover,
           ),
 
           // Overlay
@@ -323,7 +341,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 30,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                       Text(
@@ -339,27 +361,44 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                           valueListenable: _controller,
                           builder: (context, state, child) {
                             if (!_isScannerInitialized) {
-                              return const Icon(Icons.flash_off, color: Colors.grey, size: 30);
+                              return const Icon(
+                                Icons.flash_off,
+                                color: Colors.grey,
+                                size: 30,
+                              );
                             }
                             switch (state.torchState) {
                               case TorchState.off:
-                                return const Icon(Icons.flash_off, color: Colors.white, size: 30);
+                                return const Icon(
+                                  Icons.flash_off,
+                                  color: Colors.white,
+                                  size: 30,
+                                );
                               case TorchState.on:
-                                return const Icon(Icons.flash_on, color: Colors.yellow, size: 30);
+                                return const Icon(
+                                  Icons.flash_on,
+                                  color: Colors.yellow,
+                                  size: 30,
+                                );
                               default:
-                                return const Icon(Icons.flash_off, color: Colors.white, size: 30);
+                                return const Icon(
+                                  Icons.flash_off,
+                                  color: Colors.white,
+                                  size: 30,
+                                );
                             }
                           },
                         ),
-                        onPressed: _isScannerInitialized
-                            ? () async {
-                                try {
-                                  await _controller.toggleTorch();
-                                } catch (e) {
-                                  print('Error toggling torch: $e');
+                        onPressed:
+                            _isScannerInitialized
+                                ? () async {
+                                  try {
+                                    await _controller.toggleTorch();
+                                  } catch (e) {
+                                    debugPrint('Error toggling torch: $e');
+                                  }
                                 }
-                              }
-                            : null,
+                                : null,
                       ),
                     ],
                   ),
@@ -390,18 +429,21 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
                 // Notifications Area
                 Container(
-                  height: 150, // Reduced height to fit recent scans
+                  height: 150,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: AnimatedList(
                     key: _listKey,
                     initialItemCount: _notifications.length,
                     reverse: true,
                     itemBuilder: (context, index, animation) {
-                      return _buildNotificationItem(_notifications[index], animation);
+                      return _buildNotificationItem(
+                        _notifications[index],
+                        animation,
+                      );
                     },
                   ),
                 ),
-                
+
                 // Recently Scanned
                 if (_recentScans.isNotEmpty)
                   Container(
@@ -442,15 +484,18 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                                 padding: const EdgeInsets.only(right: 12),
                                 child: ActionChip(
                                   avatar: const Icon(Icons.person, size: 16),
-                                  label: Text('${p.person?['first_name']} ${p.person?['last_name']}'),
+                                  label: Text(
+                                    '${p.person?['first_name']} ${p.person?['last_name']}',
+                                  ),
                                   onPressed: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => PersonProfileScreen(
-                                          personId: p.personId,
-                                          eventId: widget.eventId,
-                                        ),
+                                        builder:
+                                            (context) => PersonProfileScreen(
+                                              personId: p.personId,
+                                              eventId: widget.eventId,
+                                            ),
                                       ),
                                     );
                                   },
@@ -462,7 +507,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                       ],
                     ),
                   ),
-                  
+
                 const SizedBox(height: 16),
               ],
             ),
@@ -527,25 +572,22 @@ class QrScannerOverlayShape extends ShapeBorder {
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
     final width = rect.width;
     final borderWidthSize = width / 2;
-    final height = rect.height;
-    final borderOffset = borderWidth / 2;
-    final mBorderLength = borderLength > cutOutSize / 2 + borderWidth * 2
-        ? borderWidthSize / 2
-        : borderLength;
+    final mBorderLength =
+        borderLength > cutOutSize / 2 + borderWidth * 2
+            ? borderWidthSize / 2
+            : borderLength;
     final mCutOutSize = cutOutSize < width ? cutOutSize : width - borderWidth;
 
-    final backgroundPaint = Paint()
-      ..color = overlayColor
-      ..style = PaintingStyle.fill;
+    final backgroundPaint =
+        Paint()
+          ..color = overlayColor
+          ..style = PaintingStyle.fill;
 
-    final borderPaint = Paint()
-      ..color = borderColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth;
-
-    final boxPaint = Paint()
-      ..color = borderColor
-      ..style = PaintingStyle.fill;
+    final borderPaint =
+        Paint()
+          ..color = borderColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = borderWidth;
 
     final cutOutRect = Rect.fromCenter(
       center: rect.center,
@@ -554,57 +596,49 @@ class QrScannerOverlayShape extends ShapeBorder {
     );
 
     canvas
-      ..saveLayer(
-        rect,
-        backgroundPaint,
-      )
-      ..drawRect(
-        rect,
-        backgroundPaint,
-      )
-      ..drawRect(
-        cutOutRect,
-        Paint()..blendMode = BlendMode.clear,
-      )
+      ..saveLayer(rect, backgroundPaint)
+      ..drawRect(rect, backgroundPaint)
+      ..drawRect(cutOutRect, Paint()..blendMode = BlendMode.clear)
       ..restore();
 
-    final path = Path()
-      ..moveTo(cutOutRect.left, cutOutRect.top + mBorderLength)
-      ..lineTo(cutOutRect.left, cutOutRect.top + borderRadius)
-      ..quadraticBezierTo(
-        cutOutRect.left,
-        cutOutRect.top,
-        cutOutRect.left + borderRadius,
-        cutOutRect.top,
-      )
-      ..lineTo(cutOutRect.left + mBorderLength, cutOutRect.top)
-      ..moveTo(cutOutRect.right, cutOutRect.top + mBorderLength)
-      ..lineTo(cutOutRect.right, cutOutRect.top + borderRadius)
-      ..quadraticBezierTo(
-        cutOutRect.right,
-        cutOutRect.top,
-        cutOutRect.right - borderRadius,
-        cutOutRect.top,
-      )
-      ..lineTo(cutOutRect.right - mBorderLength, cutOutRect.top)
-      ..moveTo(cutOutRect.right, cutOutRect.bottom - mBorderLength)
-      ..lineTo(cutOutRect.right, cutOutRect.bottom - borderRadius)
-      ..quadraticBezierTo(
-        cutOutRect.right,
-        cutOutRect.bottom,
-        cutOutRect.right - borderRadius,
-        cutOutRect.bottom,
-      )
-      ..lineTo(cutOutRect.right - mBorderLength, cutOutRect.bottom)
-      ..moveTo(cutOutRect.left, cutOutRect.bottom - mBorderLength)
-      ..lineTo(cutOutRect.left, cutOutRect.bottom - borderRadius)
-      ..quadraticBezierTo(
-        cutOutRect.left,
-        cutOutRect.bottom,
-        cutOutRect.left + borderRadius,
-        cutOutRect.bottom,
-      )
-      ..lineTo(cutOutRect.left + mBorderLength, cutOutRect.bottom);
+    final path =
+        Path()
+          ..moveTo(cutOutRect.left, cutOutRect.top + mBorderLength)
+          ..lineTo(cutOutRect.left, cutOutRect.top + borderRadius)
+          ..quadraticBezierTo(
+            cutOutRect.left,
+            cutOutRect.top,
+            cutOutRect.left + borderRadius,
+            cutOutRect.top,
+          )
+          ..lineTo(cutOutRect.left + mBorderLength, cutOutRect.top)
+          ..moveTo(cutOutRect.right, cutOutRect.top + mBorderLength)
+          ..lineTo(cutOutRect.right, cutOutRect.top + borderRadius)
+          ..quadraticBezierTo(
+            cutOutRect.right,
+            cutOutRect.top,
+            cutOutRect.right - borderRadius,
+            cutOutRect.top,
+          )
+          ..lineTo(cutOutRect.right - mBorderLength, cutOutRect.top)
+          ..moveTo(cutOutRect.right, cutOutRect.bottom - mBorderLength)
+          ..lineTo(cutOutRect.right, cutOutRect.bottom - borderRadius)
+          ..quadraticBezierTo(
+            cutOutRect.right,
+            cutOutRect.bottom,
+            cutOutRect.right - borderRadius,
+            cutOutRect.bottom,
+          )
+          ..lineTo(cutOutRect.right - mBorderLength, cutOutRect.bottom)
+          ..moveTo(cutOutRect.left, cutOutRect.bottom - mBorderLength)
+          ..lineTo(cutOutRect.left, cutOutRect.bottom - borderRadius)
+          ..quadraticBezierTo(
+            cutOutRect.left,
+            cutOutRect.bottom,
+            cutOutRect.left + borderRadius,
+            cutOutRect.bottom,
+          )
+          ..lineTo(cutOutRect.left + mBorderLength, cutOutRect.bottom);
 
     canvas.drawPath(path, borderPaint);
   }
@@ -673,10 +707,11 @@ class ScanNotification extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PersonProfileScreen(
-                personId: personId!,
-                eventId: eventId!,
-              ),
+              builder:
+                  (context) => PersonProfileScreen(
+                    personId: personId!,
+                    eventId: eventId!,
+                  ),
             ),
           );
         }

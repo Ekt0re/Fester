@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../services/SupabaseServicies/event_service.dart';
 import '../../../services/SupabaseServicies/transaction_service.dart';
 import '../../../services/SupabaseServicies/person_service.dart';
-import '../../../theme/app_theme.dart';
 
 class TransactionCreationSheet extends StatefulWidget {
   final String eventId;
@@ -23,21 +22,22 @@ class TransactionCreationSheet extends StatefulWidget {
   });
 
   @override
-  State<TransactionCreationSheet> createState() => _TransactionCreationSheetState();
+  State<TransactionCreationSheet> createState() =>
+      _TransactionCreationSheetState();
 }
 
 class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
   final EventService _eventService = EventService();
   final TransactionService _transactionService = TransactionService();
   final PersonService _personService = PersonService();
-  
+
   List<Map<String, dynamic>> _menuItems = [];
   List<Map<String, dynamic>> _transactionTypes = [];
   bool _isLoading = true;
-  
+
   // Form State
   String? _selectedMenuItemId;
-  dynamic _selectedTypeId; 
+  dynamic _selectedTypeId;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -57,7 +57,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     try {
       // Load transaction types first (CRITICAL)
       final types = await _personService.getTransactionTypes();
-      
+
       // Load menu items (OPTIONAL)
       List<Map<String, dynamic>> items = [];
       try {
@@ -65,36 +65,42 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       } catch (e) {
         // We continue without menu items
       }
-      
+
       if (mounted) {
         setState(() {
           _menuItems = items;
           _transactionTypes = types;
           _isLoading = false;
-          
+
           // Preselect type if provided
           if (widget.initialTransactionType != null) {
             final type = _transactionTypes.firstWhere(
-              (t) => (t['name'] as String).toLowerCase() == widget.initialTransactionType!.toLowerCase(),
-              orElse: () => _transactionTypes.isNotEmpty ? _transactionTypes.first : {},
+              (t) =>
+                  (t['name'] as String).toLowerCase() ==
+                  widget.initialTransactionType!.toLowerCase(),
+              orElse:
+                  () =>
+                      _transactionTypes.isNotEmpty
+                          ? _transactionTypes.first
+                          : {},
             );
             if (type.isNotEmpty) {
               _selectedTypeId = type['id'];
             }
-          } 
-          
+          }
+
           // If still null and we have types, select the first one
           if (_selectedTypeId == null && _transactionTypes.isNotEmpty) {
-             _selectedTypeId = _transactionTypes.first['id'];
+            _selectedTypeId = _transactionTypes.first['id'];
           }
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento dati: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore caricamento dati: $e')));
       }
     }
   }
@@ -104,10 +110,26 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       _selectedMenuItemId = itemId;
       if (itemId != null) {
         final item = _menuItems.firstWhere((i) => i['id'] == itemId);
-        _nameController.text = item['name'];
-        _amountController.text = item['price'].toString();
+
+        // Auto-fill transaction type
+        _selectedTypeId = item['transaction_type_id'];
+
+        // Auto-fill name
+        _nameController.text = item['name'] ?? '';
+
+        // Auto-fill description if available
+        _descriptionController.text = item['description'] ?? '';
+
+        // Auto-fill price
+        final price = item['price'];
+        _amountController.text = price != null ? price.toString() : '';
+
+        // Auto-fill alcoholic flag if available
+        _isAlcoholic = item['is_alcoholic'] ?? true;
       } else {
+        // Clear fields when "None" is selected
         _nameController.clear();
+        _descriptionController.clear();
         _amountController.clear();
       }
     });
@@ -120,15 +142,15 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       );
       return;
     }
-    
+
     // Get selected type details
     final type = _transactionTypes.firstWhere(
       (t) => t['id'] == _selectedTypeId,
       orElse: () => {},
     );
-    
+
     if (type.isEmpty) {
-       ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Errore: Tipo transazione non valido')),
       );
       return;
@@ -138,16 +160,18 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     final isMonetary = type['is_monetary'] ?? true;
 
     if (_nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Inserisci un nome')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Inserisci un nome')));
       return;
     }
 
     double amount = 0.0;
-    
+
     if (isMonetary) {
-      final parsedAmount = double.tryParse(_amountController.text.replaceAll(',', '.'));
+      final parsedAmount = double.tryParse(
+        _amountController.text.replaceAll(',', '.'),
+      );
       if (parsedAmount == null || parsedAmount <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -161,10 +185,16 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     }
 
     // Handle Non-Alcoholic Logic
-    String? description = _descriptionController.text.isEmpty ? null : _descriptionController.text;
+    String? description =
+        _descriptionController.text.isEmpty
+            ? null
+            : _descriptionController.text;
     if (typeName == 'drink' && !_isAlcoholic) {
       // Append tag to description
-      description = description == null ? '[NON-ALCOHOLIC]' : '$description [NON-ALCOHOLIC]';
+      description =
+          description == null
+              ? '[NON-ALCOHOLIC]'
+              : '$description [NON-ALCOHOLIC]';
     }
 
     setState(() => _isLoading = true);
@@ -182,16 +212,16 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       if (mounted) {
         Navigator.pop(context);
         widget.onSuccess();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transazione aggiunta!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Transazione aggiunta!')));
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
       }
     }
   }
@@ -223,7 +253,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     // Determine if current type is monetary
     bool isMonetary = true;
     String? currentTypeName;
@@ -265,7 +295,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           Text(
             'Nuova Transazione',
             style: GoogleFonts.outfit(
@@ -276,10 +306,44 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          
+
           if (_isLoading)
             const Center(child: CircularProgressIndicator())
           else ...[
+            // Menu Item Dropdown (TOP - OPTIONAL)
+            if (_menuItems.isNotEmpty) ...[
+              DropdownButtonFormField<String>(
+                value: _selectedMenuItemId,
+                decoration: _inputDecoration(
+                  'Seleziona dal Menu (Opzionale)',
+                  theme,
+                ),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(
+                      'Nessuno (Personalizzato)',
+                      style: GoogleFonts.outfit(color: Colors.grey[600]),
+                    ),
+                  ),
+                  ..._menuItems.map(
+                    (item) => DropdownMenuItem<String>(
+                      value: item['id'],
+                      child: Text(
+                        '${item['name']} - €${item['price']}',
+                        style: GoogleFonts.outfit(
+                          color: theme.textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                onChanged: _onMenuItemSelected,
+                dropdownColor: theme.cardColor,
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // Type Selector
             if (_transactionTypes.isEmpty)
               Container(
@@ -291,12 +355,17 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, color: Colors.amber),
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.amber,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Nessun tipo di transazione disponibile. Contatta l\'amministratore.',
-                        style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
+                        style: GoogleFonts.outfit(
+                          color: theme.textTheme.bodyLarge?.color,
+                        ),
                       ),
                     ),
                   ],
@@ -306,20 +375,31 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
               DropdownButtonFormField<dynamic>(
                 value: _selectedTypeId,
                 decoration: _inputDecoration('Tipo Transazione', theme),
-                items: _transactionTypes.map((type) {
-                  final name = (type['name'] as String).toUpperCase();
-                  final typeName = (type['name'] as String).toLowerCase();
-                  return DropdownMenuItem<dynamic>(
-                    value: type['id'],
-                    child: Row(
-                      children: [
-                        Icon(_getIconForType(typeName), size: 20, color: colorScheme.primary),
-                        const SizedBox(width: 12),
-                        Text(name, style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: theme.textTheme.bodyLarge?.color)),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                items:
+                    _transactionTypes.map((type) {
+                      final name = (type['name'] as String).toUpperCase();
+                      final typeName = (type['name'] as String).toLowerCase();
+                      return DropdownMenuItem<dynamic>(
+                        value: type['id'],
+                        child: Row(
+                          children: [
+                            Icon(
+                              _getIconForType(typeName),
+                              size: 20,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              name,
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w600,
+                                color: theme.textTheme.bodyLarge?.color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                 onChanged: (value) => setState(() => _selectedTypeId = value),
                 dropdownColor: theme.cardColor,
               ),
@@ -331,52 +411,37 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                 padding: const EdgeInsets.only(bottom: 16.0),
                 child: CheckboxListTile(
                   value: _isAlcoholic,
-                  onChanged: (val) => setState(() => _isAlcoholic = val ?? true),
-                  title: Text('Bevanda Alcolica', style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color)),
+                  onChanged:
+                      (val) => setState(() => _isAlcoholic = val ?? true),
+                  title: Text(
+                    'Bevanda Alcolica',
+                    style: GoogleFonts.outfit(
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
                   activeColor: colorScheme.primary,
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
                 ),
               ),
 
-            // Menu Item Dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedMenuItemId,
-              decoration: _inputDecoration('Seleziona dal Menu (Opzionale)', theme),
-              items: [
-                DropdownMenuItem<String>(
-                  value: null,
-                  child: Text(
-                    'Nessuno (Personalizzato)',
-                    style: GoogleFonts.outfit(color: Colors.grey[600]),
-                  ),
-                ),
-                ..._menuItems.map((item) => DropdownMenuItem<String>(
-                  value: item['id'],
-                  child: Text(
-                    '${item['name']} - €${item['price']}',
-                    style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
-                  ),
-                )),
-              ],
-              onChanged: _onMenuItemSelected,
-              dropdownColor: theme.cardColor,
-            ),
-            const SizedBox(height: 16),
-
             // Name
             TextField(
               controller: _nameController,
               decoration: _inputDecoration('Nome', theme),
-              style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
+              style: GoogleFonts.outfit(
+                color: theme.textTheme.bodyLarge?.color,
+              ),
             ),
             const SizedBox(height: 16),
-            
+
             // Description
             TextField(
               controller: _descriptionController,
               decoration: _inputDecoration('Descrizione (Opzionale)', theme),
-              style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
+              style: GoogleFonts.outfit(
+                color: theme.textTheme.bodyLarge?.color,
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -389,21 +454,28 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                     child: TextField(
                       controller: _amountController,
                       enabled: isMonetary,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                       ],
                       decoration: _inputDecoration(
-                        isMonetary ? 'Prezzo (€)' : 'Prezzo (Non applicabile)', 
-                        theme
+                        isMonetary ? 'Prezzo (€)' : 'Prezzo (Non applicabile)',
+                        theme,
                       ),
-                      style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
+                      style: GoogleFonts.outfit(
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.cardColor,
                     borderRadius: BorderRadius.circular(12),
@@ -416,7 +488,10 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                           if (_quantity > 1) setState(() => _quantity--);
                         },
                         icon: Icon(Icons.remove, color: colorScheme.primary),
-                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
                         padding: EdgeInsets.zero,
                       ),
                       SizedBox(
@@ -424,7 +499,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                         child: Text(
                           '$_quantity',
                           style: GoogleFonts.outfit(
-                            fontSize: 18, 
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: theme.textTheme.bodyLarge?.color,
                           ),
@@ -434,7 +509,10 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                       IconButton(
                         onPressed: () => setState(() => _quantity++),
                         icon: Icon(Icons.add, color: colorScheme.primary),
-                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
                         padding: EdgeInsets.zero,
                       ),
                     ],
@@ -451,7 +529,9 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 4,
                   shadowColor: colorScheme.primary.withOpacity(0.4),
                 ),

@@ -6,11 +6,8 @@ import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/models/event.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_settings_icon.dart';
-import 'guest_list_screen.dart';
-import 'staff_list_screen.dart';
-import 'global_search_screen.dart';
+import '../../services/notification_service.dart';
 import '../settings/settings_screen.dart';
-import 'qr_scanner_screen.dart';
 
 class EventDashboardScreen extends StatefulWidget {
   final String eventId;
@@ -26,6 +23,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   Event? _event;
   bool _isLoading = true;
   int _staffCount = 0;
+  int _guestCount = 0;
+  int _menuItemCount = 0;
   String? _userRole;
   Timer? _syncTimer;
   DateTime _lastSync = DateTime.now();
@@ -54,14 +53,43 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     try {
       final event = await _eventService.getEventById(widget.eventId);
       final staff = await _eventService.getEventStaff(widget.eventId);
-      
+
+      // Count guests (participations)
+      final supabase = Supabase.instance.client;
+      final guestCountResult = await supabase
+          .from('participation')
+          .select('id')
+          .eq('event_id', widget.eventId);
+      final guestCount = (guestCountResult as List).length;
+
+      // Count menu items
+      int menuItemCount = 0;
+      try {
+        final menuResult =
+            await supabase
+                .from('menu')
+                .select('id')
+                .eq('event_id', widget.eventId)
+                .maybeSingle();
+
+        if (menuResult != null) {
+          final menuItemResult = await supabase
+              .from('menu_item')
+              .select('id')
+              .eq('menu_id', menuResult['id']);
+          menuItemCount = (menuItemResult as List).length;
+        }
+      } catch (_) {
+        // Menu might not exist yet
+      }
+
       // Find current user role
       final userId = Supabase.instance.client.auth.currentUser?.id;
       String? role;
       if (userId != null) {
         try {
           final userStaff = staff.firstWhere((s) => s.staffUserId == userId);
-          role = userStaff.roleName; 
+          role = userStaff.roleName;
         } catch (_) {
           // User might be creator but not in staff list explicitly or other issue
         }
@@ -71,10 +99,20 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         setState(() {
           _event = event;
           _staffCount = staff.length;
+          _guestCount = guestCount;
+          _menuItemCount = menuItemCount;
           _userRole = role;
           _lastSync = DateTime.now();
           _isLoading = false;
         });
+
+        // Invia notifica di sync se non è silenzioso
+        if (!silent && _event != null) {
+          NotificationService().notifySync(
+            eventId: widget.eventId,
+            updatedItems: _guestCount + _menuItemCount + _staffCount,
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -113,12 +151,17 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: _buildAppBar(theme: theme),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => _loadEventData(silent: true),
-              child: _buildDashboardContent(isDesktop: false, userName: userName, theme: theme),
-            ),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: () => _loadEventData(silent: true),
+                child: _buildDashboardContent(
+                  isDesktop: false,
+                  userName: userName,
+                  theme: theme,
+                ),
+              ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: AppTheme.primaryLight,
@@ -136,10 +179,14 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.home, color: Colors.orangeAccent, size: 30),
+              child: const Icon(
+                Icons.home,
+                color: Colors.orangeAccent,
+                size: 30,
+              ),
             ),
-            _buildBottomNavItem(Icons.book, Colors.pinkAccent, 2),
-            _buildBottomNavItem(Icons.sports_bar, Colors.white, 3),
+            _buildBottomNavItem(Icons.restaurant_menu, Colors.pinkAccent, 2),
+            _buildBottomNavItem(Icons.settings, Colors.white, 3),
           ],
         ),
       ),
@@ -152,14 +199,19 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       onPressed: () {
         if (index == 0) {
           // Navigate to Global Search Screen
-          Navigator.push(
+          Navigator.pushNamed(context, '/event/${widget.eventId}/search');
+        } else if (index == 1) {
+          // Navigate to Notifications Screen
+          Navigator.pushNamed(
             context,
-            MaterialPageRoute(
-              builder: (context) => GlobalSearchScreen(eventId: widget.eventId),
-            ),
+            '/event/${widget.eventId}/notifications',
           );
-        } else {
-          // Handle navigation for other items
+        } else if (index == 2) {
+          // Navigate to Menu Management
+          Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
+        } else if (index == 3) {
+          // Navigate to Event Settings
+          Navigator.pushNamed(context, '/event/${widget.eventId}/settings');
         }
       },
     );
@@ -179,11 +231,21 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
             onDestinationSelected: (int index) {
               if (index == 1) {
                 // Navigate to Global Search Screen
-                Navigator.push(
+                Navigator.pushNamed(context, '/event/${widget.eventId}/search');
+              } else if (index == 2) {
+                // Navigate to Notifications Screen
+                Navigator.pushNamed(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => GlobalSearchScreen(eventId: widget.eventId),
-                  ),
+                  '/event/${widget.eventId}/notifications',
+                );
+              } else if (index == 3) {
+                // Navigate to Menu Management Screen
+                Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
+              } else if (index == 4) {
+                // Navigate to Event Settings Screen
+                Navigator.pushNamed(
+                  context,
+                  '/event/${widget.eventId}/settings',
                 );
               } else {
                 setState(() {
@@ -192,10 +254,19 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               }
             },
             backgroundColor: theme.colorScheme.primary,
-            selectedIconTheme: IconThemeData(color: theme.colorScheme.secondary),
-            unselectedIconTheme: IconThemeData(color: theme.colorScheme.onPrimary.withOpacity(0.7)),
-            selectedLabelTextStyle: GoogleFonts.outfit(color: theme.colorScheme.secondary, fontWeight: FontWeight.bold),
-            unselectedLabelTextStyle: GoogleFonts.outfit(color: theme.colorScheme.onPrimary.withOpacity(0.7)),
+            selectedIconTheme: IconThemeData(
+              color: theme.colorScheme.secondary,
+            ),
+            unselectedIconTheme: IconThemeData(
+              color: theme.colorScheme.onPrimary.withOpacity(0.7),
+            ),
+            selectedLabelTextStyle: GoogleFonts.outfit(
+              color: theme.colorScheme.secondary,
+              fontWeight: FontWeight.bold,
+            ),
+            unselectedLabelTextStyle: GoogleFonts.outfit(
+              color: theme.colorScheme.onPrimary.withOpacity(0.7),
+            ),
             extended: true,
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
@@ -209,7 +280,10 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   const SizedBox(height: 8),
                   Text(
                     userName,
-                    style: GoogleFonts.outfit(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(
+                      color: theme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -228,12 +302,12 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 label: Text('Notifiche'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.book),
-                label: Text('Prenotazioni'),
+                icon: Icon(Icons.restaurant_menu),
+                label: Text('Menù'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.sports_bar),
-                label: Text('Bar'),
+                icon: Icon(Icons.settings),
+                label: Text('Impostazioni'),
               ),
             ],
             trailing: Expanded(
@@ -253,7 +327,10 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.settings, color: theme.colorScheme.onPrimary.withOpacity(0.7)),
+                        Icon(
+                          Icons.settings,
+                          color: theme.colorScheme.onPrimary.withOpacity(0.7),
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           'Impostazioni',
@@ -275,9 +352,14 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               children: [
                 _buildAppBar(isDesktop: true, theme: theme),
                 Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _buildDashboardContent(isDesktop: true, userName: userName, theme: theme),
+                  child:
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _buildDashboardContent(
+                            isDesktop: true,
+                            userName: userName,
+                            theme: theme,
+                          ),
                 ),
               ],
             ),
@@ -287,16 +369,23 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar({bool isDesktop = false, required ThemeData theme}) {
+  PreferredSizeWidget _buildAppBar({
+    bool isDesktop = false,
+    required ThemeData theme,
+  }) {
     return AppBar(
       backgroundColor: theme.scaffoldBackgroundColor,
       elevation: 0,
-      leading: isDesktop
-          ? null
-          : IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: theme.colorScheme.onSurface),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+      leading:
+          isDesktop
+              ? null
+              : IconButton(
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: theme.colorScheme.onSurface,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
       title: Column(
         children: [
           Text(
@@ -323,12 +412,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           AnimatedSettingsIcon(
             color: theme.colorScheme.secondary,
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/event/${widget.eventId}/settings');
             },
           ),
         if (isDesktop) const SizedBox(width: 16),
@@ -336,7 +420,11 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     );
   }
 
-  Widget _buildDashboardContent({required bool isDesktop, required String userName, required ThemeData theme}) {
+  Widget _buildDashboardContent({
+    required bool isDesktop,
+    required String userName,
+    required ThemeData theme,
+  }) {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(20),
@@ -378,11 +466,16 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                         ),
                         if (_userRole != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white.withOpacity(0.5)),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.5),
+                              ),
                             ),
                             child: Text(
                               _userRole!.toUpperCase(),
@@ -426,10 +519,13 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.colorScheme.surface,
                               foregroundColor: theme.colorScheme.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                             ),
-                          )
-                        ]
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -450,22 +546,25 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     icon: Icons.people,
                     iconColor: const Color(0xFFE0BBE4),
                     label: 'Elenco ospiti',
-                    value: '0', // Placeholder
+                    value: '$_guestCount',
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushNamed(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => GuestListScreen(eventId: widget.eventId),
-                        ),
+                        '/event/${widget.eventId}/guests',
                       );
                     },
                   ),
                   _DashboardCard(
-                    icon: Icons.local_bar,
+                    icon: Icons.restaurant_menu,
                     iconColor: const Color(0xFF957DAD),
-                    label: 'Elenco consumazioni',
-                    value: '0', // Placeholder
-                    onTap: () {},
+                    label: 'Gestione Menù',
+                    value: '$_menuItemCount',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/event/${widget.eventId}/menu',
+                      );
+                    },
                   ),
                   _DashboardCard(
                     icon: Icons.person,
@@ -473,11 +572,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     label: 'Gestisci staff',
                     value: '$_staffCount',
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushNamed(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => StaffListScreen(eventId: widget.eventId),
-                        ),
+                        '/event/${widget.eventId}/staff',
                       );
                     },
                   ),
@@ -485,8 +582,13 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     icon: Icons.bar_chart,
                     iconColor: const Color(0xFFFEC8D8),
                     label: 'Visualizza statistiche',
-                    value: '0', // Placeholder
-                    onTap: () {},
+                    value: '',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/event/${widget.eventId}/statistics',
+                      );
+                    },
                   ),
                 ],
               ),
@@ -511,11 +613,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushNamed(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => QRScannerScreen(eventId: widget.eventId),
-                          ),
+                          '/event/${widget.eventId}/qr-scanner',
                         );
                       },
                       borderRadius: BorderRadius.circular(24),
@@ -538,13 +638,18 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 Card(
                   elevation: 0,
                   color: theme.colorScheme.surface.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.qr_code_scanner, color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                        Icon(
+                          Icons.qr_code_scanner,
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        ),
                         const SizedBox(width: 12),
                         Text(
                           'Usa l\'app mobile per scansionare i QR code',

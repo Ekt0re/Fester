@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../../theme/app_theme.dart';
 import '../../../services/SupabaseServicies/transaction_service.dart';
 
 class TransactionListSheet extends StatefulWidget {
@@ -54,21 +53,24 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
   Future<void> _deleteTransaction(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Elimina Transazione'),
-        content: const Text('Sei sicuro di voler eliminare questa transazione?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annulla'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Elimina Transazione'),
+            content: const Text(
+              'Sei sicuro di voler eliminare questa transazione?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annulla'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Elimina'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Elimina'),
-          ),
-        ],
-      ),
     );
 
     if (confirm == true) {
@@ -79,80 +81,91 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
             const SnackBar(content: Text('Transazione eliminata')),
           );
           widget.onTransactionUpdated?.call();
-          Navigator.pop(context); 
+          Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Errore: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Errore: $e')));
         }
       }
     }
   }
 
   Future<void> _editTransaction(Map<String, dynamic> transaction) async {
-    final amountController = TextEditingController(text: transaction['amount']?.toString());
-    final descriptionController = TextEditingController(text: transaction['description']);
-    
+    final amountController = TextEditingController(
+      text: transaction['amount']?.toString(),
+    );
+    final descriptionController = TextEditingController(
+      text: transaction['description'],
+    );
+
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Modifica Transazione'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amountController,
-              decoration: const InputDecoration(labelText: 'Importo'),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Modifica Transazione'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: amountController,
+                  decoration: const InputDecoration(labelText: 'Importo'),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Descrizione'),
+                ),
+              ],
             ),
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(labelText: 'Descrizione'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annulla'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await _transactionService.updateTransaction(
+                      transactionId: transaction['id'],
+                      amount: double.tryParse(amountController.text),
+                      description: descriptionController.text,
+                    );
+                    if (mounted) {
+                      Navigator.pop(context);
+                      widget.onTransactionUpdated?.call();
+                      Navigator.pop(context);
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+                  }
+                },
+                child: const Text('Salva'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              try {
-                await _transactionService.updateTransaction(
-                  transactionId: transaction['id'],
-                  amount: double.tryParse(amountController.text),
-                  description: descriptionController.text,
-                );
-                if (mounted) {
-                  Navigator.pop(context);
-                  widget.onTransactionUpdated?.call();
-                  Navigator.pop(context);
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Errore: $e')),
-                );
-              }
-            },
-            child: const Text('Salva'),
-          ),
-        ],
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    final filteredTransactions = widget.transactions.where((t) {
-      if (_showNonMonetary) return true;
-      final isMonetary = t['type']?['is_monetary'] ?? t['transaction_type']?['is_monetary'] ?? false;
-      return isMonetary == true;
-    }).toList();
+
+    final filteredTransactions =
+        widget.transactions.where((t) {
+          if (_showNonMonetary) return true;
+          final isMonetary =
+              t['type']?['is_monetary'] ??
+              t['transaction_type']?['is_monetary'] ??
+              false;
+          return isMonetary == true;
+        }).toList();
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -174,7 +187,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -190,11 +203,15 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                 children: [
                   Checkbox(
                     value: _showNonMonetary,
-                    onChanged: (val) => setState(() => _showNonMonetary = val ?? false),
+                    onChanged:
+                        (val) =>
+                            setState(() => _showNonMonetary = val ?? false),
                   ),
                   Text(
                     'Mostra tutto',
-                    style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
+                    style: GoogleFonts.outfit(
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
                   ),
                 ],
               ),
@@ -203,135 +220,144 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
           const SizedBox(height: 24),
 
           Expanded(
-            child: filteredTransactions.isEmpty
-                ? Center(
-                    child: Text(
-                      'Nessuna transazione trovata.',
-                      style: GoogleFonts.outfit(color: Colors.grey),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: filteredTransactions.length,
-                    itemBuilder: (context, index) {
-                      final t = filteredTransactions[index];
-                      final type = t['type'] ?? t['transaction_type'] ?? {};
-                      final typeName = (type['name'] ?? '').toString();
-                      final isMonetary = type['is_monetary'] == true;
-                      final amount = (t['amount'] as num?)?.toDouble() ?? 0.0;
-                      final date = DateTime.parse(t['created_at']).toLocal();
-                      final dateStr = DateFormat('dd/MM HH:mm').format(date);
-                      final name = t['name'] ?? typeName;
-                      
-                      final isPos = _isPositive(typeName);
-                      final amountColor = isPos ? Colors.green : Colors.red;
-                      final prefix = isPos ? '+' : '-';
+            child:
+                filteredTransactions.isEmpty
+                    ? Center(
+                      child: Text(
+                        'Nessuna transazione trovata.',
+                        style: GoogleFonts.outfit(color: Colors.grey),
+                      ),
+                    )
+                    : ListView.builder(
+                      itemCount: filteredTransactions.length,
+                      itemBuilder: (context, index) {
+                        final t = filteredTransactions[index];
+                        final type = t['type'] ?? t['transaction_type'] ?? {};
+                        final typeName = (type['name'] ?? '').toString();
+                        final isMonetary = type['is_monetary'] == true;
+                        final amount = (t['amount'] as num?)?.toDouble() ?? 0.0;
+                        final date = DateTime.parse(t['created_at']).toLocal();
+                        final dateStr = DateFormat('dd/MM HH:mm').format(date);
+                        final name = t['name'] ?? typeName;
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+                        final isPos = _isPositive(typeName);
+                        final amountColor = isPos ? Colors.green : Colors.red;
+                        final prefix = isPos ? '+' : '-';
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.grey.withOpacity(0.1),
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                _getIconForType(typeName),
-                                color: theme.colorScheme.primary,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    name,
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: theme.textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    dateStr,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                if (isMonetary)
-                                  Text(
-                                    '$prefix€${amount.toStringAsFixed(2)}',
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: amountColor,
-                                    ),
-                                  )
-                                else
-                                  Text(
-                                    typeName.toUpperCase(),
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            if (widget.canEdit) ...[
-                              const SizedBox(width: 8),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_vert),
-                                onSelected: (value) {
-                                  if (value == 'edit') {
-                                    _editTransaction(t);
-                                  } else if (value == 'delete') {
-                                    _deleteTransaction(t['id']);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text('Modifica'),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'delete',
-                                    child: Text('Elimina', style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
                               ),
                             ],
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary.withOpacity(
+                                    0.1,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _getIconForType(typeName),
+                                  color: theme.colorScheme.primary,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      name,
+                                      style: GoogleFonts.outfit(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: theme.textTheme.bodyLarge?.color,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      dateStr,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  if (isMonetary)
+                                    Text(
+                                      '$prefix€${amount.toStringAsFixed(2)}',
+                                      style: GoogleFonts.outfit(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: amountColor,
+                                      ),
+                                    )
+                                  else
+                                    Text(
+                                      typeName.toUpperCase(),
+                                      style: GoogleFonts.outfit(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              if (widget.canEdit) ...[
+                                const SizedBox(width: 8),
+                                PopupMenuButton<String>(
+                                  icon: const Icon(Icons.more_vert),
+                                  onSelected: (value) {
+                                    if (value == 'edit') {
+                                      _editTransaction(t);
+                                    } else if (value == 'delete') {
+                                      _deleteTransaction(t['id']);
+                                    }
+                                  },
+                                  itemBuilder:
+                                      (context) => [
+                                        const PopupMenuItem(
+                                          value: 'edit',
+                                          child: Text('Modifica'),
+                                        ),
+                                        const PopupMenuItem(
+                                          value: 'delete',
+                                          child: Text(
+                                            'Elimina',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
           ),
-          
+
           // Total Balance Footer
           Container(
             padding: const EdgeInsets.all(20),
@@ -355,7 +381,10 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: _calculateTotal(filteredTransactions) >= 0 ? Colors.green : Colors.red,
+                    color:
+                        _calculateTotal(filteredTransactions) >= 0
+                            ? Colors.green
+                            : Colors.red,
                   ),
                 ),
               ],

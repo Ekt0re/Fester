@@ -7,7 +7,6 @@ import '../../services/SupabaseServicies/person_service.dart';
 import '../../services/SupabaseServicies/participation_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 import '../../theme/app_theme.dart';
-import '../profile/staff_profile_screen.dart';
 import '../profile/person_profile_screen.dart';
 import 'widgets/guest_card.dart';
 import '../profile/widgets/transaction_creation_sheet.dart';
@@ -26,7 +25,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   final PersonService _personService = PersonService();
   final ParticipationService _participationService = ParticipationService();
   final TextEditingController _searchController = TextEditingController();
-  
+
   List<SearchResult> _allResults = [];
   List<SearchResult> _filteredResults = [];
   List<Map<String, dynamic>> _statuses = [];
@@ -69,7 +68,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             .order('id');
         _statuses = List<Map<String, dynamic>>.from(statusResponse);
       } catch (e) {
-        print('Error loading statuses: $e');
+        debugPrint('Error loading statuses: $e');
       }
 
       // Load staff
@@ -77,45 +76,53 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         final staffList = await _eventService.getEventStaff(widget.eventId);
         for (final staff in staffList) {
           if (staff.staff != null) {
-            results.add(SearchResult(
-              id: staff.id,
-              name: '${staff.staff!.firstName} ${staff.staff!.lastName}',
-              email: staff.staff!.email ?? '',
-              phone: staff.staff!.phone ?? '',
-              imagePath: staff.staff!.imagePath,
-              type: SearchResultType.staff,
-              roleName: staff.roleName ?? 'Staff',
-              originalData: staff,
-            ));
+            results.add(
+              SearchResult(
+                id: staff.id,
+                name: '${staff.staff!.firstName} ${staff.staff!.lastName}',
+                email: staff.staff!.email ?? '',
+                phone: staff.staff!.phone ?? '',
+                imagePath: staff.staff!.imagePath,
+                type: SearchResultType.staff,
+                roleName: staff.roleName ?? 'Staff',
+                originalData: staff,
+              ),
+            );
           }
         }
       } catch (e) {
-        print('Error loading staff: $e');
+        debugPrint('Error loading staff: $e');
       }
 
       // Load guests (participants)
       try {
-        final participants = await _personService.getEventParticipants(widget.eventId);
+        final participants = await _personService.getEventParticipants(
+          widget.eventId,
+        );
         for (final p in participants) {
           final person = p['person'];
           final status = p['status'];
-          final role = p['role'];
-          
+          // role variable removed to fix lint
+
           if (person != null) {
-            results.add(SearchResult(
-              id: person['id'] ?? '',
-              name: '${person['first_name'] ?? ''} ${person['last_name'] ?? ''}'.trim(),
-              email: person['email'] ?? '',
-              phone: person['phone'] ?? '',
-              imagePath: null,
-              type: SearchResultType.guest,
-              roleName: status?['name'] ?? 'Sconosciuto',
-              originalData: p, // Store the full participation object
-            ));
+            results.add(
+              SearchResult(
+                id: person['id'] ?? '',
+                name:
+                    '${person['first_name'] ?? ''} ${person['last_name'] ?? ''}'
+                        .trim(),
+                email: person['email'] ?? '',
+                phone: person['phone'] ?? '',
+                imagePath: null,
+                type: SearchResultType.guest,
+                roleName: status?['name'] ?? 'Sconosciuto',
+                originalData: p, // Store the full participation object
+              ),
+            );
           }
         }
       } catch (e) {
-         print('Error loading guests: $e');
+        debugPrint('Error loading guests: $e');
       }
 
       if (mounted) {
@@ -128,9 +135,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore caricamento: $e')));
       }
     }
   }
@@ -138,22 +145,27 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   void _filterList(String query) {
     setState(() {
       _searchQuery = query;
-      
-      _filteredResults = _allResults.where((result) {
-        // Filter by type
-        if (!_showStaff && result.type == SearchResultType.staff) return false;
-        if (!_showGuests && result.type == SearchResultType.guest) return false;
-        
-        // Filter by search query
-        if (query.isEmpty) return true;
-        
-        final q = query.toLowerCase();
-        final name = result.name.toLowerCase();
-        final email = result.email.toLowerCase();
-        final phone = result.phone.toLowerCase();
-        
-        return name.contains(q) || email.contains(q) || phone.contains(q);
-      }).toList();
+
+      _filteredResults =
+          _allResults.where((result) {
+            // Filter by type
+            if (!_showStaff && result.type == SearchResultType.staff) {
+              return false;
+            }
+            if (!_showGuests && result.type == SearchResultType.guest) {
+              return false;
+            }
+
+            // Filter by search query
+            if (query.isEmpty) return true;
+
+            final q = query.toLowerCase();
+            final name = result.name.toLowerCase();
+            final email = result.email.toLowerCase();
+            final phone = result.phone.toLowerCase();
+
+            return name.contains(q) || email.contains(q) || phone.contains(q);
+          }).toList();
     });
   }
 
@@ -171,44 +183,56 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       // For guests, originalData is the participation map. We need person_id.
       final participation = result.originalData as Map<String, dynamic>;
       final personId = participation['person_id'];
-      
+
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PersonProfileScreen(
-            personId: personId,
-            eventId: widget.eventId,
-          ),
+          builder:
+              (context) => PersonProfileScreen(
+                personId: personId,
+                eventId: widget.eventId,
+              ),
         ),
       );
     }
   }
 
-  Future<void> _updateStatus(String participationId, int currentStatusId) async {
+  Future<void> _updateStatus(
+    String participationId,
+    int currentStatusId,
+  ) async {
     // Logic: confirmed -> checked_in -> inside -> outside -> left -> confirmed
-    final currentIndex = _statuses.indexWhere((s) => s['id'] == currentStatusId);
+    final currentIndex = _statuses.indexWhere(
+      (s) => s['id'] == currentStatusId,
+    );
     if (currentIndex == -1) return;
 
-    const statusOrder = ['confirmed', 'checked_in', 'inside', 'outside', 'left'];
-    
+    const statusOrder = [
+      'confirmed',
+      'checked_in',
+      'inside',
+      'outside',
+      'left',
+    ];
+
     final currentStatusName = _statuses[currentIndex]['name'];
     int nextIndex = -1;
-    
+
     for (int i = 0; i < statusOrder.length; i++) {
       if (statusOrder[i] == currentStatusName) {
         if (i < statusOrder.length - 1) {
-           final nextName = statusOrder[i+1];
-           nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
+          final nextName = statusOrder[i + 1];
+          nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
         } else {
-           final nextName = statusOrder[0];
-           nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
+          final nextName = statusOrder[0];
+          nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
         }
         break;
       }
     }
 
     if (nextIndex == -1 && currentStatusName == 'invited') {
-       nextIndex = _statuses.indexWhere((s) => s['name'] == 'confirmed');
+      nextIndex = _statuses.indexWhere((s) => s['name'] == 'confirmed');
     }
 
     if (nextIndex != -1) {
@@ -223,18 +247,19 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         participationId: participationId,
         newStatusId: newStatusId,
       );
-      
+
       // Update local state
-      final index = _allResults.indexWhere((r) => 
-        r.type == SearchResultType.guest && 
-        (r.originalData as Map<String, dynamic>)['id'] == participationId
+      final index = _allResults.indexWhere(
+        (r) =>
+            r.type == SearchResultType.guest &&
+            (r.originalData as Map<String, dynamic>)['id'] == participationId,
       );
 
       if (index != -1) {
         final oldResult = _allResults[index];
         final oldData = oldResult.originalData as Map<String, dynamic>;
         final newStatus = _statuses.firstWhere((s) => s['id'] == newStatusId);
-        
+
         // Create updated participation map
         final updatedData = Map<String, dynamic>.from(oldData);
         updatedData['status_id'] = newStatusId;
@@ -252,15 +277,17 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           originalData: updatedData,
         );
 
-        setState(() {
-          _allResults[index] = updatedResult;
-          _filterList(_searchController.text); // Re-filter to update view
-        });
+        if (mounted) {
+          setState(() {
+            _allResults[index] = updatedResult;
+            _filterList(_searchController.text); // Re-filter to update view
+          });
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore aggiornamento stato: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Errore aggiornamento stato: $e')));
     }
   }
 
@@ -273,12 +300,24 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Seleziona Stato', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                'Seleziona Stato',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 16),
               ..._statuses.map((status) {
                 return ListTile(
                   title: Text(status['name'].toString().toUpperCase()),
-                  leading: status['id'] == currentStatusId ? const Icon(Icons.check, color: AppTheme.primaryLight) : null,
+                  leading:
+                      status['id'] == currentStatusId
+                          ? const Icon(
+                            Icons.check,
+                            color: AppTheme.primaryLight,
+                          )
+                          : null,
                   onTap: () {
                     Navigator.pop(context);
                     _changeStatus(participationId, status['id']);
@@ -297,21 +336,24 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: TransactionCreationSheet(
-          eventId: widget.eventId,
-          participationId: participationId,
-          initialTransactionType: type,
-          onSuccess: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Transazione creata con successo')),
-            );
-          },
-        ),
-      ),
+      builder:
+          (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: TransactionCreationSheet(
+              eventId: widget.eventId,
+              participationId: participationId,
+              initialTransactionType: type,
+              onSuccess: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Transazione creata con successo'),
+                  ),
+                );
+              },
+            ),
+          ),
     );
   }
 
@@ -347,15 +389,16 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               decoration: InputDecoration(
                 hintText: 'Cerca per nome, email o telefono...',
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _filterList('');
-                        },
-                      )
-                    : null,
+                suffixIcon:
+                    _searchQuery.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterList('');
+                          },
+                        )
+                        : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -420,42 +463,45 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
           // Results List
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredResults.isEmpty
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _filteredResults.isEmpty
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search_off,
-                              size: 64,
-                              color: theme.colorScheme.onSurface.withOpacity(0.3),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isEmpty
-                                  ? 'Nessuna persona trovata'
-                                  : 'Nessun risultato per "$_searchQuery"',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: theme.colorScheme.onSurface.withOpacity(0.3),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _searchQuery.isEmpty
+                                ? 'Nessuna persona trovata'
+                                : 'Nessun risultato per "$_searchQuery"',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.6,
                               ),
                             ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: _filteredResults.length,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemBuilder: (context, index) {
-                          final result = _filteredResults[index];
-                          if (result.type == SearchResultType.guest) {
-                            return _buildGuestCard(result);
-                          } else {
-                            return _buildStaffCard(result, theme);
-                          }
-                        },
+                          ),
+                        ],
                       ),
+                    )
+                    : ListView.builder(
+                      itemCount: _filteredResults.length,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemBuilder: (context, index) {
+                        final result = _filteredResults[index];
+                        if (result.type == SearchResultType.guest) {
+                          return _buildGuestCard(result);
+                        } else {
+                          return _buildStaffCard(result, theme);
+                        }
+                      },
+                    ),
           ),
         ],
       ),
@@ -468,15 +514,16 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final role = participation['role'];
     final participationId = participation['id'];
     final statusId = participation['status_id'];
-    
+
     // Check if VIP
-    final isVip = role?['name']?.toString().toLowerCase().contains('vip') ?? false;
+    final isVip =
+        role?['name']?.toString().toLowerCase().contains('vip') ?? false;
 
     return GuestCard(
       name: person['first_name'] ?? '',
       surname: person['last_name'] ?? '',
-      idEvent: widget.eventId, 
-      statusName: result.roleName, 
+      idEvent: widget.eventId,
+      statusName: result.roleName,
       isVip: isVip,
       onTap: () => _openProfile(result),
       onDoubleTap: () => _updateStatus(participationId, statusId),
@@ -487,16 +534,13 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 
   Widget _buildStaffCard(SearchResult result, ThemeData theme) {
-    final isStaff = true;
-    final badgeColor = Colors.blue;
-    final badgeIcon = Icons.badge;
+    const badgeColor = Colors.blue;
+    const badgeIcon = Icons.badge;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () => _openProfile(result),
         borderRadius: BorderRadius.circular(12),
@@ -508,12 +552,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: badgeColor.withOpacity(0.2),
-                backgroundImage: result.imagePath != null
-                    ? NetworkImage(result.imagePath!)
-                    : null,
-                child: result.imagePath == null
-                    ? Icon(badgeIcon, color: badgeColor, size: 28)
-                    : null,
+                backgroundImage:
+                    result.imagePath != null
+                        ? NetworkImage(result.imagePath!)
+                        : null,
+                child:
+                    result.imagePath == null
+                        ? Icon(badgeIcon, color: badgeColor, size: 28)
+                        : null,
               ),
               const SizedBox(width: 16),
 
@@ -577,7 +623,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                             child: Text(
                               result.email,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.6,
+                                ),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -598,7 +646,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                           Text(
                             result.phone,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.6,
+                              ),
                             ),
                           ),
                         ],
