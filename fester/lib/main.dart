@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'Login/login_page.dart';
@@ -140,7 +140,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
     String? initialLink;
     try {
-      initialLink = await getInitialLink();
+      final uri = await AppLinks().getInitialLink();
+      initialLink = uri?.toString();
       _logger.d('[DEBUG] initialLink: $initialLink');
     } catch (e, st) {
       _logger.e('[ERROR] getInitialLink failed:', error: e, stackTrace: st);

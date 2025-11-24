@@ -104,10 +104,26 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       _selectedMenuItemId = itemId;
       if (itemId != null) {
         final item = _menuItems.firstWhere((i) => i['id'] == itemId);
-        _nameController.text = item['name'];
-        _amountController.text = item['price'].toString();
+        
+        // Auto-fill transaction type
+        _selectedTypeId = item['transaction_type_id'];
+        
+        // Auto-fill name
+        _nameController.text = item['name'] ?? '';
+        
+        // Auto-fill description if available
+        _descriptionController.text = item['description'] ?? '';
+        
+        // Auto-fill price
+        final price = item['price'];
+        _amountController.text = price != null ? price.toString() : '';
+        
+        // Auto-fill alcoholic flag if available
+        _isAlcoholic = item['is_alcoholic'] ?? true;
       } else {
+        // Clear fields when "None" is selected
         _nameController.clear();
+        _descriptionController.clear();
         _amountController.clear();
       }
     });
@@ -280,6 +296,33 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
           if (_isLoading)
             const Center(child: CircularProgressIndicator())
           else ...[
+            // Menu Item Dropdown (TOP - OPTIONAL)
+            if (_menuItems.isNotEmpty) ...[
+              DropdownButtonFormField<String>(
+                value: _selectedMenuItemId,
+                decoration: _inputDecoration('Seleziona dal Menu (Opzionale)', theme),
+                items: [
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(
+                      'Nessuno (Personalizzato)',
+                      style: GoogleFonts.outfit(color: Colors.grey[600]),
+                    ),
+                  ),
+                  ..._menuItems.map((item) => DropdownMenuItem<String>(
+                    value: item['id'],
+                    child: Text(
+                      '${item['name']} - €${item['price']}',
+                      style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
+                    ),
+                  )),
+                ],
+                onChanged: _onMenuItemSelected,
+                dropdownColor: theme.cardColor,
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // Type Selector
             if (_transactionTypes.isEmpty)
               Container(
@@ -338,31 +381,6 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                   controlAffinity: ListTileControlAffinity.leading,
                 ),
               ),
-
-            // Menu Item Dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedMenuItemId,
-              decoration: _inputDecoration('Seleziona dal Menu (Opzionale)', theme),
-              items: [
-                DropdownMenuItem<String>(
-                  value: null,
-                  child: Text(
-                    'Nessuno (Personalizzato)',
-                    style: GoogleFonts.outfit(color: Colors.grey[600]),
-                  ),
-                ),
-                ..._menuItems.map((item) => DropdownMenuItem<String>(
-                  value: item['id'],
-                  child: Text(
-                    '${item['name']} - €${item['price']}',
-                    style: GoogleFonts.outfit(color: theme.textTheme.bodyLarge?.color),
-                  ),
-                )),
-              ],
-              onChanged: _onMenuItemSelected,
-              dropdownColor: theme.cardColor,
-            ),
-            const SizedBox(height: 16),
 
             // Name
             TextField(

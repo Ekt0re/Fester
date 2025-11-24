@@ -11,6 +11,11 @@ import 'staff_list_screen.dart';
 import 'global_search_screen.dart';
 import '../settings/settings_screen.dart';
 import 'qr_scanner_screen.dart';
+import 'menu_management_screen.dart';
+import 'event_statistics_screen.dart';
+import 'event_settings_screen.dart';
+import 'notifications_screen.dart';
+import '../../services/notification_service.dart';
 
 class EventDashboardScreen extends StatefulWidget {
   final String eventId;
@@ -26,6 +31,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   Event? _event;
   bool _isLoading = true;
   int _staffCount = 0;
+  int _guestCount = 0;
+  int _menuItemCount = 0;
   String? _userRole;
   Timer? _syncTimer;
   DateTime _lastSync = DateTime.now();
@@ -55,6 +62,34 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       final event = await _eventService.getEventById(widget.eventId);
       final staff = await _eventService.getEventStaff(widget.eventId);
       
+      // Count guests (participations)
+      final supabase = Supabase.instance.client;
+      final guestCountResult = await supabase
+          .from('participation')
+          .select('id')
+          .eq('event_id', widget.eventId);
+      final guestCount = (guestCountResult as List).length;
+      
+      // Count menu items
+      int menuItemCount = 0;
+      try {
+        final menuResult = await supabase
+            .from('menu')
+            .select('id')
+            .eq('event_id', widget.eventId)
+            .maybeSingle();
+        
+        if (menuResult != null) {
+          final menuItemResult = await supabase
+              .from('menu_item')
+              .select('id')
+              .eq('menu_id', menuResult['id']);
+          menuItemCount = (menuItemResult as List).length;
+        }
+      } catch (_) {
+        // Menu might not exist yet
+      }
+      
       // Find current user role
       final userId = Supabase.instance.client.auth.currentUser?.id;
       String? role;
@@ -71,10 +106,20 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         setState(() {
           _event = event;
           _staffCount = staff.length;
+          _guestCount = guestCount;
+          _menuItemCount = menuItemCount;
           _userRole = role;
           _lastSync = DateTime.now();
           _isLoading = false;
         });
+        
+        // Invia notifica di sync se non è silenzioso
+        if (!silent && _event != null) {
+          NotificationService().notifySync(
+            eventId: widget.eventId,
+            updatedItems: _guestCount + _menuItemCount + _staffCount,
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -138,8 +183,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               ),
               child: const Icon(Icons.home, color: Colors.orangeAccent, size: 30),
             ),
-            _buildBottomNavItem(Icons.book, Colors.pinkAccent, 2),
-            _buildBottomNavItem(Icons.sports_bar, Colors.white, 3),
+            _buildBottomNavItem(Icons.restaurant_menu, Colors.pinkAccent, 2),
+            _buildBottomNavItem(Icons.settings, Colors.white, 3),
           ],
         ),
       ),
@@ -158,8 +203,30 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               builder: (context) => GlobalSearchScreen(eventId: widget.eventId),
             ),
           );
-        } else {
-          // Handle navigation for other items
+        } else if (index == 1) {
+          // Navigate to Notifications Screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NotificationsScreen(eventId: widget.eventId),
+            ),
+          );
+        } else if (index == 2) {
+          // Navigate to Menu Management
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MenuManagementScreen(eventId: widget.eventId),
+            ),
+          );
+        } else if (index == 3) {
+          // Navigate to Event Settings
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EventSettingsScreen(eventId: widget.eventId),
+            ),
+          );
         }
       },
     );
@@ -183,6 +250,30 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => GlobalSearchScreen(eventId: widget.eventId),
+                  ),
+                );
+              } else if (index == 2) {
+                // Navigate to Notifications Screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationsScreen(eventId: widget.eventId),
+                  ),
+                );
+              } else if (index == 3) {
+                // Navigate to Menu Management Screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MenuManagementScreen(eventId: widget.eventId),
+                  ),
+                );
+              } else if (index == 4) {
+                // Navigate to Event Settings Screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventSettingsScreen(eventId: widget.eventId),
                   ),
                 );
               } else {
@@ -228,12 +319,12 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 label: Text('Notifiche'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.book),
-                label: Text('Prenotazioni'),
+                icon: Icon(Icons.restaurant_menu),
+                label: Text('Menù'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.sports_bar),
-                label: Text('Bar'),
+                icon: Icon(Icons.settings),
+                label: Text('Impostazioni'),
               ),
             ],
             trailing: Expanded(
@@ -450,7 +541,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     icon: Icons.people,
                     iconColor: const Color(0xFFE0BBE4),
                     label: 'Elenco ospiti',
-                    value: '0', // Placeholder
+                    value: '$_guestCount',
                     onTap: () {
                       Navigator.push(
                         context,
@@ -461,11 +552,18 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     },
                   ),
                   _DashboardCard(
-                    icon: Icons.local_bar,
+                    icon: Icons.restaurant_menu,
                     iconColor: const Color(0xFF957DAD),
-                    label: 'Elenco consumazioni',
-                    value: '0', // Placeholder
-                    onTap: () {},
+                    label: 'Gestione Menù',
+                    value: '$_menuItemCount',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MenuManagementScreen(eventId: widget.eventId),
+                        ),
+                      );
+                    },
                   ),
                   _DashboardCard(
                     icon: Icons.person,
@@ -485,8 +583,15 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     icon: Icons.bar_chart,
                     iconColor: const Color(0xFFFEC8D8),
                     label: 'Visualizza statistiche',
-                    value: '0', // Placeholder
-                    onTap: () {},
+                    value: '',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EventStatisticsScreen(eventId: widget.eventId),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -610,7 +715,7 @@ class _DashboardCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(icon, color: iconColor, size: 28),
+                     Icon(icon, color: iconColor, size: 28),
                     Text(
                       value,
                       style: GoogleFonts.outfit(

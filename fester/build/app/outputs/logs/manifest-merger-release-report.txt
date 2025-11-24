@@ -1,0 +1,754 @@
+-- Merging decision tree log ---
+application
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:2:5-33:19
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:2:5-33:19
+MERGED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-13:19
+MERGED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-13:19
+MERGED from [com.google.android.gms:play-services-location:21.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bc40bc5f6e40c88241fb805931d29c4c\transformed\jetified-play-services-location-21.2.0\AndroidManifest.xml:7:5-20
+MERGED from [com.google.android.gms:play-services-location:21.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bc40bc5f6e40c88241fb805931d29c4c\transformed\jetified-play-services-location-21.2.0\AndroidManifest.xml:7:5-20
+MERGED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:5-32:19
+MERGED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:5-32:19
+MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-33:19
+MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-33:19
+MERGED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-12:19
+MERGED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-12:19
+MERGED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:31:5-34:19
+MERGED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:31:5-34:19
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:8:5-24:19
+MERGED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:8:5-24:19
+MERGED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:4:5-6:19
+MERGED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:4:5-6:19
+MERGED from [com.google.android.gms:play-services-tasks:18.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c37c33b674f8c53cd00c98d6dd17a36\transformed\jetified-play-services-tasks-18.2.0\AndroidManifest.xml:4:5-20
+MERGED from [com.google.android.gms:play-services-tasks:18.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c37c33b674f8c53cd00c98d6dd17a36\transformed\jetified-play-services-tasks-18.2.0\AndroidManifest.xml:4:5-20
+MERGED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:5:5-7:19
+MERGED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:5:5-7:19
+MERGED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:23:5-34:19
+MERGED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:22:5-29:19
+MERGED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:22:5-29:19
+MERGED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:28:5-89
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\ffafe5f631203f4924364ba072ee19e0\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\ffafe5f631203f4924364ba072ee19e0\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d1d97c503b3a4bd9cc3718f3fd84010a\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d1d97c503b3a4bd9cc3718f3fd84010a\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:28:5-36:19
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:28:5-36:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:25:5-39:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:25:5-39:19
+MERGED from [com.google.maps.android:android-maps-utils:3.6.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b0e4871ccb4c9babe956e9017fbbc544\transformed\jetified-android-maps-utils-3.6.0\AndroidManifest.xml:7:5-11:19
+MERGED from [com.google.maps.android:android-maps-utils:3.6.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b0e4871ccb4c9babe956e9017fbbc544\transformed\jetified-android-maps-utils-3.6.0\AndroidManifest.xml:7:5-11:19
+MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a285fbadecd690a2aabad502b32afeb2\transformed\jetified-image-1.0.0-beta1\AndroidManifest.xml:7:5-20
+MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a285fbadecd690a2aabad502b32afeb2\transformed\jetified-image-1.0.0-beta1\AndroidManifest.xml:7:5-20
+	android:extractNativeLibs
+		INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
+	android:label
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:3:9-31
+	android:icon
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:5:9-43
+	android:name
+		INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:4:9-42
+manifest
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:1:1-45:12
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:1:1-45:12
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:1:1-45:12
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:1:1-45:12
+MERGED from [:flutter_image_compress_common] D:\Progetti\Fester 3.0\fester\build\flutter_image_compress_common\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-10:12
+MERGED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-13:12
+MERGED from [:shared_preferences_android] D:\Progetti\Fester 3.0\fester\build\shared_preferences_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-15:12
+MERGED from [com.google.android.gms:play-services-location:21.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bc40bc5f6e40c88241fb805931d29c4c\transformed\jetified-play-services-location-21.2.0\AndroidManifest.xml:2:1-9:12
+MERGED from [:app_links] D:\Progetti\Fester 3.0\fester\build\app_links\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:device_info_plus] D:\Progetti\Fester 3.0\fester\build\device_info_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:flutter_local_notifications] D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-10:12
+MERGED from [:google_maps_flutter_android] D:\Progetti\Fester 3.0\fester\build\google_maps_flutter_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-34:12
+MERGED from [:flutter_plugin_android_lifecycle] D:\Progetti\Fester 3.0\fester\build\flutter_plugin_android_lifecycle\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:package_info_plus] D:\Progetti\Fester 3.0\fester\build\package_info_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:path_provider_android] D:\Progetti\Fester 3.0\fester\build\path_provider_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:permission_handler_android] D:\Progetti\Fester 3.0\fester\build\permission_handler_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-35:12
+MERGED from [:sqflite_android] D:\Progetti\Fester 3.0\fester\build\sqflite_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-14:12
+MERGED from [:vibration] D:\Progetti\Fester 3.0\fester\build\vibration\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-9:12
+MERGED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:16:1-35:12
+MERGED from [com.google.mlkit:barcode-scanning:17.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\60ecadf00a1ed434162b26767227ec94\transformed\jetified-barcode-scanning-17.2.0\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:2:1-18:12
+MERGED from [com.google.mlkit:barcode-scanning-common:17.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\8dfa18ea01ec45e9756e0f5996c03b73\transformed\jetified-barcode-scanning-common-17.0.0\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:2:1-18:12
+MERGED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:2:1-26:12
+MERGED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb7e55418c67fb7bc8b1b9f9e99b30bc\transformed\jetified-vision-interfaces-16.2.0\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.gms:play-services-tasks:18.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c37c33b674f8c53cd00c98d6dd17a36\transformed\jetified-play-services-tasks-18.2.0\AndroidManifest.xml:2:1-5:12
+MERGED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:2:1-9:12
+MERGED from [androidx.preference:preference:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\12a085f4af97d8500c9432a48145ea1b\transformed\preference-1.2.1\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.appcompat:appcompat:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\845d779a6f9703b804f5e43452bcc2e5\transformed\appcompat-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment-ktx:1.7.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\da563446475d3ff73b8066be02648858\transformed\jetified-fragment-ktx-1.7.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.fragment:fragment:1.7.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\cf3a986fc94dc98dab92da85e4b25558\transformed\fragment-1.7.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity-ktx:1.10.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3fbd0cbae82cfe0256eeef93aa6c83e8\transformed\jetified-activity-ktx-1.10.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity:1.10.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\50b94382ea2bf48b0052719cf23622c4\transformed\jetified-activity-1.10.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:17:1-36:12
+MERGED from [androidx.camera:camera-lifecycle:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\04149e2f88d9c6c2a184e0c38dc4ca4b\transformed\jetified-camera-lifecycle-1.3.3\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.media:media:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\8597dd861fdb19aeb54265ac9d517aa0\transformed\media-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.browser:browser:1.8.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\df22b875ff6a90ec3ebad0ef728bb68b\transformed\browser-1.8.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.recyclerview:recyclerview:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\244519b05c756f6929d24f50c0fe009f\transformed\recyclerview-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3b54b997286c6c6fef772d96218883d7\transformed\legacy-support-core-ui-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\371fb012b93199196053d38abf571a3b\transformed\slidingpanelayout-1.2.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:17:1-31:12
+MERGED from [androidx.window:window-java:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a2be31f5f98c024d17eda5160252de46\transformed\jetified-window-java-1.2.0\AndroidManifest.xml:17:1-21:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f7264ae1be065c300b7a81eb08f37927\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f5514dcb374b97bfc540797fb8036c6b\transformed\loader-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\03c28736e15b3378b012cee867bacea5\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1b308bb3b211b8a2a98b65df57ac5d71\transformed\jetified-lifecycle-viewmodel-ktx-2.7.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\218e378d13704d359b9622dcea6cce71\transformed\jetified-lifecycle-runtime-ktx-2.7.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\99c402a3648559de984e485c4b7bb0db\transformed\lifecycle-livedata-2.7.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1051ba3f70c22c6b6fe969df2dc22087\transformed\lifecycle-livedata-core-2.7.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4c860eba32ffd640cf27d7bcf8c58afd\transformed\lifecycle-viewmodel-2.7.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4fc20009fbb469c189a90fdeb685306f\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core-ktx:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\e3f2b050ee295e3aa25c0b40346b22e9\transformed\jetified-core-ktx-1.13.1\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\7d52ea09101bb351c12b3e49b2217222\transformed\viewpager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.appcompat:appcompat-resources:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\76231f3986b784eabd7f9499ce1ab3b2\transformed\jetified-appcompat-resources-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5122419419ca483b6156ee9e53b81d72\transformed\drawerlayout-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c184cdda1eb40ee4e7a3b885688eaa81\transformed\coordinatorlayout-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0862ad865ccaefe4335f806706ea808c\transformed\customview-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.transition:transition:1.4.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\acc2838b1a488e47887846a836b594b6\transformed\transition-1.4.1\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1f09a68f32073750392738f19795bebb\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\760bf388237b0fe561efd518543baa2a\transformed\vectordrawable-1.1.0\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\23b8c2d06ef0e73a7fd41188ab8df6c1\transformed\swiperefreshlayout-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b15f01354ac225bd10101b930df2203c\transformed\asynclayoutinflater-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3c95229e85d86102cdd7c59033387933\transformed\lifecycle-runtime-2.7.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\cf4bcb5d0d3efd13db4a1c454d9ea19e\transformed\jetified-savedstate-ktx-1.2.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d8f536ab661db8c110fa8f555d4045bd\transformed\jetified-savedstate-1.2.1\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.datastore:datastore-preferences-core-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d07c43901f7d0a35921446c051fde7a6\transformed\jetified-datastore-preferences-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.datastore:datastore-core-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b09c5fee6972d76c5a1ad01f6657cd9a\transformed\jetified-datastore-core-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4cb575da6de09ef4a37527b7f4a2786c\transformed\jetified-datastore-preferences-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.datastore:datastore-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\866ed783937ad3b5ef7a45381a34e176\transformed\jetified-datastore-release\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.heifwriter:heifwriter:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c09f70143f6a033edb877e4de8684cf5\transformed\heifwriter-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\42a647dddfd4d90dd7eff806611d6372\transformed\exifinterface-1.3.7\AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\ffafe5f631203f4924364ba072ee19e0\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\2c54165b066b4ebdf8a3c03617e1f28b\transformed\jetified-tracing-1.2.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1c33255f411e345b8c9153cdc8b772a9\transformed\interpolator-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d1d97c503b3a4bd9cc3718f3fd84010a\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\2191f642bb5d35c54ec69e277330946c\transformed\core-runtime-2.2.0\AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:15:1-38:12
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:15:1-41:12
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1bc1f0da99b725b821b450aba0edc3d2\transformed\jetified-transport-api-2.2.1\AndroidManifest.xml:15:1-22:12
+MERGED from [com.google.firebase:firebase-components:16.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\12f21f3766639f59df81ad0f5fda1f27\transformed\jetified-firebase-components-16.1.0\AndroidManifest.xml:15:1-23:12
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\269b90da09866bf1ffa8620e240a0cad\transformed\jetified-firebase-encoders-json-17.1.0\AndroidManifest.xml:15:1-23:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\69e5ac8e407d7c551f1f5ec5856a45aa\transformed\cursoradapter-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.window.extensions.core:core:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\214b8070ae4c800f920040867b251ddc\transformed\jetified-core-1.0.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c5e10639dec331e62d9fbf86705cb71\transformed\documentfile-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\6e4bb0fcc1e64f8f5b3851cfa642d690\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a849f704a19700db11ee500f47aae641\transformed\print-1.0.0\AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9195964353cc99544e72471d817d6a71\transformed\jetified-annotation-experimental-1.4.0\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.core:core-viewtree:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\157c9398923e3f7ff16a8d0bd43a6556\transformed\jetified-core-viewtree-1.0.0\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.maps.android:android-maps-utils:3.6.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b0e4871ccb4c9babe956e9017fbbc544\transformed\jetified-android-maps-utils-3.6.0\AndroidManifest.xml:2:1-13:12
+MERGED from [com.getkeepsafe.relinker:relinker:1.4.5] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1841dfdc9324175fac5338109cf574de\transformed\jetified-relinker-1.4.5\AndroidManifest.xml:2:1-7:12
+MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a285fbadecd690a2aabad502b32afeb2\transformed\jetified-image-1.0.0-beta1\AndroidManifest.xml:2:1-9:12
+	package
+		INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+	android:versionCode
+		INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:1:11-69
+queries
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:39:5-44:15
+MERGED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:27:5-30:15
+MERGED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:27:5-30:15
+intent#action:name:android.intent.action.PROCESS_TEXT+data:mimeType:text/plain
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:40:9-43:18
+action#android.intent.action.PROCESS_TEXT
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:41:13-72
+	android:name
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:41:21-70
+data
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:42:13-50
+	android:mimeType
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:42:19-48
+activity#com.example.fester.MainActivity
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:6:9-27:20
+	android:launchMode
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:9:13-43
+	android:hardwareAccelerated
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:13:13-47
+	android:windowSoftInputMode
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:14:13-55
+	android:exported
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:8:13-36
+	android:configChanges
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:12:13-163
+	android:theme
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:11:13-47
+	android:taskAffinity
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:10:13-36
+	android:name
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:7:13-41
+meta-data#io.flutter.embedding.android.NormalTheme
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:19:13-22:17
+	android:resource
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:21:15-52
+	android:name
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:20:15-70
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:23:13-26:29
+action#android.intent.action.MAIN
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:24:17-68
+	android:name
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:24:25-66
+category#android.intent.category.LAUNCHER
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:25:17-76
+	android:name
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:25:27-74
+meta-data#flutterEmbedding
+ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:30:9-32:33
+	android:value
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:32:13-30
+	android:name
+		ADDED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml:31:13-44
+uses-sdk
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+MERGED from [:flutter_image_compress_common] D:\Progetti\Fester 3.0\fester\build\flutter_image_compress_common\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:6:5-8:55
+MERGED from [:flutter_image_compress_common] D:\Progetti\Fester 3.0\fester\build\flutter_image_compress_common\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:6:5-8:55
+MERGED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:shared_preferences_android] D:\Progetti\Fester 3.0\fester\build\shared_preferences_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:shared_preferences_android] D:\Progetti\Fester 3.0\fester\build\shared_preferences_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-location:21.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bc40bc5f6e40c88241fb805931d29c4c\transformed\jetified-play-services-location-21.2.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-location:21.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bc40bc5f6e40c88241fb805931d29c4c\transformed\jetified-play-services-location-21.2.0\AndroidManifest.xml:5:5-44
+MERGED from [:app_links] D:\Progetti\Fester 3.0\fester\build\app_links\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:app_links] D:\Progetti\Fester 3.0\fester\build\app_links\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:device_info_plus] D:\Progetti\Fester 3.0\fester\build\device_info_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:device_info_plus] D:\Progetti\Fester 3.0\fester\build\device_info_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:flutter_local_notifications] D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:flutter_local_notifications] D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:google_maps_flutter_android] D:\Progetti\Fester 3.0\fester\build\google_maps_flutter_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:google_maps_flutter_android] D:\Progetti\Fester 3.0\fester\build\google_maps_flutter_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:6:5-44
+MERGED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:6:5-44
+MERGED from [:flutter_plugin_android_lifecycle] D:\Progetti\Fester 3.0\fester\build\flutter_plugin_android_lifecycle\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:flutter_plugin_android_lifecycle] D:\Progetti\Fester 3.0\fester\build\flutter_plugin_android_lifecycle\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:package_info_plus] D:\Progetti\Fester 3.0\fester\build\package_info_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:package_info_plus] D:\Progetti\Fester 3.0\fester\build\package_info_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:path_provider_android] D:\Progetti\Fester 3.0\fester\build\path_provider_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:path_provider_android] D:\Progetti\Fester 3.0\fester\build\path_provider_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:permission_handler_android] D:\Progetti\Fester 3.0\fester\build\permission_handler_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:permission_handler_android] D:\Progetti\Fester 3.0\fester\build\permission_handler_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:sqflite_android] D:\Progetti\Fester 3.0\fester\build\sqflite_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:sqflite_android] D:\Progetti\Fester 3.0\fester\build\sqflite_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:vibration] D:\Progetti\Fester 3.0\fester\build\vibration\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:vibration] D:\Progetti\Fester 3.0\fester\build\vibration\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:26:5-43
+MERGED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:26:5-43
+MERGED from [com.google.mlkit:barcode-scanning:17.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\60ecadf00a1ed434162b26767227ec94\transformed\jetified-barcode-scanning-17.2.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:barcode-scanning:17.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\60ecadf00a1ed434162b26767227ec94\transformed\jetified-barcode-scanning-17.2.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:6:5-44
+MERGED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:barcode-scanning-common:17.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\8dfa18ea01ec45e9756e0f5996c03b73\transformed\jetified-barcode-scanning-common-17.0.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:barcode-scanning-common:17.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\8dfa18ea01ec45e9756e0f5996c03b73\transformed\jetified-barcode-scanning-common-17.0.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:6:5-44
+MERGED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:6:5-44
+MERGED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:3:5-44
+MERGED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:3:5-44
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb7e55418c67fb7bc8b1b9f9e99b30bc\transformed\jetified-vision-interfaces-16.2.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.mlkit:vision-interfaces:16.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb7e55418c67fb7bc8b1b9f9e99b30bc\transformed\jetified-vision-interfaces-16.2.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-tasks:18.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c37c33b674f8c53cd00c98d6dd17a36\transformed\jetified-play-services-tasks-18.2.0\AndroidManifest.xml:3:5-44
+MERGED from [com.google.android.gms:play-services-tasks:18.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c37c33b674f8c53cd00c98d6dd17a36\transformed\jetified-play-services-tasks-18.2.0\AndroidManifest.xml:3:5-44
+MERGED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:3:5-44
+MERGED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:3:5-44
+MERGED from [androidx.preference:preference:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\12a085f4af97d8500c9432a48145ea1b\transformed\preference-1.2.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.preference:preference:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\12a085f4af97d8500c9432a48145ea1b\transformed\preference-1.2.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\845d779a6f9703b804f5e43452bcc2e5\transformed\appcompat-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\845d779a6f9703b804f5e43452bcc2e5\transformed\appcompat-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment-ktx:1.7.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\da563446475d3ff73b8066be02648858\transformed\jetified-fragment-ktx-1.7.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment-ktx:1.7.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\da563446475d3ff73b8066be02648858\transformed\jetified-fragment-ktx-1.7.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment:1.7.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\cf3a986fc94dc98dab92da85e4b25558\transformed\fragment-1.7.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment:1.7.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\cf3a986fc94dc98dab92da85e4b25558\transformed\fragment-1.7.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.10.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3fbd0cbae82cfe0256eeef93aa6c83e8\transformed\jetified-activity-ktx-1.10.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.10.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3fbd0cbae82cfe0256eeef93aa6c83e8\transformed\jetified-activity-ktx-1.10.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity:1.10.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\50b94382ea2bf48b0052719cf23622c4\transformed\jetified-activity-1.10.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.10.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\50b94382ea2bf48b0052719cf23622c4\transformed\jetified-activity-1.10.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:21:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\04149e2f88d9c6c2a184e0c38dc4ca4b\transformed\jetified-camera-lifecycle-1.3.3\AndroidManifest.xml:5:5-44
+MERGED from [androidx.camera:camera-lifecycle:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\04149e2f88d9c6c2a184e0c38dc4ca4b\transformed\jetified-camera-lifecycle-1.3.3\AndroidManifest.xml:5:5-44
+MERGED from [androidx.media:media:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\8597dd861fdb19aeb54265ac9d517aa0\transformed\media-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.media:media:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\8597dd861fdb19aeb54265ac9d517aa0\transformed\media-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.browser:browser:1.8.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\df22b875ff6a90ec3ebad0ef728bb68b\transformed\browser-1.8.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.browser:browser:1.8.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\df22b875ff6a90ec3ebad0ef728bb68b\transformed\browser-1.8.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.recyclerview:recyclerview:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\244519b05c756f6929d24f50c0fe009f\transformed\recyclerview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.recyclerview:recyclerview:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\244519b05c756f6929d24f50c0fe009f\transformed\recyclerview-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3b54b997286c6c6fef772d96218883d7\transformed\legacy-support-core-ui-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3b54b997286c6c6fef772d96218883d7\transformed\legacy-support-core-ui-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\371fb012b93199196053d38abf571a3b\transformed\slidingpanelayout-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\371fb012b93199196053d38abf571a3b\transformed\slidingpanelayout-1.2.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.window:window-java:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a2be31f5f98c024d17eda5160252de46\transformed\jetified-window-java-1.2.0\AndroidManifest.xml:19:5-44
+MERGED from [androidx.window:window-java:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a2be31f5f98c024d17eda5160252de46\transformed\jetified-window-java-1.2.0\AndroidManifest.xml:19:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f7264ae1be065c300b7a81eb08f37927\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f7264ae1be065c300b7a81eb08f37927\transformed\legacy-support-core-utils-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f5514dcb374b97bfc540797fb8036c6b\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f5514dcb374b97bfc540797fb8036c6b\transformed\loader-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\03c28736e15b3378b012cee867bacea5\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\03c28736e15b3378b012cee867bacea5\transformed\jetified-lifecycle-livedata-core-ktx-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1b308bb3b211b8a2a98b65df57ac5d71\transformed\jetified-lifecycle-viewmodel-ktx-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1b308bb3b211b8a2a98b65df57ac5d71\transformed\jetified-lifecycle-viewmodel-ktx-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\218e378d13704d359b9622dcea6cce71\transformed\jetified-lifecycle-runtime-ktx-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\218e378d13704d359b9622dcea6cce71\transformed\jetified-lifecycle-runtime-ktx-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\99c402a3648559de984e485c4b7bb0db\transformed\lifecycle-livedata-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\99c402a3648559de984e485c4b7bb0db\transformed\lifecycle-livedata-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1051ba3f70c22c6b6fe969df2dc22087\transformed\lifecycle-livedata-core-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1051ba3f70c22c6b6fe969df2dc22087\transformed\lifecycle-livedata-core-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4c860eba32ffd640cf27d7bcf8c58afd\transformed\lifecycle-viewmodel-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4c860eba32ffd640cf27d7bcf8c58afd\transformed\lifecycle-viewmodel-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4fc20009fbb469c189a90fdeb685306f\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4fc20009fbb469c189a90fdeb685306f\transformed\jetified-lifecycle-viewmodel-savedstate-2.7.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\e3f2b050ee295e3aa25c0b40346b22e9\transformed\jetified-core-ktx-1.13.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\e3f2b050ee295e3aa25c0b40346b22e9\transformed\jetified-core-ktx-1.13.1\AndroidManifest.xml:5:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\7d52ea09101bb351c12b3e49b2217222\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\7d52ea09101bb351c12b3e49b2217222\transformed\viewpager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\76231f3986b784eabd7f9499ce1ab3b2\transformed\jetified-appcompat-resources-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat-resources:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\76231f3986b784eabd7f9499ce1ab3b2\transformed\jetified-appcompat-resources-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5122419419ca483b6156ee9e53b81d72\transformed\drawerlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5122419419ca483b6156ee9e53b81d72\transformed\drawerlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c184cdda1eb40ee4e7a3b885688eaa81\transformed\coordinatorlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c184cdda1eb40ee4e7a3b885688eaa81\transformed\coordinatorlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0862ad865ccaefe4335f806706ea808c\transformed\customview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0862ad865ccaefe4335f806706ea808c\transformed\customview-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.4.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\acc2838b1a488e47887846a836b594b6\transformed\transition-1.4.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.4.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\acc2838b1a488e47887846a836b594b6\transformed\transition-1.4.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1f09a68f32073750392738f19795bebb\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1f09a68f32073750392738f19795bebb\transformed\vectordrawable-animated-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\760bf388237b0fe561efd518543baa2a\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\760bf388237b0fe561efd518543baa2a\transformed\vectordrawable-1.1.0\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\23b8c2d06ef0e73a7fd41188ab8df6c1\transformed\swiperefreshlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\23b8c2d06ef0e73a7fd41188ab8df6c1\transformed\swiperefreshlayout-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b15f01354ac225bd10101b930df2203c\transformed\asynclayoutinflater-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b15f01354ac225bd10101b930df2203c\transformed\asynclayoutinflater-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3c95229e85d86102cdd7c59033387933\transformed\lifecycle-runtime-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\3c95229e85d86102cdd7c59033387933\transformed\lifecycle-runtime-2.7.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\cf4bcb5d0d3efd13db4a1c454d9ea19e\transformed\jetified-savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\cf4bcb5d0d3efd13db4a1c454d9ea19e\transformed\jetified-savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d8f536ab661db8c110fa8f555d4045bd\transformed\jetified-savedstate-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d8f536ab661db8c110fa8f555d4045bd\transformed\jetified-savedstate-1.2.1\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-preferences-core-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d07c43901f7d0a35921446c051fde7a6\transformed\jetified-datastore-preferences-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-preferences-core-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d07c43901f7d0a35921446c051fde7a6\transformed\jetified-datastore-preferences-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-core-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b09c5fee6972d76c5a1ad01f6657cd9a\transformed\jetified-datastore-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-core-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b09c5fee6972d76c5a1ad01f6657cd9a\transformed\jetified-datastore-core-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4cb575da6de09ef4a37527b7f4a2786c\transformed\jetified-datastore-preferences-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-preferences-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\4cb575da6de09ef4a37527b7f4a2786c\transformed\jetified-datastore-preferences-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\866ed783937ad3b5ef7a45381a34e176\transformed\jetified-datastore-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.datastore:datastore-android:1.1.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\866ed783937ad3b5ef7a45381a34e176\transformed\jetified-datastore-release\AndroidManifest.xml:20:5-44
+MERGED from [androidx.heifwriter:heifwriter:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c09f70143f6a033edb877e4de8684cf5\transformed\heifwriter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.heifwriter:heifwriter:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c09f70143f6a033edb877e4de8684cf5\transformed\heifwriter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\42a647dddfd4d90dd7eff806611d6372\transformed\exifinterface-1.3.7\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\sarto\.gradle\caches\8.10.2\transforms\42a647dddfd4d90dd7eff806611d6372\transformed\exifinterface-1.3.7\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:21:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\ffafe5f631203f4924364ba072ee19e0\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\ffafe5f631203f4924364ba072ee19e0\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\2c54165b066b4ebdf8a3c03617e1f28b\transformed\jetified-tracing-1.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.tracing:tracing:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\2c54165b066b4ebdf8a3c03617e1f28b\transformed\jetified-tracing-1.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1c33255f411e345b8c9153cdc8b772a9\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1c33255f411e345b8c9153cdc8b772a9\transformed\interpolator-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d1d97c503b3a4bd9cc3718f3fd84010a\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\d1d97c503b3a4bd9cc3718f3fd84010a\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\2191f642bb5d35c54ec69e277330946c\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\2191f642bb5d35c54ec69e277330946c\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1bc1f0da99b725b821b450aba0edc3d2\transformed\jetified-transport-api-2.2.1\AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.android.datatransport:transport-api:2.2.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1bc1f0da99b725b821b450aba0edc3d2\transformed\jetified-transport-api-2.2.1\AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.firebase:firebase-components:16.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\12f21f3766639f59df81ad0f5fda1f27\transformed\jetified-firebase-components-16.1.0\AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-components:16.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\12f21f3766639f59df81ad0f5fda1f27\transformed\jetified-firebase-components-16.1.0\AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\269b90da09866bf1ffa8620e240a0cad\transformed\jetified-firebase-encoders-json-17.1.0\AndroidManifest.xml:19:5-21:41
+MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\269b90da09866bf1ffa8620e240a0cad\transformed\jetified-firebase-encoders-json-17.1.0\AndroidManifest.xml:19:5-21:41
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\69e5ac8e407d7c551f1f5ec5856a45aa\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\69e5ac8e407d7c551f1f5ec5856a45aa\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.window.extensions.core:core:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\214b8070ae4c800f920040867b251ddc\transformed\jetified-core-1.0.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.window.extensions.core:core:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\214b8070ae4c800f920040867b251ddc\transformed\jetified-core-1.0.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c5e10639dec331e62d9fbf86705cb71\transformed\documentfile-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9c5e10639dec331e62d9fbf86705cb71\transformed\documentfile-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\6e4bb0fcc1e64f8f5b3851cfa642d690\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\6e4bb0fcc1e64f8f5b3851cfa642d690\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a849f704a19700db11ee500f47aae641\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a849f704a19700db11ee500f47aae641\transformed\print-1.0.0\AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9195964353cc99544e72471d817d6a71\transformed\jetified-annotation-experimental-1.4.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\9195964353cc99544e72471d817d6a71\transformed\jetified-annotation-experimental-1.4.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-viewtree:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\157c9398923e3f7ff16a8d0bd43a6556\transformed\jetified-core-viewtree-1.0.0\AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-viewtree:1.0.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\157c9398923e3f7ff16a8d0bd43a6556\transformed\jetified-core-viewtree-1.0.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.maps.android:android-maps-utils:3.6.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b0e4871ccb4c9babe956e9017fbbc544\transformed\jetified-android-maps-utils-3.6.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.maps.android:android-maps-utils:3.6.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b0e4871ccb4c9babe956e9017fbbc544\transformed\jetified-android-maps-utils-3.6.0\AndroidManifest.xml:5:5-44
+MERGED from [com.getkeepsafe.relinker:relinker:1.4.5] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1841dfdc9324175fac5338109cf574de\transformed\jetified-relinker-1.4.5\AndroidManifest.xml:5:5-43
+MERGED from [com.getkeepsafe.relinker:relinker:1.4.5] C:\Users\sarto\.gradle\caches\8.10.2\transforms\1841dfdc9324175fac5338109cf574de\transformed\jetified-relinker-1.4.5\AndroidManifest.xml:5:5-43
+MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a285fbadecd690a2aabad502b32afeb2\transformed\jetified-image-1.0.0-beta1\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\a285fbadecd690a2aabad502b32afeb2\transformed\jetified-image-1.0.0-beta1\AndroidManifest.xml:5:5-44
+	tools:overrideLibrary
+		ADDED from [:flutter_image_compress_common] D:\Progetti\Fester 3.0\fester\build\flutter_image_compress_common\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:9-52
+	android:targetSdkVersion
+		INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from D:\Progetti\Fester 3.0\fester\android\app\src\main\AndroidManifest.xml
+uses-permission#android.permission.CAMERA
+ADDED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-65
+	android:name
+		ADDED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:22-62
+uses-feature#android.hardware.camera
+ADDED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:9:5-11:36
+	android:required
+		ADDED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:11:9-33
+	android:name
+		ADDED from [:mobile_scanner] D:\Progetti\Fester 3.0\fester\build\mobile_scanner\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:10:9-47
+service#com.baseflow.geolocator.GeolocatorLocationService
+ADDED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:9-12:56
+	android:enabled
+		ADDED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:10:13-35
+	android:exported
+		ADDED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:11:13-37
+	android:foregroundServiceType
+		ADDED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:12:13-53
+	android:name
+		ADDED from [:geolocator_android] D:\Progetti\Fester 3.0\fester\build\geolocator_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:9:13-77
+uses-permission#android.permission.VIBRATE
+ADDED from [:flutter_local_notifications] D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-66
+MERGED from [:vibration] D:\Progetti\Fester 3.0\fester\build\vibration\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-66
+MERGED from [:vibration] D:\Progetti\Fester 3.0\fester\build\vibration\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-66
+	android:name
+		ADDED from [:flutter_local_notifications] D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:22-63
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from [:flutter_local_notifications] D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:5-77
+	android:name
+		ADDED from [:flutter_local_notifications] D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:22-74
+provider#io.flutter.plugins.imagepicker.ImagePickerFileProvider
+ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:9:9-17:20
+	android:grantUriPermissions
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:13:13-47
+	android:authorities
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:11:13-74
+	android:exported
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:12:13-37
+	android:name
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:10:13-82
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:14:13-16:75
+	android:resource
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:16:17-72
+	android:name
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:15:17-67
+service#com.google.android.gms.metadata.ModuleDependencies
+ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:19:9-31:19
+	android:enabled
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:21:13-36
+	android:exported
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:22:13-37
+	tools:ignore
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:23:13-40
+	android:name
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:20:13-78
+intent-filter#action:name:com.google.android.gms.metadata.MODULE_DEPENDENCIES
+ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:24:13-26:29
+action#com.google.android.gms.metadata.MODULE_DEPENDENCIES
+ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:25:17-94
+	android:name
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:25:25-91
+meta-data#photopicker_activity:0:required
+ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:28:13-30:36
+	android:value
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:30:17-33
+	android:name
+		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:29:17-63
+provider#dev.fluttercommunity.plus.share.ShareFileProvider
+ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:13:9-21:20
+	android:grantUriPermissions
+		ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:17:13-47
+	android:authorities
+		ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:15:13-74
+	android:exported
+		ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:16:13-37
+	android:name
+		ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:14:13-77
+receiver#dev.fluttercommunity.plus.share.SharePlusPendingIntent
+ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:26:9-32:20
+	android:exported
+		ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:28:13-37
+	android:name
+		ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:27:13-82
+intent-filter#action:name:EXTRA_CHOSEN_COMPONENT
+ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:29:13-31:29
+action#EXTRA_CHOSEN_COMPONENT
+ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:30:17-65
+	android:name
+		ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:30:25-62
+activity#io.flutter.plugins.urllauncher.WebViewActivity
+ADDED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:9-11:74
+	android:exported
+		ADDED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:10:13-37
+	android:theme
+		ADDED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:11:13-71
+	android:name
+		ADDED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:9:13-74
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:20:5-78
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:25:5-79
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:25:5-79
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:22:5-79
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:22:5-79
+	android:name
+		ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:20:22-76
+uses-permission#android.permission.INTERNET
+ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:21:5-66
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:26:5-67
+MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:26:5-67
+	android:name
+		ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:21:22-64
+uses-feature#0x00020000
+ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:22:5-24:33
+	android:glEsVersion
+		ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:23:8-40
+	android:required
+		ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:24:8-31
+package#com.google.android.apps.maps
+ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:29:7-61
+	android:name
+		ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:29:16-59
+uses-library#org.apache.http.legacy
+ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:33:7-86
+	android:required
+		ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:33:59-83
+	android:name
+		ADDED from [com.google.android.gms:play-services-maps:19.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\0af2163ca8a254cebc342e25b97d766e\transformed\jetified-play-services-maps-19.2.0\AndroidManifest.xml:33:21-58
+service#com.google.mlkit.common.internal.MlKitComponentDiscoveryService
+ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:15:9-23:19
+MERGED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:15:9-23:19
+	android:exported
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:11:13-37
+	tools:targetApi
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:19:13-32
+	android:directBootAware
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:17:13-43
+	android:name
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:10:13-91
+meta-data#com.google.firebase.components:com.google.mlkit.vision.barcode.internal.BarcodeRegistrar
+ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:12:13-14:85
+	android:value
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:14:17-82
+	android:name
+		ADDED from [com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\519d27a96037fcd13f49ea3d107ef5c1\transformed\jetified-play-services-mlkit-barcode-scanning-18.3.0\AndroidManifest.xml:13:17-120
+meta-data#com.google.firebase.components:com.google.mlkit.vision.common.internal.VisionCommonRegistrar
+ADDED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:12:13-14:85
+	android:value
+		ADDED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:14:17-82
+	android:name
+		ADDED from [com.google.mlkit:vision-common:17.3.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\5bc716cc58e7612c412d4fcea15cb5fa\transformed\jetified-vision-common-17.3.0\AndroidManifest.xml:13:17-124
+provider#com.google.mlkit.common.internal.MlKitInitProvider
+ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:9:9-13:38
+	android:authorities
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:11:13-69
+	android:exported
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:12:13-37
+	android:initOrder
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:13:13-35
+	android:name
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:10:13-78
+meta-data#com.google.firebase.components:com.google.mlkit.common.internal.CommonComponentRegistrar
+ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:20:13-22:85
+	android:value
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:22:17-82
+	android:name
+		ADDED from [com.google.mlkit:common:18.9.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\f883f7252602de1144ac78ab407525c2\transformed\jetified-common-18.9.0\AndroidManifest.xml:21:17-120
+activity#com.google.android.gms.common.api.GoogleApiActivity
+ADDED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:5:9-173
+	android:exported
+		ADDED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:5:146-170
+	android:theme
+		ADDED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:5:86-145
+	android:name
+		ADDED from [com.google.android.gms:play-services-base:18.5.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\c26a5e61fe542527cf2bb32b2ba51b51\transformed\jetified-play-services-base-18.5.0\AndroidManifest.xml:5:19-85
+meta-data#com.google.android.gms.version
+ADDED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:6:9-122
+MERGED from [com.google.maps.android:android-maps-utils:3.6.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b0e4871ccb4c9babe956e9017fbbc544\transformed\jetified-android-maps-utils-3.6.0\AndroidManifest.xml:8:9-10:69
+MERGED from [com.google.maps.android:android-maps-utils:3.6.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\b0e4871ccb4c9babe956e9017fbbc544\transformed\jetified-android-maps-utils-3.6.0\AndroidManifest.xml:8:9-10:69
+	android:value
+		ADDED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:6:66-119
+	android:name
+		ADDED from [com.google.android.gms:play-services-basement:18.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\daa46f0fdd16f05f69205eaa668178c9\transformed\jetified-play-services-basement-18.4.0\AndroidManifest.xml:6:20-65
+service#androidx.camera.core.impl.MetadataHolderService
+ADDED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:29:9-33:78
+MERGED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:24:9-33:19
+MERGED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:24:9-33:19
+	android:enabled
+		ADDED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:31:13-36
+	android:exported
+		ADDED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:32:13-37
+	tools:ignore
+		ADDED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:33:13-75
+	android:name
+		ADDED from [androidx.camera:camera-core:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\65d5ecd85f19a4a016edeea3ee53567a\transformed\jetified-camera-core-1.3.3\AndroidManifest.xml:30:13-75
+meta-data#androidx.camera.core.impl.MetadataHolderService.DEFAULT_CONFIG_PROVIDER
+ADDED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:30:13-32:89
+	android:value
+		ADDED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:32:17-86
+	android:name
+		ADDED from [androidx.camera:camera-camera2:1.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\21529ac8043c942ba164ee900ff28541\transformed\jetified-camera-camera2-1.3.3\AndroidManifest.xml:31:17-103
+uses-library#androidx.window.extensions
+ADDED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:23:9-25:40
+	android:required
+		ADDED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:25:13-37
+	android:name
+		ADDED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:24:13-54
+uses-library#androidx.window.sidecar
+ADDED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:26:9-28:40
+	android:required
+		ADDED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:28:13-37
+	android:name
+		ADDED from [androidx.window:window:1.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\aed2861b2b6894f7067df3f3f96b791f\transformed\jetified-window-1.2.0\AndroidManifest.xml:27:13-51
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+permission#com.example.fester.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+uses-permission#com.example.fester.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\dfc2fbca530748e569b0737b09fa016f\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\ffafe5f631203f4924364ba072ee19e0\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\sarto\.gradle\caches\8.10.2\transforms\ffafe5f631203f4924364ba072ee19e0\transformed\jetified-startup-runtime-1.1.1\AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:25:13-67
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.7.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb10008c4b33ee9597583412a41828ed\transformed\jetified-lifecycle-process-2.7.0\AndroidManifest.xml:30:17-78
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.4.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\53e65cb99d6b4f80573625ff2ea53dae\transformed\jetified-profileinstaller-1.4.0\AndroidManifest.xml:50:25-92
+service#com.google.android.datatransport.runtime.backends.TransportBackendDiscovery
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:29:9-35:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:36:9-38:40
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:36:9-38:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:31:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:30:13-103
+meta-data#backend:com.google.android.datatransport.cct.CctBackendFactory
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:32:13-34:39
+	android:value
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:34:17-36
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\sarto\.gradle\caches\8.10.2\transforms\672442c7419725437fdc54b409276597\transformed\jetified-transport-backend-cct-2.3.3\AndroidManifest.xml:33:17-94
+service#com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:26:9-30:19
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:28:13-37
+	android:permission
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:29:13-69
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:27:13-117
+receiver#com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:32:9-34:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:34:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bb005ebfb2c1b904b44007fd2a6c6080\transformed\jetified-transport-runtime-2.2.6\AndroidManifest.xml:33:13-132

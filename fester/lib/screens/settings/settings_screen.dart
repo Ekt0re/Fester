@@ -374,21 +374,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         const SizedBox(height: 8),
         SettingsTile(
-          icon: _settings.notificationLevel.icon,
+          icon: Icons.notifications,
           title: 'Notification Settings',
-          subtitle: _settings.notificationLevel.displayName,
-          onTap: () async {
-            final result = await Navigator.push<NotificationLevel>(
+          subtitle: 'Gestisci le notifiche',
+          onTap: () {
+            Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => NotificationSettingsScreen(
-                  currentLevel: _settings.notificationLevel,
-                ),
+                builder: (context) => const NotificationSettingsScreen(),
               ),
             );
-            if (result != null) {
-              await _updateSettings(_settings.copyWith(notificationLevel: result));
-            }
           },
         ),
         const SizedBox(height: 8),

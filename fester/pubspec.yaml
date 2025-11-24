@@ -40,7 +40,7 @@ dependencies:
   supabase_flutter: ^2.10.3
 
   # VIBRAZIONE & FEEDBACK
-  vibration: ^1.9.0
+  vibration: ^3.1.4
 
   # STATE MANAGEMENT
   riverpod: ^2.5.1
@@ -77,9 +77,9 @@ dependencies:
 
   fl_chart: ^0.68.0              # Grafici dashboard
 
-  uni_links: ^0.5.1
+  app_links: ^6.4.1
 
-  flutter_local_notifications: ^17.1.2  # Notifiche locali
+  flutter_local_notifications: ^17.1.2
 
   # MAPPE (location eventi)
   google_maps_flutter: ^2.7.0

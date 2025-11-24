@@ -1,0 +1,26 @@
+<lint-module
+    format="1"
+    dir="C:\Users\sarto\AppData\Local\Pub\Cache\hosted\pub.dev\flutter_local_notifications-17.2.4\android"
+    name=":flutter_local_notifications"
+    type="LIBRARY"
+    maven="com.dexterous.flutterlocalnotifications:flutter_local_notifications:1.0-SNAPSHOT"
+    agpVersion="8.7.0"
+    buildFolder="D:\Progetti\Fester 3.0\fester\build\flutter_local_notifications"
+    bootClassPath="D:\Progetti\Android\platforms\android-34\android.jar;D:\Progetti\Android\build-tools\34.0.0\core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-34"
+    neverShrinking="true">
+  <lintOptions
+      disable="InvalidPackage"
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true">
+    <severities>
+      <severity
+        id="InvalidPackage"
+        severity="IGNORE" />
+    </severities>
+  </lintOptions>
+  <variant name="release"/>
+</lint-module>

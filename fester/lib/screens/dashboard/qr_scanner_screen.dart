@@ -68,7 +68,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     // Debounce: prevent scanning the same code too quickly
     if (_lastScanTime != null && 
         _lastScannedCode == code &&
-        DateTime.now().difference(_lastScanTime!) < const Duration(milliseconds: 1000)) {
+        DateTime.now().difference(_lastScanTime!) < const Duration(seconds: 30)) {
       return;
     }
 
