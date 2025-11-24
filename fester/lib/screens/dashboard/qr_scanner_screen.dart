@@ -30,13 +30,30 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   
   bool _isProcessing = false;
+  bool _isScannerInitialized = false;
   DateTime? _lastScanTime;
+  String? _lastScannedCode;
 
   // Recent Scans
   final List<Participation> _recentScans = [];
 
   @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_checkScannerStatus);
+  }
+
+  void _checkScannerStatus() {
+    if (_controller.value.isInitialized && !_isScannerInitialized) {
+      setState(() {
+        _isScannerInitialized = true;
+      });
+    }
+  }
+
+  @override
   void dispose() {
+    _controller.removeListener(_checkScannerStatus);
     _controller.dispose();
     super.dispose();
   }
@@ -49,14 +66,22 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     if (code == null || _isProcessing) return;
 
     // Debounce: prevent scanning the same code too quickly
-    if (_lastScanTime != null && DateTime.now().difference(_lastScanTime!) < const Duration(seconds: 2)) {
+    if (_lastScanTime != null && 
+        _lastScannedCode == code &&
+        DateTime.now().difference(_lastScanTime!) < const Duration(milliseconds: 1000)) {
       return;
     }
 
     setState(() {
       _isProcessing = true;
       _lastScanTime = DateTime.now();
+      _lastScannedCode = code;
     });
+
+    // Feedback tattile immediato
+    if (await Vibration.hasVibrator() ?? false) {
+      Vibration.vibrate(duration: 50);
+    }
 
     try {
       // 1. Validate Format: FEV-<UUID><CountOfA>
@@ -170,11 +195,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           newStatusId: newStatusId,
         );
         
-        // Success Feedback
-        if (await Vibration.hasVibrator() ?? false) {
-          Vibration.vibrate(duration: 100);
-        }
-
         _showNotification(
           title: 'Ingresso Autorizzato',
           message: '${participation.person?['first_name']} ${participation.person?['last_name']} -> ${newStatusName.toUpperCase()}',
@@ -318,6 +338,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                         icon: ValueListenableBuilder(
                           valueListenable: _controller,
                           builder: (context, state, child) {
+                            if (!_isScannerInitialized) {
+                              return const Icon(Icons.flash_off, color: Colors.grey, size: 30);
+                            }
                             switch (state.torchState) {
                               case TorchState.off:
                                 return const Icon(Icons.flash_off, color: Colors.white, size: 30);
@@ -328,7 +351,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                             }
                           },
                         ),
-                        onPressed: () => _controller.toggleTorch(),
+                        onPressed: _isScannerInitialized
+                            ? () async {
+                                try {
+                                  await _controller.toggleTorch();
+                                } catch (e) {
+                                  print('Error toggling torch: $e');
+                                }
+                              }
+                            : null,
                       ),
                     ],
                   ),

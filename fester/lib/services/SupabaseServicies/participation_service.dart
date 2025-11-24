@@ -34,7 +34,11 @@ class ParticipationService {
       final response =
           await _supabase
               .from('participation')
-              .select()
+              .select('''
+                *,
+                person:person_id(*),
+                role:role_id(*)
+              ''')
               .eq('id', participationId)
               .maybeSingle();
 
