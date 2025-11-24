@@ -8,6 +8,7 @@ class Participation {
   final String? invitedBy;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final Map<String, dynamic>? person;
 
   Participation({
     required this.id,
@@ -18,6 +19,7 @@ class Participation {
     this.invitedBy,
     required this.createdAt,
     this.updatedAt,
+    this.person,
   });
 
   factory Participation.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class Participation {
           json['updated_at'] != null
               ? DateTime.parse(json['updated_at'])
               : null,
+      person: json['person'] as Map<String, dynamic>?,
     );
   }
 

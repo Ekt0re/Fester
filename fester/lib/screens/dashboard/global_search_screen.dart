@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/person_service.dart';
+import '../../services/SupabaseServicies/participation_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 import '../../theme/app_theme.dart';
 import '../profile/staff_profile_screen.dart';
 import '../profile/person_profile_screen.dart';
+import 'widgets/guest_card.dart';
+import '../profile/widgets/transaction_creation_sheet.dart';
 
 class GlobalSearchScreen extends StatefulWidget {
   final String eventId;
@@ -20,10 +24,12 @@ class GlobalSearchScreen extends StatefulWidget {
 class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   final EventService _eventService = EventService();
   final PersonService _personService = PersonService();
+  final ParticipationService _participationService = ParticipationService();
   final TextEditingController _searchController = TextEditingController();
   
   List<SearchResult> _allResults = [];
   List<SearchResult> _filteredResults = [];
+  List<Map<String, dynamic>> _statuses = [];
   bool _isLoading = true;
   String _searchQuery = '';
   bool _showStaff = true;
@@ -55,36 +61,61 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     try {
       final results = <SearchResult>[];
 
-      // Load staff
-      final staffList = await _eventService.getEventStaff(widget.eventId);
-      for (final staff in staffList) {
-        if (staff.staff != null) {
-          results.add(SearchResult(
-            id: staff.id,
-            name: '${staff.staff!.firstName} ${staff.staff!.lastName}',
-            email: staff.staff!.email ?? '',
-            phone: staff.staff!.phone ?? '',
-            imagePath: staff.staff!.imagePath,
-            type: SearchResultType.staff,
-            roleName: staff.roleName ?? 'Staff',
-            originalData: staff,
-          ));
-        }
+      // Load statuses
+      try {
+        final statusResponse = await Supabase.instance.client
+            .from('participation_status')
+            .select()
+            .order('id');
+        _statuses = List<Map<String, dynamic>>.from(statusResponse);
+      } catch (e) {
+        print('Error loading statuses: $e');
       }
 
-      // Load guests
-      final guestList = await _personService.getEventGuests(widget.eventId);
-      for (final guest in guestList) {
-        results.add(SearchResult(
-          id: guest['id'] ?? '',
-          name: '${guest['first_name'] ?? ''} ${guest['last_name'] ?? ''}'.trim(),
-          email: guest['email'] ?? '',
-          phone: guest['phone'] ?? '',
-          imagePath: null,
-          type: SearchResultType.guest,
-          roleName: 'Ospite',
-          originalData: guest,
-        ));
+      // Load staff
+      try {
+        final staffList = await _eventService.getEventStaff(widget.eventId);
+        for (final staff in staffList) {
+          if (staff.staff != null) {
+            results.add(SearchResult(
+              id: staff.id,
+              name: '${staff.staff!.firstName} ${staff.staff!.lastName}',
+              email: staff.staff!.email ?? '',
+              phone: staff.staff!.phone ?? '',
+              imagePath: staff.staff!.imagePath,
+              type: SearchResultType.staff,
+              roleName: staff.roleName ?? 'Staff',
+              originalData: staff,
+            ));
+          }
+        }
+      } catch (e) {
+        print('Error loading staff: $e');
+      }
+
+      // Load guests (participants)
+      try {
+        final participants = await _personService.getEventParticipants(widget.eventId);
+        for (final p in participants) {
+          final person = p['person'];
+          final status = p['status'];
+          final role = p['role'];
+          
+          if (person != null) {
+            results.add(SearchResult(
+              id: person['id'] ?? '',
+              name: '${person['first_name'] ?? ''} ${person['last_name'] ?? ''}'.trim(),
+              email: person['email'] ?? '',
+              phone: person['phone'] ?? '',
+              imagePath: null,
+              type: SearchResultType.guest,
+              roleName: status?['name'] ?? 'Sconosciuto',
+              originalData: p, // Store the full participation object
+            ));
+          }
+        }
+      } catch (e) {
+         print('Error loading guests: $e');
       }
 
       if (mounted) {
@@ -137,16 +168,151 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         },
       );
     } else {
+      // For guests, originalData is the participation map. We need person_id.
+      final participation = result.originalData as Map<String, dynamic>;
+      final personId = participation['person_id'];
+      
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PersonProfileScreen(
-            personId: result.id,
+            personId: personId,
             eventId: widget.eventId,
           ),
         ),
       );
     }
+  }
+
+  Future<void> _updateStatus(String participationId, int currentStatusId) async {
+    // Logic: confirmed -> checked_in -> inside -> outside -> left -> confirmed
+    final currentIndex = _statuses.indexWhere((s) => s['id'] == currentStatusId);
+    if (currentIndex == -1) return;
+
+    const statusOrder = ['confirmed', 'checked_in', 'inside', 'outside', 'left'];
+    
+    final currentStatusName = _statuses[currentIndex]['name'];
+    int nextIndex = -1;
+    
+    for (int i = 0; i < statusOrder.length; i++) {
+      if (statusOrder[i] == currentStatusName) {
+        if (i < statusOrder.length - 1) {
+           final nextName = statusOrder[i+1];
+           nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
+        } else {
+           final nextName = statusOrder[0];
+           nextIndex = _statuses.indexWhere((s) => s['name'] == nextName);
+        }
+        break;
+      }
+    }
+
+    if (nextIndex == -1 && currentStatusName == 'invited') {
+       nextIndex = _statuses.indexWhere((s) => s['name'] == 'confirmed');
+    }
+
+    if (nextIndex != -1) {
+      final nextStatusId = _statuses[nextIndex]['id'];
+      await _changeStatus(participationId, nextStatusId);
+    }
+  }
+
+  Future<void> _changeStatus(String participationId, int newStatusId) async {
+    try {
+      await _participationService.updateParticipationStatus(
+        participationId: participationId,
+        newStatusId: newStatusId,
+      );
+      
+      // Update local state
+      final index = _allResults.indexWhere((r) => 
+        r.type == SearchResultType.guest && 
+        (r.originalData as Map<String, dynamic>)['id'] == participationId
+      );
+
+      if (index != -1) {
+        final oldResult = _allResults[index];
+        final oldData = oldResult.originalData as Map<String, dynamic>;
+        final newStatus = _statuses.firstWhere((s) => s['id'] == newStatusId);
+        
+        // Create updated participation map
+        final updatedData = Map<String, dynamic>.from(oldData);
+        updatedData['status_id'] = newStatusId;
+        updatedData['status'] = newStatus;
+
+        // Create updated SearchResult
+        final updatedResult = SearchResult(
+          id: oldResult.id,
+          name: oldResult.name,
+          email: oldResult.email,
+          phone: oldResult.phone,
+          imagePath: oldResult.imagePath,
+          type: oldResult.type,
+          roleName: newStatus['name'] ?? 'Sconosciuto',
+          originalData: updatedData,
+        );
+
+        setState(() {
+          _allResults[index] = updatedResult;
+          _filterList(_searchController.text); // Re-filter to update view
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Errore aggiornamento stato: $e')),
+      );
+    }
+  }
+
+  void _showStatusMenu(String participationId, int currentStatusId) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Seleziona Stato', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ..._statuses.map((status) {
+                return ListTile(
+                  title: Text(status['name'].toString().toUpperCase()),
+                  leading: status['id'] == currentStatusId ? const Icon(Icons.check, color: AppTheme.primaryLight) : null,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _changeStatus(participationId, status['id']);
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showTransactionCreation(String participationId, String type) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: TransactionCreationSheet(
+          eventId: widget.eventId,
+          participationId: participationId,
+          initialTransactionType: type,
+          onSuccess: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Transazione creata con successo')),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -283,7 +449,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemBuilder: (context, index) {
                           final result = _filteredResults[index];
-                          return _buildResultCard(result, theme);
+                          if (result.type == SearchResultType.guest) {
+                            return _buildGuestCard(result);
+                          } else {
+                            return _buildStaffCard(result, theme);
+                          }
                         },
                       ),
           ),
@@ -292,10 +462,34 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     );
   }
 
-  Widget _buildResultCard(SearchResult result, ThemeData theme) {
-    final isStaff = result.type == SearchResultType.staff;
-    final badgeColor = isStaff ? Colors.blue : Colors.green;
-    final badgeIcon = isStaff ? Icons.badge : Icons.person;
+  Widget _buildGuestCard(SearchResult result) {
+    final participation = result.originalData as Map<String, dynamic>;
+    final person = participation['person'] ?? {};
+    final role = participation['role'];
+    final participationId = participation['id'];
+    final statusId = participation['status_id'];
+    
+    // Check if VIP
+    final isVip = role?['name']?.toString().toLowerCase().contains('vip') ?? false;
+
+    return GuestCard(
+      name: person['first_name'] ?? '',
+      surname: person['last_name'] ?? '',
+      idEvent: widget.eventId, 
+      statusName: result.roleName, 
+      isVip: isVip,
+      onTap: () => _openProfile(result),
+      onDoubleTap: () => _updateStatus(participationId, statusId),
+      onLongPress: () => _showStatusMenu(participationId, statusId),
+      onReport: () => _showTransactionCreation(participationId, 'report'),
+      onDrink: () => _showTransactionCreation(participationId, 'drink'),
+    );
+  }
+
+  Widget _buildStaffCard(SearchResult result, ThemeData theme) {
+    final isStaff = true;
+    final badgeColor = Colors.blue;
+    final badgeIcon = Icons.badge;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),

@@ -10,6 +10,7 @@ import 'guest_list_screen.dart';
 import 'staff_list_screen.dart';
 import 'global_search_screen.dart';
 import '../settings/settings_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class EventDashboardScreen extends StatefulWidget {
   final String eventId;
@@ -510,7 +511,12 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        // TODO: Open QR Scanner
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => QRScannerScreen(eventId: widget.eventId),
+                          ),
+                        );
                       },
                       borderRadius: BorderRadius.circular(24),
                       child: Center(

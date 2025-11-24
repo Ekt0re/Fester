@@ -8,6 +8,7 @@ import 'widgets/guest_card.dart';
 import '../profile/person_profile_screen.dart';
 import 'add_guest_screen.dart';
 import '../profile/widgets/transaction_creation_sheet.dart';
+import 'qr_scanner_screen.dart';
 
 class GuestListScreen extends StatefulWidget {
   final String eventId;
@@ -22,6 +23,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
   final ParticipationService _participationService = ParticipationService();
   final EventService _eventService = EventService();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   
   List<Map<String, dynamic>> _allParticipations = [];
   List<Map<String, dynamic>> _filteredParticipations = [];
@@ -29,6 +31,13 @@ class _GuestListScreenState extends State<GuestListScreen> {
   bool _isLoading = true;
   String _searchQuery = '';
   String? _userRole;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -298,6 +307,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
                 Expanded(
                   child: TextField(
                     controller: _searchController,
+                    focusNode: _searchFocusNode,
                     onChanged: _filterList,
                     decoration: InputDecoration(
                       hintText: 'Ricerca invitato...',
@@ -319,8 +329,23 @@ class _GuestListScreenState extends State<GuestListScreen> {
                   ),
                   child: IconButton(
                     icon: Icon(Icons.qr_code_scanner, color: theme.colorScheme.onPrimary),
-                    onPressed: () {
-                      // TODO: Open QR Scanner
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => QRScannerScreen(eventId: widget.eventId),
+                        ),
+                      );
+                      
+                      if (result == 'SEARCH_TRIGGER') {
+                        // Wait a bit for the screen to settle
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          if (mounted) {
+                            FocusScope.of(context).requestFocus(_searchFocusNode);
+                          }
+                        });
+                      }
+                      _loadData();
                     },
                   ),
                 ),
