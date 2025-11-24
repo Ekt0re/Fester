@@ -137,9 +137,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1920,
-        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 50,
       );
 
       if (image == null) {
@@ -154,6 +154,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       print('[DEBUG] _uploadProfileImage: Image bytes read: ${bytes.length} bytes');
       
       final staffService = StaffUserService();
+
       final imageUrl = await staffService.uploadProfileImage(
         userId: staffUser.id,
         filePath: image.path,
@@ -164,17 +165,12 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
       if (!mounted) return;
       
-      // Reload staff data
-      final updatedStaffList = await _eventService.getEventStaff(widget.eventId);
-      final updatedStaff = updatedStaffList.firstWhere(
-        (s) => s.staffUserId == _currentStaff.staffUserId,
-        orElse: () => _currentStaff,
-      );
-
-      print('[DEBUG] _uploadProfileImage: Staff data reloaded, new image path: ${updatedStaff.staff?.imagePath}');
-
+      // Update local state immediately to avoid race conditions with DB propagation
       setState(() {
-        _currentStaff = updatedStaff;
+        if (_currentStaff.staff != null) {
+          final updatedStaffUser = _currentStaff.staff!.copyWith(imagePath: imageUrl);
+          _currentStaff = _currentStaff.copyWith(staff: updatedStaffUser);
+        }
         _isLoading = false;
       });
 
@@ -469,7 +465,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                       
                       try {
                         final staffService = StaffUserService();
-                        await staffService.updateStaffUser(
+                        final updatedStaffUser = await staffService.updateStaffUser(
                           userId: staffUser.id,
                           firstName: firstNameController.text,
                           lastName: lastNameController.text,
@@ -480,17 +476,10 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                         
                         print('[DEBUG] _editProfile: Profile updated successfully');
 
-                        // Reload staff data
-                        final updatedStaffList = await _eventService.getEventStaff(widget.eventId);
-                        final updatedStaff = updatedStaffList.firstWhere(
-                          (s) => s.staffUserId == staffUser.id,
-                          orElse: () => _currentStaff,
-                        );
-
                         if (!mounted) return;
                         
                         setState(() {
-                          _currentStaff = updatedStaff;
+                          _currentStaff = _currentStaff.copyWith(staff: updatedStaffUser);
                           _isLoading = false;
                         });
 

@@ -142,4 +142,34 @@ class PersonService {
       throw Exception('Error fetching event guests: $e');
     }
   }
+
+  /// Get all participants (guests with status/role) for a specific event
+  Future<List<Map<String, dynamic>>> getEventParticipants(String eventId) async {
+    try {
+      final response = await _supabase
+          .from('participation')
+          .select('''
+            *,
+            person:person_id (*),
+            role:role_id (*),
+            status:status_id (*)
+          ''')
+          .eq('event_id', eventId);
+
+      // Sort manually or via DB if possible. DB sort on joined table is harder in simple syntax.
+      // Let's sort in Dart for now.
+      final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(response);
+      data.sort((a, b) {
+        final pA = a['person'] ?? {};
+        final pB = b['person'] ?? {};
+        final nameA = '${pA['first_name']} ${pA['last_name']}';
+        final nameB = '${pB['first_name']} ${pB['last_name']}';
+        return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+      });
+      
+      return data;
+    } catch (e) {
+      throw Exception('Error fetching event participants: $e');
+    }
+  }
 }

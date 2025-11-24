@@ -57,5 +57,31 @@ class EventStaff {
       // staff is usually not serialized back to DB in this context
     };
   }
+
+  EventStaff copyWith({
+    String? id,
+    String? eventId,
+    String? staffUserId,
+    int? roleId,
+    String? roleName,
+    String? mail,
+    String? assignedBy,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    StaffUser? staff,
+  }) {
+    return EventStaff(
+      id: id ?? this.id,
+      eventId: eventId ?? this.eventId,
+      staffUserId: staffUserId ?? this.staffUserId,
+      roleId: roleId ?? this.roleId,
+      roleName: roleName ?? this.roleName,
+      mail: mail ?? this.mail,
+      assignedBy: assignedBy ?? this.assignedBy,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      staff: staff ?? this.staff,
+    );
+  }
 }
 
