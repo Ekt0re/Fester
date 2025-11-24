@@ -7,6 +7,7 @@ class StaffCard extends StatelessWidget {
   final String surname;
   final String role;
   final String? imageUrl;
+  final bool isPending;
   final VoidCallback onTap;
 
   const StaffCard({
@@ -15,6 +16,7 @@ class StaffCard extends StatelessWidget {
     required this.surname,
     required this.role,
     this.imageUrl,
+    this.isPending = false,
     required this.onTap,
   });
 
@@ -37,13 +39,18 @@ class StaffCard extends StatelessWidget {
               // Avatar
               CircleAvatar(
                 radius: 24,
-                backgroundColor: colorScheme.primary.withOpacity(0.1),
-                backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
+                backgroundColor: isPending
+                    ? colorScheme.surfaceContainerHighest
+                    : colorScheme.primary.withOpacity(0.1),
+                backgroundImage:
+                    imageUrl != null ? NetworkImage(imageUrl!) : null,
                 child: imageUrl == null
                     ? Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
                         style: GoogleFonts.outfit(
-                          color: colorScheme.primary,
+                          color: isPending
+                              ? colorScheme.onSurfaceVariant
+                              : colorScheme.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
                         ),
@@ -51,7 +58,7 @@ class StaffCard extends StatelessWidget {
                     : null,
               ),
               const SizedBox(width: 16),
-              
+
               // Info
               Expanded(
                 child: Column(
@@ -62,7 +69,9 @@ class StaffCard extends StatelessWidget {
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: theme.textTheme.bodyLarge?.color,
+                        color: isPending
+                            ? theme.textTheme.bodyLarge?.color?.withOpacity(0.6)
+                            : theme.textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -71,7 +80,7 @@ class StaffCard extends StatelessWidget {
                         Icon(
                           AppTheme.roleIcons[role.toLowerCase()] ?? Icons.badge,
                           size: 14,
-                          color: Colors.grey,
+                          color: isPending ? Colors.grey : Colors.grey,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -82,14 +91,34 @@ class StaffCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                        if (isPending) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'IN ATTESA',
+                              style: GoogleFonts.outfit(
+                                fontSize: 10,
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
                 ),
               ),
-              
+
               // Arrow
-              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+              Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade400),
             ],
           ),
         ),
