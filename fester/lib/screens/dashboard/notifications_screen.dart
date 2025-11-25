@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../services/notification_service.dart';
 import '../settings/notification_settings_screen.dart';
+import '../profile/person_profile_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final String eventId;
@@ -29,7 +30,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
     try {
-      final notifications = await _notificationService.getNotifications(widget.eventId);
+      final notifications = await _notificationService.getNotifications(
+        widget.eventId,
+      );
       setState(() {
         _notifications = notifications;
         _isLoading = false;
@@ -110,53 +113,122 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadNotifications,
-              child: _notifications.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.notifications_off_outlined,
-                            size: 64,
-                            color: theme.colorScheme.onSurface.withOpacity(0.3),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: _loadNotifications,
+                child:
+                    _notifications.isEmpty
+                        ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.notifications_off_outlined,
+                                size: 64,
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Nessuna notifica',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.6),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Nessuna notifica',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _notifications.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final notification = _notifications[index];
-                        return _NotificationCard(
-                          title: notification['title'],
-                          message: notification['message'],
-                          time: _formatTime(notification['created_at']),
-                          icon: _getIconForType(notification['type']),
-                          color: _getColorForType(notification['type']),
-                          isRead: notification['is_read'],
-                          onTap: () async {
-                            if (!notification['is_read']) {
-                              await _notificationService.markAsRead(notification['id']);
-                              _loadNotifications();
-                            }
+                        )
+                        : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _notifications.length,
+                          separatorBuilder:
+                              (context, index) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final notification = _notifications[index];
+                            final notificationType = notification['type'];
+                            final data =
+                                notification['data'] as Map<String, dynamic>?;
+
+                            return Dismissible(
+                              key: Key(notification['id']),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              onDismissed: (direction) async {
+                                await _notificationService.deleteNotification(
+                                  notification['id'],
+                                );
+                                setState(() {
+                                  _notifications.removeAt(index);
+                                });
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Notifica eliminata'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: _NotificationCard(
+                                title: notification['title'],
+                                message: notification['message'],
+                                time: _formatTime(notification['created_at']),
+                                icon: _getIconForType(notification['type']),
+                                color: _getColorForType(notification['type']),
+                                isRead: notification['is_read'],
+                                onTap: () async {
+                                  // Mark as read if not already
+                                  if (!notification['is_read']) {
+                                    await _notificationService.markAsRead(
+                                      notification['id'],
+                                    );
+                                  }
+
+                                  // Navigate to person profile if it's a warning or drink limit notification
+                                  if ((notificationType ==
+                                              NotificationService.typeWarning ||
+                                          notificationType ==
+                                              NotificationService
+                                                  .typeDrinkLimit) &&
+                                      data != null &&
+                                      data['person_id'] != null) {
+                                    if (context.mounted) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => PersonProfileScreen(
+                                                personId: data['person_id'],
+                                                eventId: widget.eventId,
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                  }
+
+                                  _loadNotifications();
+                                },
+                              ),
+                            );
                           },
-                        );
-                      },
-                    ),
-            ),
+                        ),
+              ),
     );
   }
 
@@ -195,9 +267,10 @@ class _NotificationCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      color: isRead
-          ? theme.cardColor
-          : theme.colorScheme.primary.withOpacity(0.05),
+      color:
+          isRead
+              ? theme.cardColor
+              : theme.colorScheme.primary.withOpacity(0.05),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,

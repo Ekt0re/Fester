@@ -8,6 +8,9 @@ import '../../theme/app_theme.dart';
 import '../../widgets/animated_settings_icon.dart';
 import '../../services/notification_service.dart';
 import '../settings/settings_screen.dart';
+import 'event_settings_screen.dart';
+import '../profile/staff_profile_screen.dart';
+import '../../services/SupabaseServicies/models/event_staff.dart';
 
 class EventDashboardScreen extends StatefulWidget {
   final String eventId;
@@ -26,6 +29,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   int _guestCount = 0;
   int _menuItemCount = 0;
   String? _userRole;
+  EventStaff? _currentUserStaff;
   Timer? _syncTimer;
   DateTime _lastSync = DateTime.now();
   int _selectedIndex = 0; // For NavigationRail/BottomNavBar
@@ -83,13 +87,15 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         // Menu might not exist yet
       }
 
-      // Find current user role
+      // Find current user role and staff object
       final userId = Supabase.instance.client.auth.currentUser?.id;
       String? role;
+      EventStaff? currentUserStaff;
       if (userId != null) {
         try {
           final userStaff = staff.firstWhere((s) => s.staffUserId == userId);
           role = userStaff.roleName;
+          currentUserStaff = userStaff;
         } catch (_) {
           // User might be creator but not in staff list explicitly or other issue
         }
@@ -101,7 +107,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           _staffCount = staff.length;
           _guestCount = guestCount;
           _menuItemCount = menuItemCount;
+          _menuItemCount = menuItemCount;
           _userRole = role;
+          _currentUserStaff = currentUserStaff;
           _lastSync = DateTime.now();
           _isLoading = false;
         });
@@ -211,7 +219,13 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
         } else if (index == 3) {
           // Navigate to Event Settings
-          Navigator.pushNamed(context, '/event/${widget.eventId}/settings');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => EventSettingsScreen(eventId: widget.eventId),
+            ),
+          );
         }
       },
     );
@@ -242,10 +256,14 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 // Navigate to Menu Management Screen
                 Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
               } else if (index == 4) {
-                // Navigate to Event Settings Screen
-                Navigator.pushNamed(
+                // Navigate to Event Settings
+                Navigator.push(
                   context,
-                  '/event/${widget.eventId}/settings',
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            EventSettingsScreen(eventId: widget.eventId),
+                  ),
                 );
               } else {
                 setState(() {
@@ -272,10 +290,43 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               padding: const EdgeInsets.symmetric(vertical: 24.0),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: theme.colorScheme.surface,
-                    radius: 24,
-                    child: Icon(Icons.person, color: theme.colorScheme.primary),
+                  InkWell(
+                    onTap: () {
+                      if (_currentUserStaff != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => StaffProfileScreen(
+                                  eventStaff: _currentUserStaff!,
+                                  eventId: widget.eventId,
+                                ),
+                          ),
+                        );
+                      }
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: theme.colorScheme.surface,
+                      radius: 24,
+                      backgroundImage:
+                          (_currentUserStaff?.staff?.imagePath != null &&
+                                  _currentUserStaff!
+                                      .staff!
+                                      .imagePath!
+                                      .isNotEmpty)
+                              ? NetworkImage(
+                                _currentUserStaff!.staff!.imagePath!,
+                              )
+                              : null,
+                      child:
+                          (_currentUserStaff?.staff?.imagePath == null ||
+                                  _currentUserStaff!.staff!.imagePath!.isEmpty)
+                              ? Icon(
+                                Icons.person,
+                                color: theme.colorScheme.primary,
+                              )
+                              : null,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -307,7 +358,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.settings),
-                label: Text('Impostazioni'),
+                label: Text('Gestisci evento'),
               ),
             ],
             trailing: Expanded(
@@ -320,7 +371,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SettingsScreen(),
+                          builder:
+                              (context) =>
+                                  SettingsScreen(eventId: widget.eventId),
                         ),
                       );
                     },
@@ -412,7 +465,12 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           AnimatedSettingsIcon(
             color: theme.colorScheme.secondary,
             onPressed: () {
-              Navigator.pushNamed(context, '/event/${widget.eventId}/settings');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsScreen(eventId: widget.eventId),
+                ),
+              );
             },
           ),
         if (isDesktop) const SizedBox(width: 16),

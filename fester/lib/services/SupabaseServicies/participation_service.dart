@@ -56,6 +56,7 @@ class ParticipationService {
     required int statusId,
     int? roleId,
     String? invitedBy,
+    int? localId,
   }) async {
     try {
       final response =
@@ -67,6 +68,7 @@ class ParticipationService {
                 'status_id': statusId,
                 'role_id': roleId,
                 'invited_by': invitedBy,
+                'local_id': localId,
               })
               .select()
               .single();
@@ -82,6 +84,8 @@ class ParticipationService {
     required String participationId,
     int? statusId,
     int? roleId,
+    int? localId,
+    String? invitedBy,
   }) async {
     try {
       final updates = <String, dynamic>{
@@ -89,6 +93,8 @@ class ParticipationService {
       };
       if (statusId != null) updates['status_id'] = statusId;
       if (roleId != null) updates['role_id'] = roleId;
+      if (localId != null) updates['local_id'] = localId;
+      if (invitedBy != null) updates['invited_by'] = invitedBy;
 
       final response =
           await _supabase
@@ -97,38 +103,6 @@ class ParticipationService {
               .eq('id', participationId)
               .select()
               .single();
-
-      // If status was updated, record history
-      if (statusId != null) {
-        String? changedByPersonId;
-        final user = _supabase.auth.currentUser;
-        
-        if (user != null && user.email != null) {
-          try {
-            final eventId = response['event_id'];
-            // Try to find a person record for this user in this event
-            final personData = await _supabase
-                .from('person')
-                .select('id')
-                .eq('email', user.email!)
-                .eq('id_event', eventId)
-                .maybeSingle();
-            
-            if (personData != null) {
-              changedByPersonId = personData['id'] as String;
-            }
-          } catch (e) {
-            // Ignore error, leave changedByPersonId as null
-            print('Error finding person for history: $e');
-          }
-        }
-
-        await _supabase.from('participation_status_history').insert({
-          'participation_id': participationId,
-          'status_id': statusId,
-          'changed_by': changedByPersonId,
-        });
-      }
 
       return Participation.fromJson(response);
     } catch (e) {
@@ -141,7 +115,10 @@ class ParticipationService {
     required String participationId,
     required int newStatusId,
   }) async {
-    return updateParticipation(participationId: participationId, statusId: newStatusId);
+    return updateParticipation(
+      participationId: participationId,
+      statusId: newStatusId,
+    );
   }
 
   /// Get participation status history
@@ -181,10 +158,7 @@ class ParticipationService {
   /// Get available roles
   Future<List<Map<String, dynamic>>> getRoles() async {
     try {
-      final response = await _supabase
-          .from('role')
-          .select()
-          .order('id');
+      final response = await _supabase.from('role').select().order('id');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       rethrow;

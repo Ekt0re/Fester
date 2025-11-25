@@ -1695,3 +1695,74 @@ CREATE POLICY "Staff can update own notifications"
 CREATE POLICY "Staff can delete own notifications"
   ON notifications FOR DELETE
   USING (staff_user_id = auth.uid());
+
+
+  -- Migration: Add new fields to person and participation tables
+-- Date: 2025-11-25
+-- Description: Adds codice_fiscale, indirizzo, sottogruppo, gruppo to person table
+--              and local_id to participation table
+
+-- Add new fields to person table
+ALTER TABLE person
+ADD COLUMN IF NOT EXISTS codice_fiscale VARCHAR(16),
+ADD COLUMN IF NOT EXISTS indirizzo TEXT,
+ADD COLUMN IF NOT EXISTS sottogruppo VARCHAR(255),
+ADD COLUMN IF NOT EXISTS gruppo VARCHAR(255);
+
+-- Add new field to participation table  
+ALTER TABLE participation
+ADD COLUMN IF NOT EXISTS local_id INTEGER;
+
+-- Optional: Add indexes for better query performance
+CREATE INDEX IF NOT EXISTS idx_person_gruppo ON person(gruppo);
+CREATE INDEX IF NOT EXISTS idx_person_sottogruppo ON person(sottogruppo);
+CREATE INDEX IF NOT EXISTS idx_person_codice_fiscale ON person(codice_fiscale);
+CREATE INDEX IF NOT EXISTS idx_participation_local_id ON participation(local_id);
+
+-- Add comments to document the new fields
+COMMENT ON COLUMN person.codice_fiscale IS 'Italian fiscal code';
+COMMENT ON COLUMN person.indirizzo IS 'Full address';
+COMMENT ON COLUMN person.sottogruppo IS 'Sub-group identifier';
+COMMENT ON COLUMN person.gruppo IS 'Group identifier';
+COMMENT ON COLUMN participation.local_id IS 'Local sequential ID for the participation';
+
+-- Grant permissions for gruppo and sottogruppo tables
+-- Date: 2025-11-25
+
+-- Grant SELECT, INSERT, UPDATE, DELETE on gruppo table
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE gruppo TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE gruppo TO anon;
+
+-- Grant SELECT, INSERT, UPDATE, DELETE on sottogruppo table
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE sottogruppo TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE sottogruppo TO anon;
+
+-- Grant usage on sequences
+GRANT USAGE, SELECT ON SEQUENCE gruppo_id_seq TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE gruppo_id_seq TO anon;
+GRANT USAGE, SELECT ON SEQUENCE sottogruppo_id_seq TO authenticated;
+GRANT USAGE, SELECT ON SEQUENCE sottogruppo_id_seq TO anon;
+
+-- Enable RLS
+ALTER TABLE gruppo ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sottogruppo ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies for gruppo
+CREATE POLICY "Allow all operations for authenticated users" ON gruppo
+  FOR ALL
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow read for anonymous users" ON gruppo
+  FOR SELECT
+  USING (true);
+
+-- Create RLS policies for sottogruppo
+CREATE POLICY "Allow all operations for authenticated users" ON sottogruppo
+  FOR ALL
+  USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Allow read for anonymous users" ON sottogruppo
+  FOR SELECT
+  USING (true);

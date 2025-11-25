@@ -182,9 +182,11 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
         _expandedItems.remove(itemId);
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Errore salvataggio: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore salvataggio: $e')));
+      }
     } finally {
       setState(() => _isLoading = false);
     }
@@ -203,9 +205,11 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       try {
         await _supabase.from('menu_item').delete().eq('id', item.id!);
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore eliminazione: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Errore eliminazione: $e')));
+        }
         return;
       }
     }

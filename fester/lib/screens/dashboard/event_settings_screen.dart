@@ -338,6 +338,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
           lastDate: DateTime(2030),
         );
         if (date != null) {
+          if (!context.mounted) return;
           final time = await showTimePicker(
             context: context,
             initialTime: TimeOfDay.fromDateTime(value ?? DateTime.now()),

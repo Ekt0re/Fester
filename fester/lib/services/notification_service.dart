@@ -120,11 +120,21 @@ class NotificationService {
     }
   }
 
+  /// Delete a notification
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      await _supabase.from('notifications').delete().eq('id', notificationId);
+    } catch (e) {
+      debugPrint('Error deleting notification: $e');
+    }
+  }
+
   // Helper methods for specific notification types
 
   Future<void> notifyWarningReceived({
     required String eventId,
     required String personName,
+    required String personId,
     required String reason,
   }) async {
     await saveNotification(
@@ -132,13 +142,18 @@ class NotificationService {
       type: typeWarning,
       title: 'Warning Ricevuto',
       message: '$personName ha ricevuto un warning: $reason',
-      data: {'person_name': personName, 'reason': reason},
+      data: {
+        'person_name': personName,
+        'person_id': personId,
+        'reason': reason,
+      },
     );
   }
 
   Future<void> notifyDrinkLimitExceeded({
     required String eventId,
     required String personName,
+    required String personId,
     required int drinkCount,
     required int limit,
   }) async {
@@ -149,6 +164,7 @@ class NotificationService {
       message: '$personName ha superato il limite ($drinkCount/$limit drink)',
       data: {
         'person_name': personName,
+        'person_id': personId,
         'drink_count': drinkCount,
         'limit': limit,
       },
