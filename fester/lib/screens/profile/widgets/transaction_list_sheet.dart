@@ -135,15 +135,17 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                       amount: double.tryParse(amountController.text),
                       description: descriptionController.text,
                     );
-                    if (mounted) {
+                    if (context.mounted) {
                       Navigator.pop(context);
                       widget.onTransactionUpdated?.call();
                       Navigator.pop(context);
                     }
                   } catch (e) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+                    }
                   }
                 },
                 child: const Text('Salva'),

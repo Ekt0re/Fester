@@ -28,33 +28,12 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
   bool _isLoading = false;
   bool _canEdit = false;
   bool _isMe = false;
-  String _assignedByName = 'Admin';
 
   @override
   void initState() {
     super.initState();
     _currentStaff = widget.eventStaff;
     _checkPermissions();
-    _loadAssignedByInfo();
-  }
-
-  Future<void> _loadAssignedByInfo() async {
-    if (_currentStaff.assignedBy == null) return;
-
-    try {
-      final staffService = StaffUserService();
-      final assigner = await staffService.getStaffUserById(
-        _currentStaff.assignedBy!,
-      );
-
-      if (assigner != null && mounted) {
-        setState(() {
-          _assignedByName = '${assigner.firstName} ${assigner.lastName}';
-        });
-      }
-    } catch (e) {
-      debugPrint('Error fetching assigner info: $e');
-    }
   }
 
   Future<void> _checkPermissions() async {
@@ -416,10 +395,11 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         _isLoading = false;
       });
 
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Ruolo aggiornato!')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Ruolo aggiornato!')));
+      }
     } catch (e, stackTrace) {
       debugPrint('[ERROR] _editRole: $e');
       debugPrint('[ERROR] Stack trace: $stackTrace');

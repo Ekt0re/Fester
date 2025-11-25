@@ -9,6 +9,10 @@ import '../profile/person_profile_screen.dart';
 import 'add_guest_screen.dart';
 import '../profile/widgets/transaction_creation_sheet.dart';
 import 'qr_scanner_screen.dart';
+import '../../services/SupabaseServicies/gruppo_service.dart';
+import '../../services/SupabaseServicies/sottogruppo_service.dart';
+import '../../services/SupabaseServicies/models/gruppo.dart';
+import '../../services/SupabaseServicies/models/sottogruppo.dart';
 
 class GuestListScreen extends StatefulWidget {
   final String eventId;
@@ -22,12 +26,18 @@ class GuestListScreen extends StatefulWidget {
 class _GuestListScreenState extends State<GuestListScreen> {
   final ParticipationService _participationService = ParticipationService();
   final EventService _eventService = EventService();
+  final GruppoService _gruppoService = GruppoService();
+  final SottogruppoService _sottogruppoService = SottogruppoService();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
   List<Map<String, dynamic>> _allParticipations = [];
   List<Map<String, dynamic>> _filteredParticipations = [];
   List<Map<String, dynamic>> _statuses = [];
+  List<Gruppo> _gruppi = [];
+  List<Sottogruppo> _sottogruppi = [];
+  int? _selectedGruppoId;
+  int? _selectedSottogruppoId;
   bool _isLoading = true;
 
   String? _userRole;
@@ -58,6 +68,11 @@ class _GuestListScreenState extends State<GuestListScreen> {
         widget.eventId,
       );
 
+      final gruppi = await _gruppoService.getGruppiForEvent(widget.eventId);
+      final sottogruppi = await _sottogruppoService.getSottogruppiForEvent(
+        widget.eventId,
+      );
+
       // Load user role for this event
       final userId = Supabase.instance.client.auth.currentUser?.id;
       String? userRole;
@@ -78,6 +93,8 @@ class _GuestListScreenState extends State<GuestListScreen> {
           _allParticipations = participations;
           _filteredParticipations = participations;
           _statuses = _statuses;
+          _gruppi = gruppi;
+          _sottogruppi = sottogruppi;
           _userRole = userRole;
           _isLoading = false;
         });
@@ -94,24 +111,31 @@ class _GuestListScreenState extends State<GuestListScreen> {
 
   void _filterList(String query) {
     setState(() {
-      if (query.isEmpty) {
-        _filteredParticipations = _allParticipations;
-      } else {
-        _filteredParticipations =
-            _allParticipations.where((p) {
-              final person = p['person'] ?? {};
-              final name =
-                  (person['first_name'] ?? '').toString().toLowerCase();
-              final surname =
-                  (person['last_name'] ?? '').toString().toLowerCase();
-              final idEvent =
-                  (person['id_event'] ?? '').toString().toLowerCase();
-              final q = query.toLowerCase();
-              return name.contains(q) ||
-                  surname.contains(q) ||
-                  idEvent.contains(q);
-            }).toList();
-      }
+      _filteredParticipations =
+          _allParticipations.where((p) {
+            final person = p['person'] ?? {};
+            final name = (person['first_name'] ?? '').toString().toLowerCase();
+            final surname =
+                (person['last_name'] ?? '').toString().toLowerCase();
+            final idEvent = (person['id_event'] ?? '').toString().toLowerCase();
+            final gruppoId = person['gruppo_id'] as int?;
+            final sottogruppoId = person['sottogruppo_id'] as int?;
+
+            final matchesQuery =
+                query.isEmpty ||
+                name.contains(query.toLowerCase()) ||
+                surname.contains(query.toLowerCase()) ||
+                idEvent.contains(query.toLowerCase());
+
+            final matchesGruppo =
+                _selectedGruppoId == null || gruppoId == _selectedGruppoId;
+
+            final matchesSottogruppo =
+                _selectedSottogruppoId == null ||
+                sottogruppoId == _selectedSottogruppoId;
+
+            return matchesQuery && matchesGruppo && matchesSottogruppo;
+          }).toList();
     });
   }
 
@@ -350,63 +374,154 @@ class _GuestListScreenState extends State<GuestListScreen> {
       ),
       body: Column(
         children: [
-          // Search & QR
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: theme.colorScheme.primary.withOpacity(0.1),
-            child: Row(
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    onChanged: _filterList,
-                    decoration: InputDecoration(
-                      hintText: 'Ricerca invitato...',
-                      prefixIcon: const Icon(Icons.search),
-                      fillColor: theme.colorScheme.surface,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Cerca ospite...',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: theme.colorScheme.surface,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onChanged: _filterList,
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.qr_code_scanner,
-                      color: theme.colorScheme.onPrimary,
-                    ),
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  QRScannerScreen(eventId: widget.eventId),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.qr_code_scanner,
+                          color: theme.colorScheme.onPrimary,
                         ),
-                      );
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      QRScannerScreen(eventId: widget.eventId),
+                            ),
+                          );
 
-                      if (result == 'SEARCH_TRIGGER') {
-                        // Wait a bit for the screen to settle
-                        Future.delayed(const Duration(milliseconds: 300), () {
-                          if (mounted) {
-                            FocusScope.of(
-                              context,
-                            ).requestFocus(_searchFocusNode);
+                          if (result == 'SEARCH_TRIGGER') {
+                            await Future.delayed(
+                              const Duration(milliseconds: 300),
+                            );
+                            if (context.mounted) {
+                              FocusScope.of(
+                                context,
+                              ).requestFocus(_searchFocusNode);
+                            }
                           }
-                        });
-                      }
-                      _loadData();
-                    },
-                  ),
+                          if (context.mounted) {
+                            _loadData();
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: _selectedGruppoId,
+                        decoration: InputDecoration(
+                          labelText: 'Gruppo',
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: theme.colorScheme.surface,
+                        ),
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('Tutti'),
+                          ),
+                          ..._gruppi.map(
+                            (g) => DropdownMenuItem<int>(
+                              value: g.id,
+                              child: Text(
+                                g.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedGruppoId = val;
+                            _selectedSottogruppoId = null; // Reset subgroup
+                          });
+                          _filterList(_searchController.text);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DropdownButtonFormField<int>(
+                        value: _selectedSottogruppoId,
+                        decoration: InputDecoration(
+                          labelText: 'Sottogruppo',
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          filled: true,
+                          fillColor: theme.colorScheme.surface,
+                        ),
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('Tutti'),
+                          ),
+                          ..._sottogruppi
+                              .where(
+                                (s) =>
+                                    _selectedGruppoId == null ||
+                                    s.gruppoId == _selectedGruppoId,
+                              )
+                              .map(
+                                (s) => DropdownMenuItem<int>(
+                                  value: s.id,
+                                  child: Text(
+                                    s.name,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                        ],
+                        onChanged: (val) {
+                          setState(() => _selectedSottogruppoId = val);
+                          _filterList(_searchController.text);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

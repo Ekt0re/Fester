@@ -285,9 +285,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Errore aggiornamento stato: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore aggiornamento stato: $e')),
+        );
+      }
     }
   }
 

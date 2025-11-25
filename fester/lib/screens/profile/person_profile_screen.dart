@@ -36,20 +36,20 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
   final PersonService _personService = PersonService();
   final EventService _eventService = EventService();
   final ParticipationService _participationService = ParticipationService();
-  
+
   bool _isLoading = true;
   Map<String, dynamic>? _profileData;
   List<Map<String, dynamic>> _transactions = [];
   List<Map<String, dynamic>> _statusHistory = [];
   List<Map<String, dynamic>> _statuses = [];
-  
+
   // Stats
   int _alcoholCount = 0;
   int _nonAlcoholCount = 0;
   int _foodCount = 0;
-  
+
   // Limits
-  int? _maxDrinks; 
+  int? _maxDrinks;
 
   @override
   void initState() {
@@ -59,9 +59,12 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
 
   Future<void> _loadData() async {
     try {
-      final profile = await _personService.getPersonProfile(widget.personId, widget.eventId);
+      final profile = await _personService.getPersonProfile(
+        widget.personId,
+        widget.eventId,
+      );
       final participationId = profile['id'];
-      
+
       // Parallel requests for better performance
       final results = await Future.wait([
         _personService.getPersonTransactions(participationId),
@@ -84,10 +87,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
         final type = t['type'] ?? {};
         final typeName = (type['name'] ?? '').toString().toLowerCase();
         final description = (t['description'] ?? '').toString();
-        
+
         // Determine if alcoholic based on type AND description tag
         bool affectsDrinkCount = type['affects_drink_count'] == true;
-        
+
         // Override if tagged as non-alcoholic
         if (description.contains('[NON-ALCOHOLIC]')) {
           affectsDrinkCount = false;
@@ -115,7 +118,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           _alcoholCount = alcohol;
           _nonAlcoholCount = nonAlcohol;
           _foodCount = food;
-          _maxDrinks = settings?.defaultMaxDrinksPerPerson; 
+          _maxDrinks = settings?.defaultMaxDrinksPerPerson;
           _isLoading = false;
         });
       }
@@ -134,12 +137,12 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Impossibile aprire il link')),
+          const SnackBar(content: Text('Impossibile aprire il link')),
         );
       }
     }
   }
-  
+
   void _contactUser(String? email, String? phone) {
     if (email == null && phone == null) return;
 
@@ -147,7 +150,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       _launchUrl('tel:$phone');
       return;
     }
-    
+
     if (email != null && phone == null) {
       _launchUrl('mailto:$email');
       return;
@@ -158,72 +161,85 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.phone, color: theme.colorScheme.primary),
-              title: Text('Chiama $phone', style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
-              onTap: () {
-                Navigator.pop(context);
-                _launchUrl('tel:$phone');
-              },
+      builder:
+          (context) => Container(
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
             ),
-            ListTile(
-              leading: Icon(Icons.email, color: theme.colorScheme.primary),
-              title: Text('Invia Email a $email', style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
-              onTap: () {
-                Navigator.pop(context);
-                _launchUrl('mailto:$email');
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.phone, color: theme.colorScheme.primary),
+                  title: Text(
+                    'Chiama $phone',
+                    style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _launchUrl('tel:$phone');
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.email, color: theme.colorScheme.primary),
+                  title: Text(
+                    'Invia Email a $email',
+                    style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _launchUrl('mailto:$email');
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
   void _showTransactionMenu(String? type, {bool? isAlcoholic}) {
     if (_profileData == null) return;
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: TransactionCreationSheet(
-          eventId: widget.eventId,
-          participationId: _profileData!['id'],
-          initialTransactionType: type,
-          initialIsAlcoholic: isAlcoholic,
-          onSuccess: () {
-            _loadData(); // Refresh data
-          },
-        ),
-      ),
+      builder:
+          (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: TransactionCreationSheet(
+              eventId: widget.eventId,
+              participationId: _profileData!['id'],
+              initialTransactionType: type,
+              initialIsAlcoholic: isAlcoholic,
+              onSuccess: () {
+                _loadData(); // Refresh data
+              },
+            ),
+          ),
     );
   }
-  
+
   void _showTransactionList() {
-    final canEdit = widget.currentUserRole?.toLowerCase() == 'staff3' || widget.currentUserRole?.toLowerCase() == 'admin';
+    final canEdit =
+        widget.currentUserRole?.toLowerCase() == 'staff3' ||
+        widget.currentUserRole?.toLowerCase() == 'admin';
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => TransactionListSheet(
-        transactions: _transactions,
-        canEdit: canEdit,
-        onTransactionUpdated: _loadData,
-      ),
+      builder:
+          (context) => TransactionListSheet(
+            transactions: _transactions,
+            canEdit: canEdit,
+            onTransactionUpdated: _loadData,
+          ),
     );
   }
 
@@ -232,9 +248,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatusHistorySheet(
-        history: _statusHistory,
-      ),
+      builder: (context) => StatusHistorySheet(history: _statusHistory),
     );
   }
 
@@ -247,84 +261,87 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'QR Code Ospite',
-                style: GoogleFonts.outfit(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                fullName,
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 24),
-              QrImageView(
-                data: qrData,
-                version: QrVersions.auto,
-                size: 250.0,
-                backgroundColor: Colors.white,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                qrData,
-                style: GoogleFonts.robotoMono(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryLight,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'QR Code Ospite',
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                  child: const Text('Chiudi'),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    fullName,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  QrImageView(
+                    data: qrData,
+                    version: QrVersions.auto,
+                    size: 250.0,
+                    backgroundColor: Colors.white,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    qrData,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryLight,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Chiudi'),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
   Future<void> _updateStatus(int newStatusId) async {
     if (_profileData == null) return;
-    
+
     try {
       await _participationService.updateParticipation(
         participationId: _profileData!['id'],
         statusId: newStatusId,
       );
-      
+
       // Refresh data to show new status and history
       await _loadData();
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Stato aggiornato')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Stato aggiornato')));
       }
     } catch (e) {
       if (mounted) {
@@ -363,10 +380,11 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     }
   }
 
-
-
-
-  Widget _buildAvatarAndName(ThemeData theme, ColorScheme colorScheme, String fullName) {
+  Widget _buildAvatarAndName(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String fullName,
+  ) {
     return Column(
       children: [
         CircleAvatar(
@@ -419,15 +437,17 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 maxCount: _maxDrinks,
                 icon: AppTheme.transactionIcons['drink']!,
                 color: Colors.blueGrey,
-                onLongPress: () => _showTransactionMenu('drink', isAlcoholic: true),
+                onLongPress:
+                    () => _showTransactionMenu('drink', isAlcoholic: true),
               ),
               ConsumptionGraph(
                 label: 'ANALCOL',
                 count: _nonAlcoholCount,
-                maxCount: null, 
-                icon: Icons.free_breakfast, 
+                maxCount: null,
+                icon: Icons.free_breakfast,
                 color: Colors.blueGrey,
-                onLongPress: () => _showTransactionMenu('drink', isAlcoholic: false),
+                onLongPress:
+                    () => _showTransactionMenu('drink', isAlcoholic: false),
               ),
               ConsumptionGraph(
                 label: 'CIBO',
@@ -476,7 +496,18 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     );
   }
 
-  Widget _buildDetailsAndContact(ThemeData theme, ColorScheme colorScheme, String firstName, String lastName, String age, String roleName, bool isVip, String? email, String? phone, bool hasContact) {
+  Widget _buildDetailsAndContact(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String firstName,
+    String lastName,
+    String age,
+    String roleName,
+    bool isVip,
+    String? email,
+    String? phone,
+    bool hasContact,
+  ) {
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -497,12 +528,21 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(AppTheme.roleIcons[roleName.toLowerCase()] ?? Icons.person, size: 16, color: Colors.grey),
+                      Icon(
+                        AppTheme.roleIcons[roleName.toLowerCase()] ??
+                            Icons.person,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 4),
                       Text(roleName, style: _valueStyle(theme)),
                       if (isVip) ...[
                         const SizedBox(width: 8),
-                        Icon(AppTheme.roleIcons['vip'], size: 16, color: AppTheme.statusVip),
+                        Icon(
+                          AppTheme.roleIcons['vip'],
+                          size: 16,
+                          color: AppTheme.statusVip,
+                        ),
                       ],
                     ],
                   ),
@@ -526,11 +566,15 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                       padding: const EdgeInsets.only(bottom: 8.0),
                       child: Row(
                         children: [
-                          Icon(Icons.email, size: 16, color: theme.colorScheme.primary),
+                          Icon(
+                            Icons.email,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              email, 
+                              email,
                               style: _valueStyle(theme).copyWith(fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -543,11 +587,15 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: Row(
                         children: [
-                          Icon(Icons.phone, size: 16, color: theme.colorScheme.primary),
+                          Icon(
+                            Icons.phone,
+                            size: 16,
+                            color: theme.colorScheme.primary,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              phone, 
+                              phone,
                               style: _valueStyle(theme).copyWith(fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -590,7 +638,170 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     );
   }
 
-  Widget _buildParticipationStatus(ThemeData theme, ColorScheme colorScheme, int statusId) {
+  Widget _buildAdditionalInfo(
+    ThemeData theme,
+    String? codiceFiscale,
+    String? indirizzo,
+    dynamic sottogruppo,
+    dynamic gruppo,
+  ) {
+    // Check if there's any data to display
+    final hasData =
+        (codiceFiscale != null && codiceFiscale.isNotEmpty) ||
+        (indirizzo != null && indirizzo.isNotEmpty) ||
+        (sottogruppo != null) ||
+        (gruppo != null);
+
+    if (!hasData) {
+      return const SizedBox.shrink(); // Return empty widget if no data
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: _cardDecoration(theme),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('INFORMAZIONI AGGIUNTIVE', style: _headerStyle(theme)),
+          const SizedBox(height: 12),
+          if (codiceFiscale != null && codiceFiscale.isNotEmpty)
+            _detailRow('CODICE FISCALE', codiceFiscale, theme),
+          if (indirizzo != null && indirizzo.isNotEmpty)
+            _detailRow('INDIRIZZO', indirizzo, theme),
+          if (sottogruppo != null)
+            _groupLinkRow(
+              'SOTTOGRUPPO',
+              sottogruppo['name'],
+              theme,
+              () => _showGroupMembers(
+                sottogruppo['id'],
+                sottogruppo['name'],
+                true,
+              ),
+            ),
+          if (gruppo != null)
+            _groupLinkRow(
+              'GRUPPO',
+              gruppo['name'],
+              theme,
+              () => _showGroupMembers(gruppo['id'], gruppo['name'], false),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _groupLinkRow(
+    String label,
+    String value,
+    ThemeData theme,
+    VoidCallback onTap,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 100, child: Text(label, style: _labelStyle(theme))),
+          Expanded(
+            child: InkWell(
+              onTap: onTap,
+              child: Text(
+                value,
+                style: _valueStyle(theme).copyWith(
+                  color: theme.colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGroupMembers(int id, String name, bool isSubgroup) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (context) => DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            minChildSize: 0.4,
+            maxChildSize: 0.9,
+            expand: false,
+            builder: (context, scrollController) {
+              return FutureBuilder<List<Map<String, dynamic>>>(
+                future:
+                    isSubgroup
+                        ? _personService.getSubgroupMembers(id)
+                        : _personService.getGroupMembers(id),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Errore: ${snapshot.error}'));
+                  }
+
+                  final members = snapshot.data ?? [];
+
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Membri ${isSubgroup ? "Sottogruppo" : "Gruppo"}: $name',
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Divider(),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: members.length,
+                          itemBuilder: (context, index) {
+                            final member = members[index];
+                            final fullName =
+                                '${member['first_name']} ${member['last_name']}';
+                            return ListTile(
+                              leading: CircleAvatar(
+                                child: Text(member['first_name'][0]),
+                              ),
+                              title: Text(fullName),
+                              subtitle: Text(
+                                member['email'] ?? member['phone'] ?? '',
+                              ),
+                              onTap: () {
+                                // Navigate to member profile?
+                                // For now just close or maybe navigate
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+    );
+  }
+
+  Widget _buildParticipationStatus(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    int statusId,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -611,28 +822,33 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
               child: DropdownButton<int>(
                 value: statusId,
                 isExpanded: true,
-                items: _statuses.map((s) {
-                  final name = (s['name'] as String).toUpperCase();
-                  final color = _getStatusColor(s['name']);
-                  final icon = AppTheme.statusIcons[s['name'].toString().toLowerCase()] ?? Icons.help_outline;
-                  
-                  return DropdownMenuItem<int>(
-                    value: s['id'] as int,
-                    child: Row(
-                      children: [
-                        Icon(icon, color: color, size: 20),
-                        const SizedBox(width: 12),
-                        Text(
-                          name,
-                          style: GoogleFonts.outfit(
-                            color: theme.textTheme.bodyLarge?.color,
-                            fontWeight: FontWeight.w600,
-                          ),
+                items:
+                    _statuses.map((s) {
+                      final name = (s['name'] as String).toUpperCase();
+                      final color = _getStatusColor(s['name']);
+                      final icon =
+                          AppTheme.statusIcons[s['name']
+                              .toString()
+                              .toLowerCase()] ??
+                          Icons.help_outline;
+
+                      return DropdownMenuItem<int>(
+                        value: s['id'] as int,
+                        child: Row(
+                          children: [
+                            Icon(icon, color: color, size: 20),
+                            const SizedBox(width: 12),
+                            Text(
+                              name,
+                              style: GoogleFonts.outfit(
+                                color: theme.textTheme.bodyLarge?.color,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
                 onChanged: (val) {
                   if (val != null && val != statusId) {
                     _updateStatus(val);
@@ -655,7 +871,11 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                     decoration: TextDecoration.underline,
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, size: 14, color: colorScheme.primary),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: colorScheme.primary,
+                ),
               ],
             ),
           ),
@@ -664,7 +884,12 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     );
   }
 
-  Widget _buildReportsArea(ThemeData theme, ColorScheme colorScheme, bool canEdit, List<Map<String, dynamic>> reports) {
+  Widget _buildReportsArea(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool canEdit,
+    List<Map<String, dynamic>> reports,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -672,97 +897,103 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'AREA SEGNALAZIONI', 
+              'AREA SEGNALAZIONI',
               style: GoogleFonts.outfit(
-                fontSize: 14, 
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: theme.textTheme.bodyLarge?.color
-              )
-            ),
-            if (canEdit)
-            TextButton.icon(
-              onPressed: () => _showTransactionMenu('report'),
-              icon: Icon(Icons.add, size: 16, color: colorScheme.error),
-              label: Text(
-                'AGGIUNGI',
-                style: GoogleFonts.outfit(
-                  color: colorScheme.error,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
+                color: theme.textTheme.bodyLarge?.color,
               ),
             ),
+            if (canEdit)
+              TextButton.icon(
+                onPressed: () => _showTransactionMenu('report'),
+                icon: Icon(Icons.add, size: 16, color: colorScheme.error),
+                label: Text(
+                  'AGGIUNGI',
+                  style: GoogleFonts.outfit(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 8),
         if (reports.isNotEmpty) ...[
-           ...reports.map((r) {
-             final typeName = (r['type']?['name'] ?? '').toString().toUpperCase();
-             final name = r['name'] ?? '';
-             final description = r['description'] ?? '';
-             
-             final title = name.isNotEmpty ? '$typeName - $name' : typeName;
+          ...reports.map((r) {
+            final typeName =
+                (r['type']?['name'] ?? '').toString().toUpperCase();
+            final name = r['name'] ?? '';
+            final description = r['description'] ?? '';
 
-             return Container(
-               width: double.infinity,
-               margin: const EdgeInsets.only(bottom: 12),
-               padding: const EdgeInsets.all(16),
-               decoration: _cardDecoration(theme).copyWith(
-                 boxShadow: [
-                   BoxShadow(
-                     color: colorScheme.error.withOpacity(0.1),
-                     blurRadius: 8,
-                     offset: const Offset(0, 4),
-                   )
-                 ]
-               ),
-               child: Row(
-                 children: [
-                   Icon(AppTheme.transactionIcons['report'] ?? Icons.warning_amber_rounded, color: colorScheme.error, size: 32),
-                   const SizedBox(width: 16),
-                   Expanded(
-                     child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         Text(
-                           title,
-                           style: GoogleFonts.outfit(
-                             color: colorScheme.error,
-                             fontWeight: FontWeight.bold,
-                             fontSize: 18,
-                           ),
-                         ),
-                         if (description.isNotEmpty)
-                           Text(
-                             description,
-                             style: GoogleFonts.outfit(color: Colors.grey[700]),
-                           ),
-                       ],
-                     ),
-                   ),
-                   if (canEdit)
-                     IconButton(
-                       icon: const Icon(Icons.edit, size: 20),
-                       onPressed: () {
-                         _showTransactionList();
-                       },
-                     ),
-                 ],
-               ),
-             );
-           }),
+            final title = name.isNotEmpty ? '$typeName - $name' : typeName;
+
+            return Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: _cardDecoration(theme).copyWith(
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.error.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppTheme.transactionIcons['report'] ??
+                        Icons.warning_amber_rounded,
+                    color: colorScheme.error,
+                    size: 32,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.outfit(
+                            color: colorScheme.error,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        if (description.isNotEmpty)
+                          Text(
+                            description,
+                            style: GoogleFonts.outfit(color: Colors.grey[700]),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (canEdit)
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () {
+                        _showTransactionList();
+                      },
+                    ),
+                ],
+              ),
+            );
+          }),
         ] else ...[
-           Container(
-             width: double.infinity,
-             padding: const EdgeInsets.all(20),
-             decoration: _cardDecoration(theme),
-             child: Center(
-               child: Text(
-                 'Nessuna segnalazione',
-                 style: GoogleFonts.outfit(color: Colors.grey),
-               ),
-             ),
-           ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: _cardDecoration(theme),
+            child: Center(
+              child: Text(
+                'Nessuna segnalazione',
+                style: GoogleFonts.outfit(color: Colors.grey),
+              ),
+            ),
+          ),
         ],
       ],
     );
@@ -783,7 +1014,12 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     if (_profileData == null) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        body: Center(child: Text('Profilo non trovato', style: TextStyle(color: theme.textTheme.bodyLarge?.color))),
+        body: Center(
+          child: Text(
+            'Profilo non trovato',
+            style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+          ),
+        ),
       );
     }
 
@@ -792,22 +1028,27 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     final roleName = (role['name'] ?? 'Ospite').toString();
     final isVip = roleName.toLowerCase() == 'vip';
     final statusId = _profileData!['status_id'] as int;
-    
+
     final firstName = person['first_name'] ?? '';
     final lastName = person['last_name'] ?? '';
     final fullName = '$firstName $lastName'.trim();
     final age = _calculateAge(person['date_of_birth']);
     final email = person['email'];
     final phone = person['phone'];
-    
+    final codiceFiscale = person['codice_fiscale'] as String?;
+    final indirizzo = person['indirizzo'] as String?;
+    final sottogruppo = person['sottogruppo'];
+    final gruppo = person['gruppo'];
+
     final userRole = widget.currentUserRole?.toLowerCase();
     final canEdit = userRole == 'staff3' || userRole == 'admin';
     final hasContact = email != null || phone != null;
 
-    final reports = _transactions.where((t) {
-      final typeName = (t['type']?['name'] ?? '').toString().toLowerCase();
-      return ['fine', 'sanction', 'report'].contains(typeName);
-    }).toList();
+    final reports =
+        _transactions.where((t) {
+          final typeName = (t['type']?['name'] ?? '').toString().toLowerCase();
+          return ['fine', 'sanction', 'report'].contains(typeName);
+        }).toList();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -815,7 +1056,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: theme.textTheme.bodyLarge?.color),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
@@ -824,9 +1068,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
           ),
@@ -836,7 +1078,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isDesktop = constraints.maxWidth > 900;
-          
+
           if (isDesktop) {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
@@ -855,9 +1097,32 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                             flex: 4,
                             child: Column(
                               children: [
-                                _buildDetailsAndContact(theme, colorScheme, firstName, lastName, age, roleName, isVip, email, phone, hasContact),
+                                _buildDetailsAndContact(
+                                  theme,
+                                  colorScheme,
+                                  firstName,
+                                  lastName,
+                                  age,
+                                  roleName,
+                                  isVip,
+                                  email,
+                                  phone,
+                                  hasContact,
+                                ),
                                 const SizedBox(height: 24),
-                                _buildParticipationStatus(theme, colorScheme, statusId),
+                                _buildAdditionalInfo(
+                                  theme,
+                                  codiceFiscale,
+                                  indirizzo,
+                                  sottogruppo,
+                                  gruppo,
+                                ),
+                                const SizedBox(height: 24),
+                                _buildParticipationStatus(
+                                  theme,
+                                  colorScheme,
+                                  statusId,
+                                ),
                               ],
                             ),
                           ),
@@ -869,7 +1134,12 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                               children: [
                                 _buildConsumptions(theme),
                                 const SizedBox(height: 24),
-                                _buildReportsArea(theme, colorScheme, canEdit, reports),
+                                _buildReportsArea(
+                                  theme,
+                                  colorScheme,
+                                  canEdit,
+                                  reports,
+                                ),
                               ],
                             ),
                           ),
@@ -891,7 +1161,26 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 const SizedBox(height: 24),
                 _buildConsumptions(theme),
                 const SizedBox(height: 16),
-                _buildDetailsAndContact(theme, colorScheme, firstName, lastName, age, roleName, isVip, email, phone, hasContact),
+                _buildDetailsAndContact(
+                  theme,
+                  colorScheme,
+                  firstName,
+                  lastName,
+                  age,
+                  roleName,
+                  isVip,
+                  email,
+                  phone,
+                  hasContact,
+                ),
+                const SizedBox(height: 16),
+                _buildAdditionalInfo(
+                  theme,
+                  codiceFiscale,
+                  indirizzo,
+                  sottogruppo,
+                  gruppo,
+                ),
                 const SizedBox(height: 16),
                 _buildParticipationStatus(theme, colorScheme, statusId),
                 const SizedBox(height: 16),
@@ -902,40 +1191,53 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           );
         },
       ),
-      floatingActionButton: canEdit ? FloatingActionButton(
-        onPressed: () async {
-          if (_profileData == null) return;
-          
-          final person = _profileData!['person'];
-          final initialData = {
-            'first_name': person['first_name'],
-            'last_name': person['last_name'],
-            'email': person['email'],
-            'phone': person['phone'],
-            'date_of_birth': person['date_of_birth'],
-            'role_id': _profileData!['role_id'],
-            'status_id': _profileData!['status_id'],
-            'participation_id': _profileData!['id'],
-          };
+      floatingActionButton:
+          canEdit
+              ? FloatingActionButton(
+                onPressed: () async {
+                  if (_profileData == null) return;
 
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddGuestScreen(
-                eventId: widget.eventId,
-                personId: person['id'],
-                initialData: initialData,
-              ),
-            ),
-          );
+                  final person = _profileData!['person'];
+                  final initialData = {
+                    'person': person, // Pass the entire person object
+                    'first_name': person['first_name'],
+                    'last_name': person['last_name'],
+                    'email': person['email'],
+                    'phone': person['phone'],
+                    'date_of_birth': person['date_of_birth'],
+                    'role_id': _profileData!['role_id'],
+                    'status_id': _profileData!['status_id'],
+                    'participation_id': _profileData!['id'],
+                    'id': _profileData!['id'], // Add participation id
+                    'local_id': _profileData!['local_id'],
+                    'invited_by': _profileData!['invited_by'],
+                    'codice_fiscale':
+                        _profileData!['codice_fiscale'], // Aggiunto codice fiscale
+                    'gruppo': _profileData!['gruppo'], // Aggiunto gruppo
+                    'sottogruppo':
+                        _profileData!['sottogruppo'], // Aggiunto sottogruppo
+                  };
 
-          if (result == true) {
-            _loadData(); // Refresh profile if updated
-          }
-        },
-        backgroundColor: colorScheme.primary,
-        child: Icon(Icons.edit, color: colorScheme.onPrimary),
-      ) : null,
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => AddGuestScreen(
+                            eventId: widget.eventId,
+                            personId: person['id'],
+                            initialData: initialData,
+                          ),
+                    ),
+                  );
+
+                  if (result == true) {
+                    _loadData(); // Refresh profile if updated
+                  }
+                },
+                backgroundColor: colorScheme.primary,
+                child: Icon(Icons.edit, color: colorScheme.onPrimary),
+              )
+              : null,
     );
   }
 
@@ -963,10 +1265,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
   }
 
   TextStyle _labelStyle(ThemeData theme) {
-    return GoogleFonts.outfit(
-      fontSize: 14,
-      color: Colors.grey[600],
-    );
+    return GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]);
   }
 
   TextStyle _valueStyle(ThemeData theme) {
@@ -995,7 +1294,8 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       final dob = DateTime.parse(dobString);
       final now = DateTime.now();
       int age = now.year - dob.year;
-      if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      if (now.month < dob.month ||
+          (now.month == dob.month && now.day < dob.day)) {
         age--;
       }
       return age.toString();

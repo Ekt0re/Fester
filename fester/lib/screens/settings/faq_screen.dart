@@ -6,93 +6,82 @@ class FAQScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           'FAQ',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+          style: GoogleFonts.outfit(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _buildFAQItem(
-            context,
-            'How do I create an event?',
-            'To create an event, tap the "+" button on the dashboard and follow the step-by-step wizard. You\'ll need to provide event details, set dates, and configure guest options.',
+            theme,
+            'Come creo un nuovo evento?',
+            'Dalla schermata principale, tocca il pulsante "+" in basso a destra e segui la procedura guidata.',
           ),
-          const SizedBox(height: 12),
           _buildFAQItem(
-            context,
-            'How do I scan QR codes?',
-            'Use the QR scanner feature from the dashboard. Point your camera at the QR code and the app will automatically recognize and process it.',
+            theme,
+            'Come aggiungo membri allo staff?',
+            'Vai nella dashboard dell\'evento, seleziona "Gestisci staff" e tocca "Aggiungi membro".',
           ),
-          const SizedBox(height: 12),
           _buildFAQItem(
-            context,
-            'Can I export guest lists?',
-            'Yes! You can export guest lists as PDF or CSV files from the guest list screen. Look for the export button in the top-right corner.',
+            theme,
+            'Posso modificare il menù dopo aver creato l\'evento?',
+            'Sì, puoi modificare il menù in qualsiasi momento dalla sezione "Gestione Menù".',
           ),
-          const SizedBox(height: 12),
           _buildFAQItem(
-            context,
-            'How do I manage staff permissions?',
-            'Staff permissions can be managed through the Staff section. You can add staff members and assign different roles and access levels.',
+            theme,
+            'Come funzionano le notifiche?',
+            'Le notifiche ti avvisano di nuovi ingressi, ordini o messaggi importanti. Puoi configurarle nelle impostazioni.',
           ),
-          const SizedBox(height: 12),
           _buildFAQItem(
-            context,
-            'Is my data secure?',
-            'Yes, we use industry-standard encryption and secure servers to protect your data. All connections are encrypted.',
-          ),
-          const SizedBox(height: 12),
-          _buildFAQItem(
-            context,
-            'How do I contact support?',
-            'You can contact support through the Settings screen under "Contact Support" or email us directly at support@fester.app.',
+            theme,
+            'È possibile esportare i dati?',
+            'Sì, dalla sezione statistiche puoi esportare i report in vari formati.',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFAQItem(BuildContext context, String question, String answer) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
+  Widget _buildFAQItem(ThemeData theme, String question, String answer) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      color: theme.colorScheme.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        side: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1)),
       ),
       child: ExpansionTile(
         title: Text(
           question,
-          style: GoogleFonts.inter(
-            fontSize: 16,
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Text(
               answer,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.black54,
-                height: 1.5,
+              style: GoogleFonts.outfit(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
             ),
           ),

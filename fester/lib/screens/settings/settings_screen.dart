@@ -16,7 +16,9 @@ import 'support_screen.dart';
 import 'feedback_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final String? eventId;
+
+  const SettingsScreen({super.key, this.eventId});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -83,30 +85,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _resetSettings() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Impostazioni'),
-        content: const Text('Sei sicuro di voler resettare tutte le impostazioni ai valori di default?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annulla'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Reset Impostazioni'),
+            content: const Text(
+              'Sei sicuro di voler resettare tutte le impostazioni ai valori di default?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annulla'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Reset'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed == true) {
       await _settingsService.resetSettings();
       await _loadSettings();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impostazioni resettate')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Impostazioni resettate')));
       }
     }
   }
@@ -114,27 +119,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _logout() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Sei sicuro di voler uscire?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annulla'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Logout'),
+            content: const Text('Sei sicuro di voler uscire?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annulla'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Esci'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Esci'),
-          ),
-        ],
-      ),
     );
 
     if (confirmed == true) {
       await Supabase.instance.client.auth.signOut();
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/login', (route) => false);
       }
     }
   }
@@ -177,6 +185,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // User Profile Widget
             _buildUserProfile(theme, user),
             const SizedBox(height: 32),
+
+            // EVENT SETTINGS Section (if in event)
+            if (widget.eventId != null) ...[
+              _buildSectionHeader(theme, 'EVENT SETTINGS'),
+              const SizedBox(height: 12),
+              _buildEventSettingsSection(theme),
+              const SizedBox(height: 32),
+            ],
 
             // PREFERENCES Section
             _buildSectionHeader(theme, 'PREFERENCES'),
@@ -223,9 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -233,21 +247,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: ValueKey(_currentStaffUser?.imagePath ?? 'default'),
             radius: 32,
             backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-            backgroundImage: (_currentStaffUser?.imagePath != null && 
-                              _currentStaffUser!.imagePath!.isNotEmpty)
-                ? NetworkImage(_currentStaffUser!.imagePath!) as ImageProvider
-                : null,
-            child: (_currentStaffUser?.imagePath == null || 
-                    _currentStaffUser!.imagePath!.isEmpty)
-                ? Text(
-                    firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
-                    style: GoogleFonts.outfit(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  )
-                : null,
+            backgroundImage:
+                (_currentStaffUser?.imagePath != null &&
+                        _currentStaffUser!.imagePath!.isNotEmpty)
+                    ? NetworkImage(_currentStaffUser!.imagePath!)
+                        as ImageProvider
+                    : null,
+            child:
+                (_currentStaffUser?.imagePath == null ||
+                        _currentStaffUser!.imagePath!.isEmpty)
+                    ? Text(
+                      firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
+                      style: GoogleFonts.outfit(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    )
+                    : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -284,19 +301,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final currentUserId = user?.id;
               if (currentUserId == null) return;
 
-              // Get current user's event_staff record to pass to StaffProfileScreen
-              // For now, we'll try to find any active event the user is staff of
-              try {
-                final response = await Supabase.instance.client
-                    .from('event_staff')
-                    .select('event_id')
-                    .eq('staff_user_id', currentUserId)
-                    .limit(1)
-                    .maybeSingle();
+              String? eventId = widget.eventId;
 
-                if (response != null && mounted) {
-                  final eventId = response['event_id'] as String;
-                  // Navigate to staff profile screen
+              try {
+                if (eventId == null) {
+                  final response =
+                      await Supabase.instance.client
+                          .from('event_staff')
+                          .select('event_id')
+                          .eq('staff_user_id', currentUserId)
+                          .limit(1)
+                          .maybeSingle();
+
+                  if (response != null) {
+                    eventId = response['event_id'] as String;
+                  }
+                }
+
+                if (eventId != null && mounted) {
                   Navigator.pushNamed(
                     context,
                     '/staff-profile',
@@ -312,9 +334,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Errore: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Errore: $e')));
                 }
               }
             },
@@ -338,6 +360,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildEventSettingsSection(ThemeData theme) {
+    return Column(
+      children: [
+        SettingsTile(
+          icon: Icons.settings_applications,
+          title: 'Impostazioni Evento',
+          subtitle: 'Gestisci le impostazioni dell\'evento corrente',
+          onTap: () {
+            if (widget.eventId != null) {
+              Navigator.pushNamed(context, '/event/${widget.eventId}/settings');
+            }
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildPreferencesSection(ThemeData theme) {
     return Column(
       children: [
@@ -349,9 +388,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             final result = await Navigator.push<String>(
               context,
               MaterialPageRoute(
-                builder: (context) => LanguageSettingsScreen(
-                  currentLanguage: _settings.language,
-                ),
+                builder:
+                    (context) => LanguageSettingsScreen(
+                      currentLanguage: _settings.language,
+                    ),
               ),
             );
             if (result != null) {
@@ -361,17 +401,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         const SizedBox(height: 8),
         SettingsTile(
-          icon: Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
-              ? Icons.dark_mode
-              : Icons.light_mode,
+          icon:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.dark_mode
+                  : Icons.light_mode,
           title: 'Dark mode',
           trailing: Switch(
-            value: Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark,
+            value: Theme.of(context).brightness == Brightness.dark,
             onChanged: (value) {
               final newMode = value ? ThemeMode.dark : ThemeMode.light;
               _updateSettings(_settings.copyWith(themeMode: newMode));
               // Aggiorna il tema immediatamente
-              Provider.of<ThemeProvider>(context, listen: false).setThemeMode(newMode);
+              Provider.of<ThemeProvider>(
+                context,
+                listen: false,
+              ).setThemeMode(newMode);
             },
           ),
         ),
@@ -413,9 +457,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const FAQScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const FAQScreen()),
             );
           },
         ),
@@ -426,9 +468,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const SupportScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const SupportScreen()),
             );
           },
         ),
@@ -439,9 +479,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const FeedbackScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const FeedbackScreen()),
             );
           },
         ),

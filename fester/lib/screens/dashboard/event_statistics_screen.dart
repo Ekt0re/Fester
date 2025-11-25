@@ -67,11 +67,15 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
       // 3. Count staff
       final staff = await _supabase
           .from('event_staff')
-          .select('id')
+          .select('id, staff:staff_user_id(is_active)')
           .eq('event_id', widget.eventId);
 
       _totalStaff = (staff as List).length;
-      _activeStaff = _totalStaff; // Could be enhanced to track active/inactive
+      _activeStaff =
+          (staff as List).where((s) {
+            final staffUser = s['staff'];
+            return staffUser != null && staffUser['is_active'] == true;
+          }).length;
 
       // 4. Calculate total revenue and get transactions
       final transactions = await _supabase
