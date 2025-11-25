@@ -20,7 +20,12 @@ class PersonService {
             sottogruppo:sottogruppo_id (id, name)
           ),
           role:role_id (*),
-          status:status_id (*)
+          status:status_id (*),
+          invited_by_person:invited_by (
+            id,
+            first_name,
+            last_name
+          )
         ''')
               .eq('person_id', personId)
               .eq('event_id', eventId)
@@ -57,6 +62,37 @@ class PersonService {
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       throw Exception('Error fetching subgroup members: $e');
+    }
+  }
+
+  /// Get all guests invited by a specific person
+  Future<List<Map<String, dynamic>>> getInvitedGuests(
+    String inviterId,
+    String eventId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('participation')
+          .select('''
+            *,
+            person:person_id (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              gruppo:gruppo_id (id, name),
+              sottogruppo:sottogruppo_id (id, name)
+            ),
+            status:status_id (id, name),
+            role:role_id (id, name)
+          ''')
+          .eq('invited_by', inviterId)
+          .eq('event_id', eventId);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Error fetching invited guests: $e');
     }
   }
 
@@ -223,22 +259,50 @@ class PersonService {
         caseSensitive: false,
       ).hasMatch(query);
 
-      // Build search conditions for persons
-      String personSearchCondition;
-      if (isUuid) {
-        personSearchCondition =
-            'first_name.ilike.%$query%,last_name.ilike.%$query%,email.ilike.%$query%,phone.ilike.%$query%,id.eq.$query';
-      } else {
-        personSearchCondition =
-            'first_name.ilike.%$query%,last_name.ilike.%$query%,email.ilike.%$query%,phone.ilike.%$query%';
-      }
+      // Search persons through participation (since person table doesn't have event_id FK)
+      final participations = await _supabase
+          .from('participation')
+          .select('''
+            person:person_id (
+              id, 
+              first_name, 
+              last_name, 
+              email, 
+              phone, 
+              id_event
+            )
+          ''')
+          .eq('event_id', eventId);
 
-      // Search persons
-      final persons = await _supabase
-          .from('person')
-          .select('id, first_name, last_name, email, phone, id_event')
-          .eq('id_event', eventId)
-          .or(personSearchCondition);
+      // Filter persons in Dart since we can't use OR on nested fields
+      final persons = <Map<String, dynamic>>[];
+      for (var participation in participations) {
+        final person = participation['person'];
+        if (person != null) {
+          final firstName =
+              (person['first_name'] ?? '').toString().toLowerCase();
+          final lastName = (person['last_name'] ?? '').toString().toLowerCase();
+          final email = (person['email'] ?? '').toString().toLowerCase();
+          final phone = (person['phone'] ?? '').toString().toLowerCase();
+          final personId = person['id']?.toString() ?? '';
+
+          // Check if query matches
+          bool matches = false;
+          if (isUuid && personId == query) {
+            matches = true;
+          } else if (!isUuid) {
+            matches =
+                firstName.contains(lowerQuery) ||
+                lastName.contains(lowerQuery) ||
+                email.contains(lowerQuery) ||
+                phone.contains(lowerQuery);
+          }
+
+          if (matches) {
+            persons.add(person);
+          }
+        }
+      }
 
       // Search staff through event_staff
       final staff = await _supabase
@@ -269,15 +333,22 @@ class PersonService {
         if (staffData != null) {
           final fullName =
               '${staffData['first_name']} ${staffData['last_name']}';
-          final email = staffData['email']?.toString() ?? '';
-          final phone = staffData['phone']?.toString() ?? '';
+          final staffEmail = staffData['email']?.toString() ?? '';
+          final staffPhone = staffData['phone']?.toString() ?? '';
           final staffId = staffData['id']?.toString() ?? '';
 
-          // Check if matches search query
-          if (fullName.toLowerCase().contains(lowerQuery) ||
-              email.toLowerCase().contains(lowerQuery) ||
-              phone.contains(query) ||
-              (isUuid && staffId == query)) {
+          // Apply search filter
+          bool matchesSearch = false;
+          if (isUuid && staffId == query) {
+            matchesSearch = true;
+          } else if (!isUuid) {
+            matchesSearch =
+                fullName.toLowerCase().contains(lowerQuery) ||
+                staffEmail.toLowerCase().contains(lowerQuery) ||
+                staffPhone.toLowerCase().contains(lowerQuery);
+          }
+
+          if (matchesSearch) {
             results.add({
               'id': staffData['id'],
               'first_name': staffData['first_name'],

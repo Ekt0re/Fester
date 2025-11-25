@@ -55,6 +55,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
   int? _selectedSottogruppoId;
   String? _selectedInvitedById;
   String? _selectedInvitedByName;
+  String? _selectedInvitedByType;
 
   @override
   void initState() {
@@ -127,6 +128,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
             final person = searchResults.first;
             _selectedInvitedByName =
                 '${person['first_name']} ${person['last_name']}';
+            _selectedInvitedByType =
+                person['type'] == 'staff' ? 'Staff' : 'Ospite';
           }
         } catch (e) {
           // Ignore error, leave name as null
@@ -543,7 +546,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
               }
 
               return AlertDialog(
-                title: const Text('Cerca Invitante'),
+                title: const Text('Cerca Invitante (Staff o Ospite)'),
                 content: SizedBox(
                   width: 500,
                   height: 400,
@@ -605,6 +608,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                     setState(() {
                                       _selectedInvitedById = person['id'];
                                       _selectedInvitedByName = fullName;
+                                      _selectedInvitedByType = type;
                                     });
                                     Navigator.pop(context);
                                   },
@@ -916,8 +920,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      _selectedInvitedByName ??
-                                          'Cerca persona...',
+                                      _selectedInvitedByName != null
+                                          ? '$_selectedInvitedByName ($_selectedInvitedByType)'
+                                          : 'Cerca persona...',
                                       style: GoogleFonts.outfit(
                                         color:
                                             _selectedInvitedByName == null
@@ -934,6 +939,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                         setState(() {
                                           _selectedInvitedById = null;
                                           _selectedInvitedByName = null;
+                                          _selectedInvitedByType = null;
                                         });
                                       },
                                     ),

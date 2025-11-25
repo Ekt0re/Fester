@@ -15,6 +15,8 @@ import '../settings/settings_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../utils/qr_code_generator.dart';
+import 'invited_guests_screen.dart';
+import 'group_members_screen.dart';
 
 class PersonProfileScreen extends StatefulWidget {
   final String personId;
@@ -644,13 +646,16 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     String? indirizzo,
     dynamic sottogruppo,
     dynamic gruppo,
+    String? invitedById,
+    String? invitedByName,
   ) {
     // Check if there's any data to display
     final hasData =
         (codiceFiscale != null && codiceFiscale.isNotEmpty) ||
         (indirizzo != null && indirizzo.isNotEmpty) ||
         (sottogruppo != null) ||
-        (gruppo != null);
+        (gruppo != null) ||
+        (invitedByName != null && invitedByName.isNotEmpty);
 
     if (!hasData) {
       return const SizedBox.shrink(); // Return empty widget if no data
@@ -669,6 +674,22 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             _detailRow('CODICE FISCALE', codiceFiscale, theme),
           if (indirizzo != null && indirizzo.isNotEmpty)
             _detailRow('INDIRIZZO', indirizzo, theme),
+          if (invitedByName != null &&
+              invitedByName.isNotEmpty &&
+              invitedById != null)
+            _groupLinkRow('INVITATO DA', invitedByName, theme, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => InvitedGuestsScreen(
+                        inviterId: invitedById,
+                        inviterName: invitedByName,
+                        eventId: widget.eventId,
+                      ),
+                ),
+              );
+            }),
           if (sottogruppo != null)
             _groupLinkRow(
               'SOTTOGRUPPO',
@@ -703,15 +724,17 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 100, child: Text(label, style: _labelStyle(theme))),
+          SizedBox(width: 150, child: Text(label, style: _labelStyle(theme))),
           Expanded(
             child: InkWell(
               onTap: onTap,
               child: Text(
                 value,
-                style: _valueStyle(theme).copyWith(
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
                   color: theme.colorScheme.primary,
                   decoration: TextDecoration.underline,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
@@ -722,78 +745,17 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
   }
 
   void _showGroupMembers(int id, String name, bool isSubgroup) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => GroupMembersScreen(
+              groupId: id,
+              groupName: name,
+              isSubgroup: isSubgroup,
+              eventId: widget.eventId,
+            ),
       ),
-      builder:
-          (context) => DraggableScrollableSheet(
-            initialChildSize: 0.6,
-            minChildSize: 0.4,
-            maxChildSize: 0.9,
-            expand: false,
-            builder: (context, scrollController) {
-              return FutureBuilder<List<Map<String, dynamic>>>(
-                future:
-                    isSubgroup
-                        ? _personService.getSubgroupMembers(id)
-                        : _personService.getGroupMembers(id),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Errore: ${snapshot.error}'));
-                  }
-
-                  final members = snapshot.data ?? [];
-
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          'Membri ${isSubgroup ? "Sottogruppo" : "Gruppo"}: $name',
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const Divider(),
-                      Expanded(
-                        child: ListView.builder(
-                          controller: scrollController,
-                          itemCount: members.length,
-                          itemBuilder: (context, index) {
-                            final member = members[index];
-                            final fullName =
-                                '${member['first_name']} ${member['last_name']}';
-                            return ListTile(
-                              leading: CircleAvatar(
-                                child: Text(member['first_name'][0]),
-                              ),
-                              title: Text(fullName),
-                              subtitle: Text(
-                                member['email'] ?? member['phone'] ?? '',
-                              ),
-                              onTap: () {
-                                // Navigate to member profile?
-                                // For now just close or maybe navigate
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
     );
   }
 
@@ -1040,6 +1002,19 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     final sottogruppo = person['sottogruppo'];
     final gruppo = person['gruppo'];
 
+    // Get invited_by information
+    final invitedById = _profileData!['invited_by'] as String?;
+    String? invitedByName;
+    if (invitedById != null) {
+      // Try to get the name from the invited_by_person if it exists
+      final invitedByPerson = _profileData!['invited_by_person'];
+      if (invitedByPerson != null) {
+        invitedByName =
+            '${invitedByPerson['first_name'] ?? ''} ${invitedByPerson['last_name'] ?? ''}'
+                .trim();
+      }
+    }
+
     final userRole = widget.currentUserRole?.toLowerCase();
     final canEdit = userRole == 'staff3' || userRole == 'admin';
     final hasContact = email != null || phone != null;
@@ -1116,6 +1091,8 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                                   indirizzo,
                                   sottogruppo,
                                   gruppo,
+                                  invitedById,
+                                  invitedByName,
                                 ),
                                 const SizedBox(height: 24),
                                 _buildParticipationStatus(
@@ -1180,6 +1157,8 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                   indirizzo,
                   sottogruppo,
                   gruppo,
+                  invitedById,
+                  invitedByName,
                 ),
                 const SizedBox(height: 16),
                 _buildParticipationStatus(theme, colorScheme, statusId),
