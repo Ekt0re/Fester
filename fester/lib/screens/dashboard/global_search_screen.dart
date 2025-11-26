@@ -33,6 +33,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   String _searchQuery = '';
   bool _showStaff = true;
   bool _showGuests = true;
+  int? _selectedStatusId;
+  int? _selectedRoleId;
+  List<Map<String, dynamic>> _roles = [];
   Timer? _debounce;
 
   @override
@@ -69,6 +72,17 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         _statuses = List<Map<String, dynamic>>.from(statusResponse);
       } catch (e) {
         debugPrint('Error loading statuses: $e');
+      }
+
+      // Load roles
+      try {
+        final rolesResponse = await Supabase.instance.client
+            .from('role')
+            .select()
+            .order('id');
+        _roles = List<Map<String, dynamic>>.from(rolesResponse);
+      } catch (e) {
+        debugPrint('Error loading roles: $e');
       }
 
       // Load staff
@@ -154,6 +168,20 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             }
             if (!_showGuests && result.type == SearchResultType.guest) {
               return false;
+            }
+
+            // Filter by status (only for guests)
+            if (_selectedStatusId != null &&
+                result.type == SearchResultType.guest) {
+              final participation = result.originalData as Map<String, dynamic>;
+              if (participation['status_id'] != _selectedStatusId) return false;
+            }
+
+            // Filter by role (only for guests)
+            if (_selectedRoleId != null &&
+                result.type == SearchResultType.guest) {
+              final participation = result.originalData as Map<String, dynamic>;
+              if (participation['role_id'] != _selectedRoleId) return false;
             }
 
             // Filter by search query
@@ -381,131 +409,265 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Cerca per nome, email o telefono...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon:
-                    _searchQuery.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            _filterList('');
-                          },
-                        )
-                        : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: theme.colorScheme.surface,
-              ),
-            ),
-          ),
-
-          // Filters
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                FilterChip(
-                  label: const Text('Staff'),
-                  selected: _showStaff,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _showStaff = selected;
-                      _filterList(_searchQuery);
-                    });
-                  },
-                  avatar: Icon(
-                    Icons.badge,
-                    size: 18,
-                    color: _showStaff ? Colors.white : Colors.blue,
-                  ),
-                  selectedColor: Colors.blue,
-                  checkmarkColor: Colors.white,
-                ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('Ospiti'),
-                  selected: _showGuests,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _showGuests = selected;
-                      _filterList(_searchQuery);
-                    });
-                  },
-                  avatar: Icon(
-                    Icons.person,
-                    size: 18,
-                    color: _showGuests ? Colors.white : Colors.green,
-                  ),
-                  selectedColor: Colors.green,
-                  checkmarkColor: Colors.white,
-                ),
-                const Spacer(),
-                Text(
-                  '${_filteredResults.length} risultati',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Results List
-          Expanded(
-            child:
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _filteredResults.isEmpty
-                    ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 64,
-                            color: theme.colorScheme.onSurface.withOpacity(0.3),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _searchQuery.isEmpty
-                                ? 'Nessuna persona trovata'
-                                : 'Nessun risultato per "$_searchQuery"',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.6,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 900;
+          return Column(
+            children: [
+              // Search Bar & Filters
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'Cerca per nome, email o telefono...',
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon:
+                                  _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          _filterList('');
+                                        },
+                                      )
+                                      : null,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
+                              filled: true,
+                              fillColor: theme.colorScheme.surface,
                             ),
                           ),
+                        ),
+                        if (isDesktop) ...[
+                          const SizedBox(width: 16),
+                          _buildFilterChip(
+                            label: 'Staff',
+                            selected: _showStaff,
+                            onSelected: (val) {
+                              setState(() {
+                                _showStaff = val;
+                                _filterList(_searchQuery);
+                              });
+                            },
+                            color: Colors.blue,
+                            icon: Icons.badge,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            label: 'Ospiti',
+                            selected: _showGuests,
+                            onSelected: (val) {
+                              setState(() {
+                                _showGuests = val;
+                                _filterList(_searchQuery);
+                              });
+                            },
+                            color: Colors.green,
+                            icon: Icons.person,
+                          ),
                         ],
-                      ),
-                    )
-                    : ListView.builder(
-                      itemCount: _filteredResults.length,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemBuilder: (context, index) {
-                        final result = _filteredResults[index];
-                        if (result.type == SearchResultType.guest) {
-                          return _buildGuestCard(result);
-                        } else {
-                          return _buildStaffCard(result, theme);
-                        }
-                      },
+                      ],
                     ),
-          ),
-        ],
+                    const SizedBox(height: 16),
+                    // Additional Filters Row
+                    if (_showGuests)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (!isDesktop) ...[
+                              _buildFilterChip(
+                                label: 'Staff',
+                                selected: _showStaff,
+                                onSelected: (val) {
+                                  setState(() {
+                                    _showStaff = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                                color: Colors.blue,
+                                icon: Icons.badge,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildFilterChip(
+                                label: 'Ospiti',
+                                selected: _showGuests,
+                                onSelected: (val) {
+                                  setState(() {
+                                    _showGuests = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                                color: Colors.green,
+                                icon: Icons.person,
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                            // Status Filter
+                            if (_statuses.isNotEmpty)
+                              _buildDropdownFilter(
+                                hint: 'Tutti gli stati',
+                                value: _selectedStatusId,
+                                items: _statuses,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedStatusId = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                              ),
+                            const SizedBox(width: 12),
+                            // Role Filter
+                            if (_roles.isNotEmpty)
+                              _buildDropdownFilter(
+                                hint: 'Tutti i ruoli',
+                                value: _selectedRoleId,
+                                items: _roles,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedRoleId = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Results List
+              Expanded(
+                child:
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _filteredResults.isEmpty
+                        ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 64,
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _searchQuery.isEmpty
+                                    ? 'Nessuna persona trovata'
+                                    : 'Nessun risultato per "$_searchQuery"',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : isDesktop
+                        ? GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 400,
+                                mainAxisExtent: 200,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                          itemCount: _filteredResults.length,
+                          itemBuilder: (context, index) {
+                            final result = _filteredResults[index];
+                            if (result.type == SearchResultType.guest) {
+                              return _buildGuestCard(result);
+                            } else {
+                              return _buildStaffCard(result, theme);
+                            }
+                          },
+                        )
+                        : ListView.builder(
+                          itemCount: _filteredResults.length,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemBuilder: (context, index) {
+                            final result = _filteredResults[index];
+                            if (result.type == SearchResultType.guest) {
+                              return _buildGuestCard(result);
+                            } else {
+                              return _buildStaffCard(result, theme);
+                            }
+                          },
+                        ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool selected,
+    required Function(bool) onSelected,
+    required Color color,
+    required IconData icon,
+  }) {
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      avatar: Icon(icon, size: 18, color: selected ? Colors.white : color),
+      selectedColor: color,
+      checkmarkColor: Colors.white,
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : Colors.black87,
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+
+  Widget _buildDropdownFilter({
+    required String hint,
+    required int? value,
+    required List<Map<String, dynamic>> items,
+    required Function(int?) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: value,
+          hint: Text(hint, style: const TextStyle(fontSize: 14)),
+          icon: const Icon(Icons.arrow_drop_down),
+          isDense: true,
+          onChanged: onChanged,
+          items: [
+            DropdownMenuItem<int>(
+              value: null,
+              child: Text(hint, style: const TextStyle(fontSize: 14)),
+            ),
+            ...items.map((item) {
+              return DropdownMenuItem<int>(
+                value: item['id'],
+                child: Text(item['name'], style: const TextStyle(fontSize: 14)),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }

@@ -220,6 +220,8 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     });
   }
 
+  int? _selectedItemIndex;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -237,46 +239,51 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(title: const Text('Crea Menù')),
-        body: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(24.0),
-            children: [
-              Text(
-                'CREA MENÙ E PREZZARIO',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
+        body: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(24.0),
+                children: [
+                  Text(
+                    'CREA MENÙ E PREZZARIO',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  _buildTextField(
+                    context: context,
+                    controller: _menuNameController,
+                    label: 'Nome Menù',
+                    hint: 'Es: Menù Principale',
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Inserisci il nome del menù';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    context: context,
+                    controller: _menuDescriptionController,
+                    label: 'Descrizione (opzionale)',
+                    hint: 'Descrivi il menù...',
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _createMenu,
+                    child: const Text('Crea Menù'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 32),
-              _buildTextField(
-                context: context,
-                controller: _menuNameController,
-                label: 'Nome Menù',
-                hint: 'Es: Menù Principale',
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Inserisci il nome del menù';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                context: context,
-                controller: _menuDescriptionController,
-                label: 'Descrizione (opzionale)',
-                hint: 'Descrivi il menù...',
-                maxLines: 3,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _createMenu,
-                child: const Text('Crea Menù'),
-              ),
-            ],
+            ),
           ),
         ),
       );
@@ -288,65 +295,221 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       appBar: AppBar(
         title: Text(_menuNameController.text),
         actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: _addMenuItem),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              _addMenuItem();
+              // Auto-select the new item on desktop
+              if (MediaQuery.of(context).size.width > 900) {
+                setState(() {
+                  _selectedItemIndex = _menuItems.length - 1;
+                });
+              }
+            },
+          ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          if (_menuItems.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: theme.cardTheme.color?.withOpacity(0.5),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.3),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 900;
+
+          if (_menuItems.isEmpty) {
+            return Center(
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: theme.cardTheme.color?.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withOpacity(0.3),
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.restaurant_menu,
+                      size: 48,
+                      color: theme.colorScheme.onSurface.withOpacity(0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Nessun item aggiunto',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Premi + per aggiungere',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.restaurant_menu,
-                    size: 48,
-                    color: theme.colorScheme.onSurface.withOpacity(0.3),
+            );
+          }
+
+          if (isDesktop) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left: List of Items
+                Expanded(
+                  flex: 1,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _menuItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _menuItems[index];
+                      final isConfirmed = _confirmedItems.contains(item.tempId);
+                      final isSelected = _selectedItemIndex == index;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected
+                                  ? theme.colorScheme.primary.withOpacity(0.1)
+                                  : theme.cardTheme.color,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.outline.withOpacity(
+                                      0.1,
+                                    ),
+                          ),
+                        ),
+                        child: _MenuItemHeader(
+                          item: item,
+                          index: index,
+                          isConfirmed: isConfirmed,
+                          isExpanded: isSelected,
+                          transactionTypes: _transactionTypes,
+                          onEdit: () {
+                            setState(() {
+                              _selectedItemIndex = index;
+                            });
+                          },
+                          onRemove: () {
+                            _removeMenuItem(index);
+                            if (_selectedItemIndex == index) {
+                              setState(() {
+                                _selectedItemIndex = null;
+                              });
+                            } else if (_selectedItemIndex != null &&
+                                _selectedItemIndex! > index) {
+                              setState(() {
+                                _selectedItemIndex = _selectedItemIndex! - 1;
+                              });
+                            }
+                          },
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Nessun item aggiunto',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Premi + per aggiungere',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            ..._menuItems.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isExpanded = _expandedItems.contains(item.tempId);
-              final isConfirmed = _confirmedItems.contains(item.tempId);
-              return _MenuItemCard(
-                item: item,
-                index: index,
-                isExpanded: isExpanded,
-                isConfirmed: isConfirmed,
-                transactionTypes: _transactionTypes,
-                onRemove: () => _removeMenuItem(index),
-                onChanged: () => setState(() {}),
-                onConfirm: () => _confirmMenuItem(item.tempId),
-                onEdit: () => _editMenuItem(item.tempId),
-              );
-            }),
-        ],
+                ),
+                // Vertical Divider
+                Container(
+                  width: 1,
+                  color: theme.colorScheme.outline.withOpacity(0.2),
+                ),
+                // Right: Editor
+                Expanded(
+                  flex: 2,
+                  child:
+                      _selectedItemIndex != null &&
+                              _selectedItemIndex! < _menuItems.length
+                          ? SingleChildScrollView(
+                            padding: const EdgeInsets.all(32),
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: theme.cardTheme.color,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: theme.colorScheme.outline.withOpacity(
+                                    0.2,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Modifica Item',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  _MenuItemEditor(
+                                    item: _menuItems[_selectedItemIndex!],
+                                    transactionTypes: _transactionTypes,
+                                    onChanged: () => setState(() {}),
+                                    onConfirm:
+                                        () => _confirmMenuItem(
+                                          _menuItems[_selectedItemIndex!]
+                                              .tempId,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                          : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.touch_app,
+                                  size: 64,
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.2),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Seleziona un elemento per modificarlo',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                ),
+              ],
+            );
+          } else {
+            // Mobile Layout
+            return ListView(
+              padding: const EdgeInsets.all(16.0),
+              children:
+                  _menuItems.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    final isExpanded = _expandedItems.contains(item.tempId);
+                    final isConfirmed = _confirmedItems.contains(item.tempId);
+                    return _MenuItemCard(
+                      item: item,
+                      index: index,
+                      isExpanded: isExpanded,
+                      isConfirmed: isConfirmed,
+                      transactionTypes: _transactionTypes,
+                      onRemove: () => _removeMenuItem(index),
+                      onChanged: () => setState(() {}),
+                      onConfirm: () => _confirmMenuItem(item.tempId),
+                      onEdit: () => _editMenuItem(item.tempId),
+                    );
+                  }).toList(),
+            );
+          }
+        },
       ),
     );
   }
@@ -395,8 +558,8 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
   }
 }
 
-// Menu Item Card Widget
-class _MenuItemCard extends StatefulWidget {
+// Menu Item Card Widget (Mobile/Combined)
+class _MenuItemCard extends StatelessWidget {
   final MenuItemData item;
   final int index;
   final bool isExpanded;
@@ -420,19 +583,82 @@ class _MenuItemCard extends StatefulWidget {
   });
 
   @override
-  State<_MenuItemCard> createState() => _MenuItemCardState();
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color:
+              isConfirmed
+                  ? theme.colorScheme.primary.withOpacity(0.5)
+                  : theme.colorScheme.outline.withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        children: [
+          _MenuItemHeader(
+            item: item,
+            index: index,
+            isConfirmed: isConfirmed,
+            isExpanded: isExpanded,
+            transactionTypes: transactionTypes,
+            onEdit: onEdit,
+            onRemove: onRemove,
+          ),
+          if (isExpanded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                children: [
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  _MenuItemEditor(
+                    item: item,
+                    transactionTypes: transactionTypes,
+                    onChanged: onChanged,
+                    onConfirm: onConfirm,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
-class _MenuItemCardState extends State<_MenuItemCard> {
+class _MenuItemHeader extends StatelessWidget {
+  final MenuItemData item;
+  final int index;
+  final bool isConfirmed;
+  final bool isExpanded;
+  final List<Map<String, dynamic>> transactionTypes;
+  final VoidCallback onEdit;
+  final VoidCallback onRemove;
+
+  const _MenuItemHeader({
+    required this.item,
+    required this.index,
+    required this.isConfirmed,
+    required this.isExpanded,
+    required this.transactionTypes,
+    required this.onEdit,
+    required this.onRemove,
+  });
+
   IconData _getTypeIcon(int? transactionTypeId) {
     if (transactionTypeId == null) return Icons.category;
-    final type = widget.transactionTypes.firstWhere(
+    final type = transactionTypes.firstWhere(
       (t) => t['id'] == transactionTypeId,
       orElse: () => {},
     );
     final name = (type['name'] as String?)?.toLowerCase() ?? '';
 
-    // Match icons from reference image
     if (name.contains('drink') || name.contains('bevanda')) {
       return Icons.local_bar;
     }
@@ -453,6 +679,119 @@ class _MenuItemCardState extends State<_MenuItemCard> {
     return Icons.attach_money;
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onEdit,
+      borderRadius: BorderRadius.vertical(
+        top: const Radius.circular(12),
+        bottom: Radius.circular(isExpanded ? 0 : 12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color:
+                    isConfirmed
+                        ? theme.colorScheme.primary.withOpacity(0.2)
+                        : theme.colorScheme.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _getTypeIcon(item.transactionTypeId),
+                color:
+                    isConfirmed
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withOpacity(0.6),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name?.isEmpty ?? true
+                        ? 'Nuovo Item #${index + 1}'
+                        : item.name!,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (isConfirmed && item.price != null)
+                    Text(
+                      '€${item.price!.toStringAsFixed(2)}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (isConfirmed) ...[
+              if (item.availableQuantity != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Qty: ${item.availableQuantity}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.secondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.edit_outlined,
+                size: 20,
+                color: theme.colorScheme.onSurface.withOpacity(0.4),
+              ),
+            ] else
+              IconButton(
+                onPressed: onRemove,
+                icon: const Icon(Icons.delete_outline),
+                color: theme.colorScheme.error,
+                iconSize: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuItemEditor extends StatefulWidget {
+  final MenuItemData item;
+  final List<Map<String, dynamic>> transactionTypes;
+  final VoidCallback onChanged;
+  final VoidCallback onConfirm;
+
+  const _MenuItemEditor({
+    required this.item,
+    required this.transactionTypes,
+    required this.onChanged,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_MenuItemEditor> createState() => _MenuItemEditorState();
+}
+
+class _MenuItemEditorState extends State<_MenuItemEditor> {
   bool _isBeverage() {
     if (widget.item.transactionTypeId == null) return false;
     final type = widget.transactionTypes.firstWhere(
@@ -466,232 +805,113 @@ class _MenuItemCardState extends State<_MenuItemCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isExpanded = widget.isExpanded;
-    final isConfirmed = widget.isConfirmed;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color:
-              isConfirmed
-                  ? theme.colorScheme.primary.withOpacity(0.5)
-                  : theme.colorScheme.outline.withOpacity(0.1),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Transaction Type Dropdown
+        _buildDropdown(
+          theme: theme,
+          label: 'Tipo',
+          value: widget.item.transactionTypeId,
+          items: widget.transactionTypes,
+          onChanged: (value) {
+            widget.item.transactionTypeId = value;
+            widget.onChanged();
+            setState(() {}); // Update for _isBeverage check
+          },
         ),
-      ),
-      child: Column(
-        children: [
-          // Header
-          InkWell(
-            onTap: widget.onEdit,
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(12),
-              bottom: Radius.circular(isExpanded ? 0 : 12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color:
-                          isConfirmed
-                              ? theme.colorScheme.primary.withOpacity(0.2)
-                              : theme.colorScheme.surface,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _getTypeIcon(widget.item.transactionTypeId),
-                      color:
-                          isConfirmed
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurface.withOpacity(0.6),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.item.name?.isEmpty ?? true
-                              ? 'Nuovo Item #${widget.index + 1}'
-                              : widget.item.name!,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (isConfirmed && widget.item.price != null)
-                          Text(
-                            '€${widget.item.price!.toStringAsFixed(2)}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (isConfirmed) ...[
-                    if (widget.item.availableQuantity != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.secondary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Qty: ${widget.item.availableQuantity}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.secondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.edit_outlined,
-                      size: 20,
-                      color: theme.colorScheme.onSurface.withOpacity(0.4),
-                    ),
-                  ] else
-                    IconButton(
-                      onPressed: widget.onRemove,
-                      icon: const Icon(Icons.delete_outline),
-                      color: theme.colorScheme.error,
-                      iconSize: 20,
-                    ),
-                ],
+        const SizedBox(height: 12),
+
+        // Name
+        _buildItemTextField(
+          theme: theme,
+          label: 'Nome',
+          hint: 'Es: Birra Media',
+          value: widget.item.name,
+          onChanged: (value) {
+            widget.item.name = value;
+            widget.onChanged();
+          },
+        ),
+        const SizedBox(height: 12),
+
+        // Description
+        _buildItemTextField(
+          theme: theme,
+          label: 'Descrizione (opzionale)',
+          hint: 'Dettagli...',
+          value: widget.item.description,
+          onChanged: (value) {
+            widget.item.description = value;
+            widget.onChanged();
+          },
+        ),
+        const SizedBox(height: 12),
+
+        // Price and Quantity
+        Row(
+          children: [
+            Expanded(
+              child: _buildPriceTextField(
+                theme: theme,
+                label: 'Prezzo (€)',
+                hint: '0,00',
+                initialValue: widget.item.price,
+                onChanged: (value) {
+                  widget.item.price = value;
+                  widget.onChanged();
+                },
               ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildItemTextField(
+                theme: theme,
+                label: 'Quantità (opz.)',
+                hint: 'Illimitata',
+                value: widget.item.availableQuantity?.toString(),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  widget.item.availableQuantity = int.tryParse(value);
+                  widget.onChanged();
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Alcoholic checkbox (only for beverages)
+        if (_isBeverage())
+          CheckboxListTile(
+            title: const Text('Alcolico'),
+            value: widget.item.isAlcoholic,
+            onChanged: (value) {
+              setState(() {
+                widget.item.isAlcoholic = value ?? false;
+                widget.onChanged();
+              });
+            },
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
           ),
 
-          // Expanded content
-          if (isExpanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Divider(),
-                  const SizedBox(height: 16),
+        const SizedBox(height: 16),
 
-                  // Transaction Type Dropdown
-                  _buildDropdown(
-                    theme: theme,
-                    label: 'Tipo',
-                    value: widget.item.transactionTypeId,
-                    items: widget.transactionTypes,
-                    onChanged: (value) {
-                      widget.item.transactionTypeId = value;
-                      widget.onChanged();
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Name
-                  _buildItemTextField(
-                    theme: theme,
-                    label: 'Nome',
-                    hint: 'Es: Birra Media',
-                    value: widget.item.name,
-                    onChanged: (value) {
-                      widget.item.name = value;
-                      widget.onChanged();
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Description
-                  _buildItemTextField(
-                    theme: theme,
-                    label: 'Descrizione (opzionale)',
-                    hint: 'Dettagli...',
-                    value: widget.item.description,
-                    onChanged: (value) {
-                      widget.item.description = value;
-                      widget.onChanged();
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Price and Quantity
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildPriceTextField(
-                          theme: theme,
-                          label: 'Prezzo (€)',
-                          hint: '0,00',
-                          initialValue: widget.item.price,
-                          onChanged: (value) {
-                            widget.item.price = value;
-                            widget.onChanged();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildItemTextField(
-                          theme: theme,
-                          label: 'Quantità (opz.)',
-                          hint: 'Illimitata',
-                          value: widget.item.availableQuantity?.toString(),
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            widget.item.availableQuantity = int.tryParse(value);
-                            widget.onChanged();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Alcoholic checkbox (only for beverages)
-                  if (_isBeverage())
-                    CheckboxListTile(
-                      title: const Text('Alcolico'),
-                      value: widget.item.isAlcoholic,
-                      onChanged: (value) {
-                        setState(() {
-                          widget.item.isAlcoholic = value ?? false;
-                          widget.onChanged();
-                        });
-                      },
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                    ),
-
-                  const SizedBox(height: 16),
-
-                  // Confirm button
-                  ElevatedButton.icon(
-                    onPressed: widget.onConfirm,
-                    icon: const Icon(Icons.check),
-                    label: const Text('Conferma Item'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      minimumSize: const Size(double.infinity, 44),
-                    ),
-                  ),
-                ],
-              ),
+        // Confirm button
+        ElevatedButton.icon(
+          onPressed: widget.onConfirm,
+          icon: const Icon(Icons.check),
+          label: const Text('Conferma Item'),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-        ],
-      ),
+            minimumSize: const Size(double.infinity, 44),
+          ),
+        ),
+      ],
     );
   }
 

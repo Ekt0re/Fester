@@ -698,343 +698,788 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // First Name
-                      _buildTextField(
-                        controller: _firstNameController,
-                        label: 'Nome',
-                        hint: 'Inserisci il nome',
-                        icon: Icons.person_outline,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Il nome è obbligatorio';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Last Name
-                      _buildTextField(
-                        controller: _lastNameController,
-                        label: 'Cognome',
-                        hint: 'Inserisci il cognome',
-                        icon: Icons.person,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Il cognome è obbligatorio';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Email
-                      _buildTextField(
-                        controller: _emailController,
-                        label: 'Email (opzionale)',
-                        hint: 'esempio@email.com',
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            final emailRegex = RegExp(
-                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                            );
-                            if (!emailRegex.hasMatch(value)) {
-                              return 'Email non valida';
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Phone
-                      _buildTextField(
-                        controller: _phoneController,
-                        label: 'Telefono (opzionale)',
-                        hint: '+39 123 456 7890',
-                        icon: Icons.phone_outlined,
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Date of Birth
-                      InkWell(
-                        onTap: _selectDate,
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: theme.colorScheme.outline.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.cake_outlined,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _dateOfBirth == null
-                                      ? 'Data di nascita (opzionale)'
-                                      : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
-                                  style: GoogleFonts.outfit(
-                                    color:
-                                        _dateOfBirth == null
-                                            ? theme.colorScheme.onSurface
-                                                .withOpacity(0.5)
-                                            : theme.colorScheme.onSurface,
-                                  ),
-                                ),
-                              ),
-                              if (_dateOfBirth != null)
-                                IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed:
-                                      () => setState(() => _dateOfBirth = null),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Codice Fiscale
-                      _buildTextField(
-                        controller: _codiceFiscaleController,
-                        label: 'Codice Fiscale (opzionale)',
-                        hint: 'RSSMRA80A01H501U',
-                        icon: Icons.badge_outlined,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Indirizzo
-                      _buildTextField(
-                        controller: _indirizzoController,
-                        label: 'Indirizzo (opzionale)',
-                        hint: 'Via Roma 123, Milano',
-                        icon: Icons.home_outlined,
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Gruppo Dropdown
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(child: _buildGruppoDropdown(theme)),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle_outline),
-                                color: theme.colorScheme.primary,
-                                onPressed: _createNewGruppo,
-                                tooltip: 'Crea nuovo gruppo',
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Sottogruppo Dropdown
-                      if (_selectedGruppoId != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildSottogruppoDropdown(theme),
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle_outline),
-                                  color: theme.colorScheme.primary,
-                                  onPressed: _createNewSottogruppo,
-                                  tooltip: 'Crea nuovo sottogruppo',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-
-                      // Local ID
-                      _buildTextField(
-                        controller: _localIdController,
-                        label: 'ID Locale (opzionale)',
-                        hint: '001',
-                        icon: Icons.confirmation_number_outlined,
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Invited By
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Invitato da (opzionale)',
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.7,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: _searchInvitedBy,
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.colorScheme.outline.withOpacity(
-                                    0.3,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
+              : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isDesktop = constraints.maxWidth > 900;
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Form(
+                      key: _formKey,
+                      child:
+                          isDesktop
+                              ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    Icons.person_search,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 12),
+                                  // Left Column: Personal Info
                                   Expanded(
-                                    child: Text(
-                                      _selectedInvitedByName != null
-                                          ? '$_selectedInvitedByName ($_selectedInvitedByType)'
-                                          : 'Cerca persona...',
-                                      style: GoogleFonts.outfit(
-                                        color:
-                                            _selectedInvitedByName == null
-                                                ? theme.colorScheme.onSurface
-                                                    .withOpacity(0.5)
-                                                : theme.colorScheme.onSurface,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        _buildSectionTitle(
+                                          theme,
+                                          'Informazioni Personali',
+                                        ),
+                                        _buildTextField(
+                                          controller: _firstNameController,
+                                          label: 'Nome',
+                                          hint: 'Inserisci il nome',
+                                          icon: Icons.person_outline,
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
+                                              return 'Il nome è obbligatorio';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _lastNameController,
+                                          label: 'Cognome',
+                                          hint: 'Inserisci il cognome',
+                                          icon: Icons.person,
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
+                                              return 'Il cognome è obbligatorio';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _emailController,
+                                          label: 'Email (opzionale)',
+                                          hint: 'esempio@email.com',
+                                          icon: Icons.email_outlined,
+                                          keyboardType:
+                                              TextInputType.emailAddress,
+                                          validator: (value) {
+                                            if (value != null &&
+                                                value.isNotEmpty) {
+                                              final emailRegex = RegExp(
+                                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                              );
+                                              if (!emailRegex.hasMatch(value)) {
+                                                return 'Email non valida';
+                                              }
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _phoneController,
+                                          label: 'Telefono (opzionale)',
+                                          hint: '+39 123 456 7890',
+                                          icon: Icons.phone_outlined,
+                                          keyboardType: TextInputType.phone,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        InkWell(
+                                          onTap: _selectDate,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.surface,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: theme.colorScheme.outline
+                                                    .withOpacity(0.3),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.cake_outlined,
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Text(
+                                                    _dateOfBirth == null
+                                                        ? 'Data di nascita (opzionale)'
+                                                        : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
+                                                    style: GoogleFonts.outfit(
+                                                      color:
+                                                          _dateOfBirth == null
+                                                              ? theme
+                                                                  .colorScheme
+                                                                  .onSurface
+                                                                  .withOpacity(
+                                                                    0.5,
+                                                                  )
+                                                              : theme
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (_dateOfBirth != null)
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.clear,
+                                                    ),
+                                                    onPressed:
+                                                        () => setState(
+                                                          () =>
+                                                              _dateOfBirth =
+                                                                  null,
+                                                        ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _codiceFiscaleController,
+                                          label: 'Codice Fiscale (opzionale)',
+                                          hint: 'RSSMRA80A01H501U',
+                                          icon: Icons.badge_outlined,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _indirizzoController,
+                                          label: 'Indirizzo (opzionale)',
+                                          hint: 'Via Roma 123, Milano',
+                                          icon: Icons.home_outlined,
+                                          maxLines: 2,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 32),
+                                  // Right Column: Event Info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        _buildSectionTitle(
+                                          theme,
+                                          'Dettagli Evento',
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: _buildGruppoDropdown(
+                                                    theme,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.add_circle_outline,
+                                                  ),
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                  onPressed: _createNewGruppo,
+                                                  tooltip: 'Crea nuovo gruppo',
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        if (_selectedGruppoId != null)
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child:
+                                                        _buildSottogruppoDropdown(
+                                                          theme,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.add_circle_outline,
+                                                    ),
+                                                    color:
+                                                        theme
+                                                            .colorScheme
+                                                            .primary,
+                                                    onPressed:
+                                                        _createNewSottogruppo,
+                                                    tooltip:
+                                                        'Crea nuovo sottogruppo',
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 16),
+                                            ],
+                                          ),
+                                        _buildTextField(
+                                          controller: _localIdController,
+                                          label: 'ID Locale (opzionale)',
+                                          hint: '001',
+                                          icon:
+                                              Icons
+                                                  .confirmation_number_outlined,
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Invitato da (opzionale)',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: theme
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withOpacity(0.7),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            InkWell(
+                                              onTap: _searchInvitedBy,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  16,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      theme.colorScheme.surface,
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .outline
+                                                        .withOpacity(0.3),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.person_search,
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .primary,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        _selectedInvitedByName !=
+                                                                null
+                                                            ? '$_selectedInvitedByName ($_selectedInvitedByType)'
+                                                            : 'Cerca persona...',
+                                                        style: GoogleFonts.outfit(
+                                                          color:
+                                                              _selectedInvitedByName ==
+                                                                      null
+                                                                  ? theme
+                                                                      .colorScheme
+                                                                      .onSurface
+                                                                      .withOpacity(
+                                                                        0.5,
+                                                                      )
+                                                                  : theme
+                                                                      .colorScheme
+                                                                      .onSurface,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    if (_selectedInvitedById !=
+                                                        null)
+                                                      IconButton(
+                                                        icon: const Icon(
+                                                          Icons.clear,
+                                                        ),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            _selectedInvitedById =
+                                                                null;
+                                                            _selectedInvitedByName =
+                                                                null;
+                                                            _selectedInvitedByType =
+                                                                null;
+                                                          });
+                                                        },
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        if (_roles.isNotEmpty)
+                                          _buildDropdown(
+                                            label: 'Ruolo',
+                                            value: _selectedRoleId,
+                                            icon: Icons.star_outline,
+                                            items: _roles,
+                                            onChanged: (value) {
+                                              setState(
+                                                () => _selectedRoleId = value!,
+                                              );
+                                            },
+                                          ),
+                                        const SizedBox(height: 16),
+                                        if (_statuses.isNotEmpty)
+                                          _buildDropdown(
+                                            label: 'Stato',
+                                            value: _selectedStatusId,
+                                            icon: Icons.pending_outlined,
+                                            items: _statuses,
+                                            onChanged: (value) {
+                                              setState(
+                                                () =>
+                                                    _selectedStatusId = value!,
+                                              );
+                                            },
+                                          ),
+                                        if (widget.personId != null) ...[
+                                          const SizedBox(height: 16),
+                                          OutlinedButton.icon(
+                                            onPressed: _openTransactionList,
+                                            icon: Icon(
+                                              Icons.receipt_long,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                            label: Text(
+                                              'Gestisci Transazioni',
+                                              style: GoogleFonts.outfit(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 16,
+                                                  ),
+                                              side: BorderSide(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 32),
+                                        ElevatedButton(
+                                          onPressed:
+                                              _isLoading ? null : _saveGuest,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                theme.colorScheme.primary,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Salva Ospite',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color:
+                                                  theme.colorScheme.onPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                              : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // First Name
+                                  _buildTextField(
+                                    controller: _firstNameController,
+                                    label: 'Nome',
+                                    hint: 'Inserisci il nome',
+                                    icon: Icons.person_outline,
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Il nome è obbligatorio';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Last Name
+                                  _buildTextField(
+                                    controller: _lastNameController,
+                                    label: 'Cognome',
+                                    hint: 'Inserisci il cognome',
+                                    icon: Icons.person,
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Il cognome è obbligatorio';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Email
+                                  _buildTextField(
+                                    controller: _emailController,
+                                    label: 'Email (opzionale)',
+                                    hint: 'esempio@email.com',
+                                    icon: Icons.email_outlined,
+                                    keyboardType: TextInputType.emailAddress,
+                                    validator: (value) {
+                                      if (value != null && value.isNotEmpty) {
+                                        final emailRegex = RegExp(
+                                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                        );
+                                        if (!emailRegex.hasMatch(value)) {
+                                          return 'Email non valida';
+                                        }
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Phone
+                                  _buildTextField(
+                                    controller: _phoneController,
+                                    label: 'Telefono (opzionale)',
+                                    hint: '+39 123 456 7890',
+                                    icon: Icons.phone_outlined,
+                                    keyboardType: TextInputType.phone,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Date of Birth
+                                  InkWell(
+                                    onTap: _selectDate,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.surface,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: theme.colorScheme.outline
+                                              .withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.cake_outlined,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              _dateOfBirth == null
+                                                  ? 'Data di nascita (opzionale)'
+                                                  : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
+                                              style: GoogleFonts.outfit(
+                                                color:
+                                                    _dateOfBirth == null
+                                                        ? theme
+                                                            .colorScheme
+                                                            .onSurface
+                                                            .withOpacity(0.5)
+                                                        : theme
+                                                            .colorScheme
+                                                            .onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                          if (_dateOfBirth != null)
+                                            IconButton(
+                                              icon: const Icon(Icons.clear),
+                                              onPressed:
+                                                  () => setState(
+                                                    () => _dateOfBirth = null,
+                                                  ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  if (_selectedInvitedById != null)
-                                    IconButton(
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () {
-                                        setState(() {
-                                          _selectedInvitedById = null;
-                                          _selectedInvitedByName = null;
-                                          _selectedInvitedByType = null;
-                                        });
+                                  const SizedBox(height: 16),
+
+                                  // Codice Fiscale
+                                  _buildTextField(
+                                    controller: _codiceFiscaleController,
+                                    label: 'Codice Fiscale (opzionale)',
+                                    hint: 'RSSMRA80A01H501U',
+                                    icon: Icons.badge_outlined,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Indirizzo
+                                  _buildTextField(
+                                    controller: _indirizzoController,
+                                    label: 'Indirizzo (opzionale)',
+                                    hint: 'Via Roma 123, Milano',
+                                    icon: Icons.home_outlined,
+                                    maxLines: 2,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Gruppo Dropdown
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: _buildGruppoDropdown(theme),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.add_circle_outline,
+                                            ),
+                                            color: theme.colorScheme.primary,
+                                            onPressed: _createNewGruppo,
+                                            tooltip: 'Crea nuovo gruppo',
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Sottogruppo Dropdown
+                                  if (_selectedGruppoId != null)
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildSottogruppoDropdown(
+                                                theme,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.add_circle_outline,
+                                              ),
+                                              color: theme.colorScheme.primary,
+                                              onPressed: _createNewSottogruppo,
+                                              tooltip: 'Crea nuovo sottogruppo',
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                      ],
+                                    ),
+
+                                  // Local ID
+                                  _buildTextField(
+                                    controller: _localIdController,
+                                    label: 'ID Locale (opzionale)',
+                                    hint: '001',
+                                    icon: Icons.confirmation_number_outlined,
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Invited By
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Invitato da (opzionale)',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.7),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      InkWell(
+                                        onTap: _searchInvitedBy,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.surface,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(
+                                              color: theme.colorScheme.outline
+                                                  .withOpacity(0.3),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.person_search,
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  _selectedInvitedByName != null
+                                                      ? '$_selectedInvitedByName ($_selectedInvitedByType)'
+                                                      : 'Cerca persona...',
+                                                  style: GoogleFonts.outfit(
+                                                    color:
+                                                        _selectedInvitedByName ==
+                                                                null
+                                                            ? theme
+                                                                .colorScheme
+                                                                .onSurface
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                )
+                                                            : theme
+                                                                .colorScheme
+                                                                .onSurface,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (_selectedInvitedById != null)
+                                                IconButton(
+                                                  icon: const Icon(Icons.clear),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _selectedInvitedById =
+                                                          null;
+                                                      _selectedInvitedByName =
+                                                          null;
+                                                      _selectedInvitedByType =
+                                                          null;
+                                                    });
+                                                  },
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Role Dropdown
+                                  if (_roles.isNotEmpty)
+                                    _buildDropdown(
+                                      label: 'Ruolo',
+                                      value: _selectedRoleId,
+                                      icon: Icons.star_outline,
+                                      items: _roles,
+                                      onChanged: (value) {
+                                        setState(
+                                          () => _selectedRoleId = value!,
+                                        );
                                       },
                                     ),
+                                  const SizedBox(height: 16),
+
+                                  // Status Dropdown
+                                  if (_statuses.isNotEmpty)
+                                    _buildDropdown(
+                                      label: 'Stato',
+                                      value: _selectedStatusId,
+                                      icon: Icons.pending_outlined,
+                                      items: _statuses,
+                                      onChanged: (value) {
+                                        setState(
+                                          () => _selectedStatusId = value!,
+                                        );
+                                      },
+                                    ),
+                                  // Transaction Management Button (Only if editing)
+                                  if (widget.personId != null) ...[
+                                    const SizedBox(height: 16),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        _openTransactionList();
+                                      },
+                                      icon: Icon(
+                                        Icons.receipt_long,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      label: Text(
+                                        'Gestisci Transazioni',
+                                        style: GoogleFonts.outfit(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        side: BorderSide(
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+
+                                  const SizedBox(height: 32),
+
+                                  // Save Button
+                                  ElevatedButton(
+                                    onPressed: _isLoading ? null : _saveGuest,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          theme.colorScheme.primary,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Salva Ospite',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.onPrimary,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Role Dropdown
-                      if (_roles.isNotEmpty)
-                        _buildDropdown(
-                          label: 'Ruolo',
-                          value: _selectedRoleId,
-                          icon: Icons.star_outline,
-                          items: _roles,
-                          onChanged: (value) {
-                            setState(() => _selectedRoleId = value!);
-                          },
-                        ),
-                      const SizedBox(height: 16),
-
-                      // Status Dropdown
-                      if (_statuses.isNotEmpty)
-                        _buildDropdown(
-                          label: 'Stato',
-                          value: _selectedStatusId,
-                          icon: Icons.pending_outlined,
-                          items: _statuses,
-                          onChanged: (value) {
-                            setState(() => _selectedStatusId = value!);
-                          },
-                        ),
-                      // Transaction Management Button (Only if editing)
-                      if (widget.personId != null) ...[
-                        const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            // We need to fetch transactions first or pass them.
-                            // Since we don't have them here, we'll open the sheet and let it handle it?
-                            // But TransactionListSheet expects a list.
-                            // We should probably fetch them here or modify TransactionListSheet.
-                            // Given the constraint, let's fetch them quickly or just pass empty and let it load?
-                            // Actually, the user wants to open it "con già spuntata la checkbox 'mostra tutto'".
-                            // We can pass a flag to TransactionListSheet to fetch data if empty?
-                            // Or better, fetch here.
-                            _openTransactionList();
-                          },
-                          icon: Icon(
-                            Icons.receipt_long,
-                            color: theme.colorScheme.primary,
-                          ),
-                          label: Text(
-                            'Gestisci Transazioni',
-                            style: GoogleFonts.outfit(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: BorderSide(color: theme.colorScheme.primary),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
-
-                      const SizedBox(height: 32),
-
-                      // Save Button
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _saveGuest,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Salva Ospite',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
     );
   }
@@ -1306,6 +1751,20 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSectionTitle(ThemeData theme, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        title,
+        style: GoogleFonts.outfit(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
     );
   }
 }

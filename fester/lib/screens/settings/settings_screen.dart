@@ -177,51 +177,98 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User Profile Widget
-            _buildUserProfile(theme, user),
-            const SizedBox(height: 32),
-
-            // EVENT SETTINGS Section (if in event)
-            if (widget.eventId != null) ...[
-              _buildSectionHeader(theme, 'EVENT SETTINGS'),
-              const SizedBox(height: 12),
-              _buildEventSettingsSection(theme),
-              const SizedBox(height: 32),
-            ],
-
-            // PREFERENCES Section
-            _buildSectionHeader(theme, 'PREFERENCES'),
-            const SizedBox(height: 12),
-            _buildPreferencesSection(theme),
-            const SizedBox(height: 32),
-
-            // HELP & SUPPORT Section
-            _buildSectionHeader(theme, 'HELP & SUPPORT'),
-            const SizedBox(height: 12),
-            _buildHelpSection(theme),
-            const SizedBox(height: 32),
-
-            // Logout Button
-            _buildLogoutButton(theme),
-            const SizedBox(height: 16),
-
-            // App Version
-            Center(
-              child: Text(
-                'App Version $_appVersion',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 900;
+          if (isDesktop) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left Column: Profile & Logout
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      children: [
+                        _buildUserProfile(theme, user),
+                        const SizedBox(height: 32),
+                        _buildLogoutButton(theme),
+                        const SizedBox(height: 16),
+                        Text(
+                          'App Version $_appVersion',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                  // Right Column: Settings Sections
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (widget.eventId != null) ...[
+                          _buildSectionHeader(theme, 'EVENT SETTINGS'),
+                          const SizedBox(height: 12),
+                          _buildEventSettingsSection(theme),
+                          const SizedBox(height: 32),
+                        ],
+                        _buildSectionHeader(theme, 'PREFERENCES'),
+                        const SizedBox(height: 12),
+                        _buildPreferencesSection(theme),
+                        const SizedBox(height: 32),
+                        _buildSectionHeader(theme, 'HELP & SUPPORT'),
+                        const SizedBox(height: 12),
+                        _buildHelpSection(theme),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
+            );
+          } else {
+            // Mobile Layout
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildUserProfile(theme, user),
+                  const SizedBox(height: 32),
+                  if (widget.eventId != null) ...[
+                    _buildSectionHeader(theme, 'EVENT SETTINGS'),
+                    const SizedBox(height: 12),
+                    _buildEventSettingsSection(theme),
+                    const SizedBox(height: 32),
+                  ],
+                  _buildSectionHeader(theme, 'PREFERENCES'),
+                  const SizedBox(height: 12),
+                  _buildPreferencesSection(theme),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader(theme, 'HELP & SUPPORT'),
+                  const SizedBox(height: 12),
+                  _buildHelpSection(theme),
+                  const SizedBox(height: 32),
+                  _buildLogoutButton(theme),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Text(
+                      'App Version $_appVersion',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          }
+        },
       ),
     );
   }
