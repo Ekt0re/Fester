@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/SupabaseServicies/event_service.dart';
 
 class EventSettingsScreen extends StatefulWidget {
   final String eventId;
@@ -13,6 +14,7 @@ class EventSettingsScreen extends StatefulWidget {
 
 class _EventSettingsScreenState extends State<EventSettingsScreen> {
   final _supabase = Supabase.instance.client;
+  final _eventService = EventService();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = true;
   bool _isSaving = false;
@@ -152,6 +154,51 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
     }
   }
 
+  Future<void> _archiveEvent() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Archivia Evento'),
+            content: const Text(
+              'Sei sicuro di voler archiviare questo evento? Potrai ripristinarlo dalla schermata di selezione eventi.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Annulla'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Archivia'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isSaving = true);
+      try {
+        await _eventService.deleteEvent(widget.eventId);
+
+        if (mounted) {
+          // Navigate back to event selection and clear stack
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/event-selection', (route) => false);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        }
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -276,6 +323,33 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               value: _lateEntryAllowed,
               onChanged: (val) => setState(() => _lateEntryAllowed = val),
             ),
+            const SizedBox(height: 32),
+
+            _buildSectionTitle(theme, 'Zona Pericolo'),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.errorContainer.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.error.withOpacity(0.5),
+                ),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.archive, color: theme.colorScheme.error),
+                title: Text(
+                  'Archivia Evento',
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: const Text(
+                  'L\'evento non sarà più visibile nella dashboard principale.',
+                ),
+                onTap: _archiveEvent,
+              ),
+            ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

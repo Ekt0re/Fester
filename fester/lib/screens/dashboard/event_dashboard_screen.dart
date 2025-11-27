@@ -9,6 +9,7 @@ import '../../widgets/animated_settings_icon.dart';
 import '../../services/notification_service.dart';
 import '../settings/settings_screen.dart';
 import 'event_settings_screen.dart';
+import 'event_export_screen.dart';
 import '../profile/staff_profile_screen.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 
@@ -255,16 +256,6 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               } else if (index == 3) {
                 // Navigate to Menu Management Screen
                 Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
-              } else if (index == 4) {
-                // Navigate to Event Settings
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) =>
-                            EventSettingsScreen(eventId: widget.eventId),
-                  ),
-                );
               } else {
                 setState(() {
                   _selectedIndex = index;
@@ -356,44 +347,160 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 icon: Icon(Icons.restaurant_menu),
                 label: Text('Menù'),
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.settings),
-                label: Text('Gestisci evento'),
-              ),
             ],
             trailing: Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 24.0),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  SettingsScreen(eventId: widget.eventId),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.settings,
-                          color: theme.colorScheme.onPrimary.withOpacity(0.7),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Impostazioni',
-                          style: GoogleFonts.outfit(
-                            color: theme.colorScheme.onPrimary.withOpacity(0.7),
-                            fontSize: 12,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Event Menu Button
+                      PopupMenuButton<String>(
+                        offset: const Offset(200, 0),
+                        icon: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.secondary.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.more_vert,
+                            color: theme.colorScheme.onPrimary,
                           ),
                         ),
-                      ],
-                    ),
+                        tooltip: 'Gestisci Evento',
+                        itemBuilder:
+                            (context) => [
+                              PopupMenuItem(
+                                value: 'settings',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.settings,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Impostazioni Evento',
+                                      style: GoogleFonts.outfit(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'export',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.download,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Esporta Dati',
+                                      style: GoogleFonts.outfit(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'divider',
+                                enabled: false,
+                                child: Divider(),
+                              ),
+                              PopupMenuItem(
+                                value: 'statistics',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.analytics_outlined,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Statistiche Avanzate',
+                                      style: GoogleFonts.outfit(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                        onSelected: (value) {
+                          if (value == 'settings') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EventSettingsScreen(
+                                      eventId: widget.eventId,
+                                    ),
+                              ),
+                            );
+                          } else if (value == 'export') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EventExportScreen(
+                                      eventId: widget.eventId,
+                                      eventName: _event?.name ?? 'Evento',
+                                    ),
+                              ),
+                            );
+                          } else if (value == 'statistics') {
+                            Navigator.pushNamed(
+                              context,
+                              '/event/${widget.eventId}/statistics',
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Gestisci Evento',
+                        style: GoogleFonts.outfit(
+                          color: theme.colorScheme.onPrimary.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // App Settings Button
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      SettingsScreen(eventId: widget.eventId),
+                            ),
+                          );
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.settings,
+                              color: theme.colorScheme.onPrimary.withOpacity(
+                                0.7,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Impostazioni',
+                              style: GoogleFonts.outfit(
+                                color: theme.colorScheme.onPrimary.withOpacity(
+                                  0.7,
+                                ),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

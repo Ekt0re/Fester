@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
+import '../../../services/export_service.dart';
 
 enum ExportFormat { csv, excel, pdf }
 
@@ -85,8 +86,43 @@ class _EventExportScreenState extends State<EventExportScreen> {
     setState(() => _isExporting = true);
 
     try {
-      // Simulate export process
-      await Future.delayed(const Duration(seconds: 2));
+      final service = ExportService();
+      await service.exportData(
+        eventId: widget.eventId,
+        eventName: widget.eventName,
+        format: _selectedFormat.name,
+        includeEventInfo: _includeEventInfo,
+        includeEventSettings: _includeEventSettings,
+        includeEventStats: _includeEventStats,
+        includePersonName: _includePersonName,
+        includePersonEmail: _includePersonEmail,
+        includePersonPhone: _includePersonPhone,
+        includePersonBirthDate: _includePersonBirthDate,
+        includePersonImage: _includePersonImage,
+        includePersonNotes: _includePersonNotes,
+        includeParticipationId: _includeParticipationId,
+        includeParticipationStatus: _includeParticipationStatus,
+        includeParticipationTimestamps: _includeParticipationTimestamps,
+        includeParticipationReferrer: _includeParticipationReferrer,
+        includeParticipationGuests: _includeParticipationGuests,
+        includeParticipationTable: _includeParticipationTable,
+        includeTransactionHistory: _includeTransactionHistory,
+        includeTransactionDetails: _includeTransactionDetails,
+        includeTransactionStaff: _includeTransactionStaff,
+        includeTransactionSummary: _includeTransactionSummary,
+        includeTransactionBalance: _includeTransactionBalance,
+        includeEventStaffList: _includeEventStaffList,
+        includeEventStaffDetails: _includeEventStaffDetails,
+        includeEventStaffRoles: _includeEventStaffRoles,
+        includeEventStaffContacts: _includeEventStaffContacts,
+        includeGroupsList: _includeGroupsList,
+        includeGroupsMembers: _includeGroupsMembers,
+        includeSubgroups: _includeSubgroups,
+        includeGroupsHierarchy: _includeGroupsHierarchy,
+        includeMenuItems: _includeMenuItems,
+        includeMenuStats: _includeMenuStats,
+        includeMenuAlcoholic: _includeMenuAlcoholic,
+      );
 
       if (!mounted) return;
 
