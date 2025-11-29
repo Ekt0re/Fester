@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:app_links/app_links.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'config/localization_config.dart';
 import 'Login/login_page.dart';
 import 'home_page.dart';
 import 'services/SupabaseServicies/supabase_config.dart';
@@ -47,10 +49,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy(); // Rimuove il # dagli URL
   await SupabaseConfig.initialize();
+  await EasyLocalization.ensureInitialized();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: const MyApp(),
+    EasyLocalization(
+      supportedLocales: LocalizationConfig.supportedLocales,
+      path: LocalizationConfig.path,
+      fallbackLocale: LocalizationConfig.fallbackLocale,
+      child: ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -68,6 +77,9 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
           initialRoute: initialRoute,
           routes: {
             '/': (context) => const SplashScreen(),

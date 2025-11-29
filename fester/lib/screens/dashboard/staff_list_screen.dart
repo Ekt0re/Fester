@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/event_service.dart';
@@ -45,7 +46,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore caricamento staff: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'staff.load_error'.tr()}$e')));
       }
     }
   }
@@ -67,7 +68,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                   role.contains(q);
             }).toList();
       }
-      if (_roleFilter != null && _roleFilter != 'Tutti') {
+      if (_roleFilter != null && _roleFilter != 'staff.all_roles'.tr()) {
         final roleLower = _roleFilter!.toLowerCase();
         source =
             source
@@ -92,9 +93,9 @@ class _StaffListScreenState extends State<StaffListScreen> {
       isPending: isPending,
       onTap: () async {
         if (isPending) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Utente in attesa di registrazione')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('staff.pending_user'.tr())));
           return;
         }
         await Navigator.push(
@@ -136,7 +137,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Aggiungi Staff'),
+            title: Text('staff.add_dialog_title'.tr()),
             content: Form(
               key: formKey,
               child: Column(
@@ -144,16 +145,16 @@ class _StaffListScreenState extends State<StaffListScreen> {
                 children: [
                   TextFormField(
                     controller: emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'Inserisci email collaboratore',
+                    decoration: InputDecoration(
+                      labelText: 'staff.email_label'.tr(),
+                      hintText: 'staff.email_hint'.tr(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Email richiesta';
+                        return 'staff.email_required'.tr();
                       }
                       if (!value.contains('@')) {
-                        return 'Email non valida';
+                        return 'staff.email_invalid'.tr();
                       }
                       return null;
                     },
@@ -161,7 +162,9 @@ class _StaffListScreenState extends State<StaffListScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: selectedRole,
-                    decoration: const InputDecoration(labelText: 'Ruolo'),
+                    decoration: InputDecoration(
+                      labelText: 'staff.role_label'.tr(),
+                    ),
                     items:
                         ['Staff1', 'Staff2', 'Staff3']
                             .map(
@@ -181,7 +184,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annulla'),
+                child: Text('staff.cancel'.tr()),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -193,7 +196,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                     );
                   }
                 },
-                child: const Text('Aggiungi'),
+                child: Text('staff.add'.tr()),
               ),
             ],
           ),
@@ -225,7 +228,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
               .maybeSingle();
 
       if (roleResponse == null) {
-        throw Exception('Ruolo non trovato: $dbRoleName');
+        throw Exception('${'staff.role_not_found'.tr()}$dbRoleName');
       }
 
       final roleId = roleResponse['id'];
@@ -239,15 +242,15 @@ class _StaffListScreenState extends State<StaffListScreen> {
 
       await _loadData();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Staff aggiunto con successo')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('staff.success'.tr())));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore durante l\'aggiunta: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${'staff.error'.tr()}$e')));
       }
       setState(() => _isLoading = false);
     }
@@ -267,14 +270,14 @@ class _StaffListScreenState extends State<StaffListScreen> {
         title: Column(
           children: [
             Text(
-              'Staff Evento',
+              'staff.title'.tr(),
               style: GoogleFonts.outfit(
                 color: theme.colorScheme.onPrimary,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              'Totale: ${_allStaff.length}',
+              '${'staff.total'.tr()}${_allStaff.length}',
               style: GoogleFonts.outfit(
                 color: theme.colorScheme.onPrimary.withOpacity(0.7),
                 fontSize: 12,
@@ -300,7 +303,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
               controller: _searchController,
               onChanged: _filterList,
               decoration: InputDecoration(
-                hintText: 'Cerca membro staff...',
+                hintText: 'staff.search_placeholder'.tr(),
                 prefixIcon: const Icon(Icons.search),
                 fillColor: theme.colorScheme.surface,
                 filled: true,
@@ -317,10 +320,10 @@ class _StaffListScreenState extends State<StaffListScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _roleFilter ?? 'Tutti',
+                value: _roleFilter ?? 'staff.all_roles'.tr(),
                 isExpanded: true,
                 items:
-                    ['Tutti', 'Staff1', 'Staff2', 'Staff3']
+                    ['staff.all_roles'.tr(), 'Staff1', 'Staff2', 'Staff3']
                         .map(
                           (role) => DropdownMenuItem<String>(
                             value: role,
@@ -330,7 +333,8 @@ class _StaffListScreenState extends State<StaffListScreen> {
                         .toList(),
                 onChanged: (value) {
                   setState(() {
-                    _roleFilter = value == 'Tutti' ? null : value;
+                    _roleFilter =
+                        value == 'staff.all_roles'.tr() ? null : value;
                     _filterList(_searchController.text);
                   });
                 },
@@ -379,7 +383,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
         child: FloatingActionButton.extended(
           onPressed: _showAddStaffDialog,
           icon: const Icon(Icons.add),
-          label: const Text('Aggiungi Staff'),
+          label: Text('staff.add_button'.tr()),
         ),
       ),
     );

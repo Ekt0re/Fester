@@ -1,6 +1,7 @@
 import 'package:fester/services/SupabaseServicies/supabase_auth.dart'
     show AuthService;
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'register_step1_page.dart';
 import 'forgot_password_page.dart';
 
@@ -60,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
@@ -91,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Accedi al tuo account',
+                          'login.title'.tr(),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -101,16 +102,16 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           style: theme.textTheme.bodyLarge,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
+                          decoration: InputDecoration(
+                            labelText: 'login.email_label'.tr(),
+                            prefixIcon: const Icon(Icons.email_outlined),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Inserisci la tua email';
+                              return 'login.email_error_empty'.tr();
                             }
                             if (!value.contains('@')) {
-                              return 'Email non valida';
+                              return 'login.email_error_invalid'.tr();
                             }
                             return null;
                           },
@@ -121,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                           obscureText: _obscurePassword,
                           style: theme.textTheme.bodyLarge,
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: 'login.password_label'.tr(),
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -137,10 +138,10 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Inserisci la password';
+                              return 'login.password_error_empty'.tr();
                             }
                             if (value.length < 6) {
-                              return 'Password troppo corta';
+                              return 'login.password_error_short'.tr();
                             }
                             return null;
                           },
@@ -154,14 +155,14 @@ class _LoginPageState extends State<LoginPage> {
                             child:
                                 _isLoading
                                     ? const SizedBox(
-                                        height: 24,
-                                        width: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text('ACCEDI'),
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : Text('login.login_button'.tr()),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -172,12 +173,16 @@ class _LoginPageState extends State<LoginPage> {
                                   () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const RegisterStep1Page(),
+                                      builder:
+                                          (context) =>
+                                              const RegisterStep1Page(),
                                     ),
                                   ),
                               child: Text(
-                                'Non hai un account? Registrati',
-                                style: TextStyle(color: theme.colorScheme.primary),
+                                'login.register_link'.tr(),
+                                style: TextStyle(
+                                  color: theme.colorScheme.primary,
+                                ),
                               ),
                             ),
                             TextButton(
@@ -186,12 +191,15 @@ class _LoginPageState extends State<LoginPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder:
-                                          (context) => const ForgotPasswordPage(),
+                                          (context) =>
+                                              const ForgotPasswordPage(),
                                     ),
                                   ),
                               child: Text(
-                                'Password dimenticata?',
-                                style: TextStyle(color: theme.colorScheme.secondary),
+                                'login.forgot_password_link'.tr(),
+                                style: TextStyle(
+                                  color: theme.colorScheme.secondary,
+                                ),
                               ),
                             ),
                           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../services/SupabaseServicies/supabase_auth.dart';
 import 'login_page.dart';
 
@@ -68,7 +69,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 color: theme.cardTheme.color,
                 child: Padding(
                   padding: const EdgeInsets.all(32),
-                  child: _emailSent ? _buildSuccessView(theme) : _buildFormView(theme),
+                  child:
+                      _emailSent
+                          ? _buildSuccessView(theme)
+                          : _buildFormView(theme),
                 ),
               ),
             ),
@@ -103,7 +107,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Recupera Password',
+              'forgot_password.title'.tr(),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -113,7 +117,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Inserisci la tua email per ricevere\nil link di reset della password',
+              'forgot_password.subtitle'.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 height: 1.5,
                 color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -125,16 +129,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             style: theme.textTheme.bodyLarge,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.email_outlined),
+            decoration: InputDecoration(
+              labelText: 'login.email_label'.tr(),
+              prefixIcon: const Icon(Icons.email_outlined),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Inserisci la tua email';
+                return 'login.email_error_empty'.tr();
               }
               if (!value.contains('@')) {
-                return 'Email non valida';
+                return 'login.email_error_invalid'.tr();
               }
               return null;
             },
@@ -155,14 +159,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           color: Colors.white,
                         ),
                       )
-                      : const Text('Invia Link'),
+                      : Text('forgot_password.send_link_button'.tr()),
             ),
           ),
           const SizedBox(height: 20),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              '< Indietro',
+              'forgot_password.back_button'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w600,
@@ -209,14 +213,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
         const SizedBox(height: 30),
         Text(
-          'Email Inviata!',
+          'forgot_password.success_title'.tr(),
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          'Abbiamo inviato un link per il reset\ndella password a:\n${_emailController.text}',
+          '${'forgot_password.success_message'.tr()}\n${_emailController.text}',
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyMedium?.copyWith(
             height: 1.5,
@@ -235,14 +239,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 (route) => false,
               );
             },
-            child: const Text('Torna al Login'),
+            child: Text('forgot_password.back_to_login'.tr()),
           ),
         ),
         const SizedBox(height: 20),
         TextButton(
           onPressed: _isLoading ? null : () => _handleResetPassword(),
           child: Text(
-            'Reinvia email',
+            'forgot_password.resend_email'.tr(),
             style: TextStyle(
               color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w600,

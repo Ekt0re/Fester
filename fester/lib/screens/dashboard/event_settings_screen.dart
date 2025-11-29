@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/SupabaseServicies/event_service.dart';
 
 class EventSettingsScreen extends StatefulWidget {
   final String eventId;
@@ -13,6 +15,7 @@ class EventSettingsScreen extends StatefulWidget {
 
 class _EventSettingsScreenState extends State<EventSettingsScreen> {
   final _supabase = Supabase.instance.client;
+  final _eventService = EventService();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = true;
   bool _isSaving = false;
@@ -85,7 +88,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento impostazioni: $e')),
+          SnackBar(content: Text('${'event_settings.load_error'.tr()}$e')),
         );
       }
     } finally {
@@ -137,18 +140,61 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impostazioni salvate con successo!')),
+          SnackBar(content: Text('event_settings.save_success'.tr())),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore salvataggio: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'event_settings.save_error'.tr()}$e')),
+        );
       }
     } finally {
       setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _archiveEvent() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('event_settings.archive_event'.tr()),
+            content: Text('event_settings.archive_confirmation'.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('event_settings.cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text('event_settings.archive'.tr()),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isSaving = true);
+      try {
+        await _eventService.deleteEvent(widget.eventId);
+
+        if (mounted) {
+          // Navigate back to event selection and clear stack
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/event-selection', (route) => false);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${'event_settings.error'.tr()}$e')),
+          );
+        }
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -159,7 +205,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(title: const Text('Impostazioni Evento')),
+        appBar: AppBar(title: Text('event_settings.title'.tr())),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -167,7 +213,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Impostazioni Evento'),
+        title: Text('event_settings.title'.tr()),
         actions: [
           if (_isSaving)
             const Center(
@@ -181,7 +227,10 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               ),
             )
           else
-            TextButton(onPressed: _saveSettings, child: const Text('Salva')),
+            TextButton(
+              onPressed: _saveSettings,
+              child: Text('event_settings.save'.tr()),
+            ),
         ],
       ),
       body: Form(
@@ -189,18 +238,18 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _buildSectionTitle(theme, 'Informazioni Generali'),
+            _buildSectionTitle(theme, 'event_settings.general_info'.tr()),
             _buildTextField(
               controller: _locationController,
-              label: 'Location',
-              hint: 'Es: Via Roma 123, Milano',
+              label: 'event_settings.location'.tr(),
+              hint: 'event_settings.location_hint'.tr(),
               icon: Icons.location_on,
             ),
             const SizedBox(height: 16),
 
             _buildDateTimeField(
               context: context,
-              label: 'Data Inizio',
+              label: 'event_settings.start_date'.tr(),
               value: _startAt,
               onChanged: (date) => setState(() => _startAt = date),
             ),
@@ -208,17 +257,17 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
 
             _buildDateTimeField(
               context: context,
-              label: 'Data Fine',
+              label: 'event_settings.end_date'.tr(),
               value: _endAt,
               onChanged: (date) => setState(() => _endAt = date),
             ),
             const SizedBox(height: 24),
 
-            _buildSectionTitle(theme, 'Limiti e Capacità'),
+            _buildSectionTitle(theme, 'event_settings.limits_capacity'.tr()),
             _buildTextField(
               controller: _maxParticipantsController,
-              label: 'Massimo Partecipanti',
-              hint: 'Lascia vuoto per illimitato',
+              label: 'event_settings.max_participants'.tr(),
+              hint: 'event_settings.unlimited_hint'.tr(),
               icon: Icons.people,
               keyboardType: TextInputType.number,
             ),
@@ -226,18 +275,18 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
 
             _buildTextField(
               controller: _maxDrinksController,
-              label: 'Massimo Drink per Persona',
-              hint: 'Lascia vuoto per illimitato',
+              label: 'event_settings.max_drinks'.tr(),
+              hint: 'event_settings.unlimited_hint'.tr(),
               icon: Icons.local_bar,
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 24),
 
-            _buildSectionTitle(theme, 'Sicurezza'),
+            _buildSectionTitle(theme, 'event_settings.security'.tr()),
             _buildTextField(
               controller: _ageRestrictionController,
-              label: 'Età Minima',
-              hint: 'Es: 18',
+              label: 'event_settings.min_age'.tr(),
+              hint: 'event_settings.age_hint'.tr(),
               icon: Icons.cake,
               keyboardType: TextInputType.number,
             ),
@@ -245,7 +294,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
 
             _buildTextField(
               controller: _maxWarningsController,
-              label: 'Massimo Warning prima del Ban',
+              label: 'event_settings.max_warnings'.tr(),
               hint: '3',
               icon: Icons.warning,
               keyboardType: TextInputType.number,
@@ -254,17 +303,17 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
 
             _buildSwitchTile(
               theme: theme,
-              title: 'Controllo Documento Richiesto',
+              title: 'event_settings.id_check'.tr(),
               value: _idCheckRequired,
               onChanged: (val) => setState(() => _idCheckRequired = val),
             ),
             const SizedBox(height: 24),
 
-            _buildSectionTitle(theme, 'Permessi'),
+            _buildSectionTitle(theme, 'event_settings.permissions'.tr()),
             _buildSwitchTile(
               theme: theme,
-              title: 'Consenti Ospiti',
-              subtitle: 'I partecipanti possono invitare ospiti',
+              title: 'event_settings.allow_guests'.tr(),
+              subtitle: 'event_settings.allow_guests_subtitle'.tr(),
               value: _allowGuests,
               onChanged: (val) => setState(() => _allowGuests = val),
             ),
@@ -272,10 +321,35 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
 
             _buildSwitchTile(
               theme: theme,
-              title: 'Ingresso Tardivo Consentito',
+              title: 'event_settings.late_entry'.tr(),
               value: _lateEntryAllowed,
               onChanged: (val) => setState(() => _lateEntryAllowed = val),
             ),
+            const SizedBox(height: 32),
+
+            _buildSectionTitle(theme, 'event_settings.danger_zone'.tr()),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.errorContainer.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.error.withOpacity(0.5),
+                ),
+              ),
+              child: ListTile(
+                leading: Icon(Icons.archive, color: theme.colorScheme.error),
+                title: Text(
+                  'event_settings.archive_event'.tr(),
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text('event_settings.archive_subtitle'.tr()),
+                onTap: _archiveEvent,
+              ),
+            ),
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -369,7 +443,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
                   Text(
                     value != null
                         ? '${value.day}/${value.month}/${value.year} ${value.hour}:${value.minute.toString().padLeft(2, '0')}'
-                        : 'Non impostato',
+                        : 'event_settings.not_set'.tr(),
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],

@@ -3,6 +3,7 @@ import 'package:fester/screens/create_event/staff_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 import 'create_menu_screen.dart';
@@ -62,7 +63,7 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
   Future<void> _createEvent() async {
     if (_eventName == null || _startDate == null || _startTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Compila i campi obbligatori')),
+        SnackBar(content: Text('create_event.complete_fields'.tr())),
       );
       return;
     }
@@ -128,8 +129,8 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
             menuDescription = _menuDescription;
           } else {
             // Menu vuoto di default
-            menuName = 'Menu di $_eventName';
-            menuDescription = 'Menu principale per $_eventName';
+            menuName = 'create_event.menu_title'.tr().replaceAll('{}', _eventName!);
+            menuDescription = 'create_event.menu_description'.tr().replaceAll('{}', _eventName!);
           }
 
           // Crea il menu associato all'evento
@@ -201,7 +202,7 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
                   .maybeSingle();
 
           if (roleResponse == null) {
-            debugPrint('Role $dbRoleName not found');
+            debugPrint('create_event.role_not_found'.tr().replaceAll('{}', dbRoleName));
             continue;
           }
 
@@ -213,13 +214,13 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
             'assigned_by': Supabase.instance.client.auth.currentUser?.id,
           });
         } catch (e) {
-          debugPrint('Error assigning staff ${member.mail}: $e');
+          debugPrint('create_event.staff_assign_error'.tr().replaceAll('{}', member.mail.toString()).replaceAll('{}', e.toString()));
         }
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Evento creato con successo!')),
+          SnackBar(content: Text('create_event.event_created_success'.tr())),
         );
         // Torna alla schermata di selezione eventi e ricarica
         Navigator.pushAndRemoveUntil(
@@ -230,9 +231,9 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('create_event.error'.tr().replaceAll('{}', e.toString()))),
+        );
       }
     }
   }
@@ -251,7 +252,7 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'FESTER 3.0',
+          'create_event.app_title'.tr(),
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.onSurface,
@@ -381,7 +382,7 @@ class _Step1BasicInfo extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'ORGANIZZA LA TUA FESTA!',
+            'create_event.organize_party'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
@@ -391,7 +392,7 @@ class _Step1BasicInfo extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           Text(
-            'CREA LA TUA FESTA!',
+            'create_event.create_party'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
@@ -400,16 +401,16 @@ class _Step1BasicInfo extends StatelessWidget {
           const SizedBox(height: 32),
 
           _InputField(
-            label: 'NOME EVENTO',
-            hint: 'Es: Festa di Capodanno 2025',
+            label: 'create_event.event_name_label'.tr(),
+            hint: 'create_event.event_name_hint'.tr(),
             initialValue: eventName,
             onChanged: onNameChanged,
           ),
           const SizedBox(height: 16),
 
           _InputField(
-            label: 'Descrizione',
-            hint: 'Descrivi il tuo evento...',
+            label: 'create_event.description_label'.tr(),
+            hint: 'create_event.description_hint'.tr(),
             initialValue: description,
             onChanged: onDescriptionChanged,
             maxLines: 4,
@@ -419,14 +420,14 @@ class _Step1BasicInfo extends StatelessWidget {
           ElevatedButton(
             onPressed:
                 eventName != null && eventName!.isNotEmpty ? onNext : null,
-            child: const Text('Avanti'),
+            child: Text('create_event.next'.tr()),
           ),
           const SizedBox(height: 120),
 
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Indietro',
+              'create_event.back'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),
@@ -483,7 +484,7 @@ class _Step2DateTime extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'ORGANIZZA LA TUA FESTA!',
+            'create_event.organize_party'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
@@ -493,7 +494,7 @@ class _Step2DateTime extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           Text(
-            'DICHIARAZIONE DI RESPONSABILITA\'',
+            'create_event.disclaimer_title'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
@@ -502,7 +503,7 @@ class _Step2DateTime extends StatelessWidget {
           const SizedBox(height: 32),
 
           _DateTimeField(
-            label: 'Data e Ora evento',
+            label: 'create_event.date_time_label'.tr(),
             date: startDate,
             time: startTime,
             onDateChanged: onStartDateChanged,
@@ -532,14 +533,14 @@ class _Step2DateTime extends StatelessWidget {
 
           ElevatedButton(
             onPressed: canProceed ? onNext : null,
-            child: const Text('Avanti'),
+            child: Text('create_event.next'.tr()),
           ),
           const SizedBox(height: 16),
 
           TextButton(
             onPressed: onBack,
             child: Text(
-              'Indietro',
+              'create_event.back'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),
@@ -589,7 +590,7 @@ class _Step3StaffState extends State<_Step3Staff> {
       final userId = supabase.auth.currentUser?.id;
 
       if (userId == null) {
-        throw Exception('Utente non autenticato');
+        throw Exception('create_event.user_not_authenticated'.tr());
       }
 
       setState(() {
@@ -600,8 +601,8 @@ class _Step3StaffState extends State<_Step3Staff> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Errore nel caricamento del link di invito'),
+          SnackBar(
+            content: Text('create_event.invite_link_load_error'.tr()),
           ),
         );
       }
@@ -629,7 +630,7 @@ class _Step3StaffState extends State<_Step3Staff> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'ORGANIZZA LA TUA FESTA!',
+            'create_event.organize_party'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
@@ -639,7 +640,7 @@ class _Step3StaffState extends State<_Step3Staff> {
           ),
           const SizedBox(height: 32),
           Text(
-            'GESTISCI LO STAFF',
+            'create_event.manage_staff'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
@@ -662,7 +663,7 @@ class _Step3StaffState extends State<_Step3Staff> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Link di invito Staff',
+                    'create_event.staff_invite_link'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -684,7 +685,7 @@ class _Step3StaffState extends State<_Step3Staff> {
                             ),
                           ),
                           child: SelectableText(
-                            _inviteLink ?? 'Nessun link disponibile',
+                            _inviteLink ?? 'create_event.no_link_available'.tr(),
                             style: theme.textTheme.bodyMedium,
                           ),
                         ),
@@ -693,7 +694,7 @@ class _Step3StaffState extends State<_Step3Staff> {
                           onPressed:
                               _inviteLink != null ? _copyInviteLink : null,
                           icon: const Icon(Icons.copy, size: 18),
-                          label: const Text('Copia link'),
+                          label: Text('create_event.copy_link'.tr()),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -733,7 +734,7 @@ class _Step3StaffState extends State<_Step3Staff> {
               color: theme.colorScheme.primary,
             ),
             label: Text(
-              'Aggiungi manualmente staff',
+              'create_event.add_staff_manually'.tr(),
               style: TextStyle(color: theme.colorScheme.onSurface),
             ),
             style: OutlinedButton.styleFrom(
@@ -747,13 +748,13 @@ class _Step3StaffState extends State<_Step3Staff> {
           ),
           const SizedBox(height: 32),
 
-          ElevatedButton(onPressed: widget.onNext, child: const Text('Avanti')),
+          ElevatedButton(onPressed: widget.onNext, child: Text('create_event.next'.tr())),
           const SizedBox(height: 16),
 
           TextButton(
             onPressed: widget.onBack,
             child: Text(
-              'Indietro',
+              'create_event.back'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),
@@ -810,7 +811,7 @@ class _Step4Settings extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'ORGANIZZA LA TUA FESTA!',
+            'create_event.organize_party'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
@@ -820,7 +821,7 @@ class _Step4Settings extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           Text(
-            'Personalizza la tua festa!',
+            'create_event.customize_party'.tr(),
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
@@ -919,14 +920,14 @@ class _Step4Settings extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Crea Evento', style: TextStyle(fontSize: 16)),
+            child: Text('create_event.create_event'.tr(), style: TextStyle(fontSize: 16)),
           ),
           const SizedBox(height: 16),
 
           TextButton(
             onPressed: onBack,
             child: Text(
-              'Indietro',
+              'create_event.back'.tr(),
               style: TextStyle(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
                 fontSize: 16,
@@ -1099,7 +1100,7 @@ class _DateTimeField extends StatelessWidget {
                   child: Text(
                     date != null
                         ? '${date!.day}/${date!.month}/${date!.year}'
-                        : 'Seleziona data',
+                        : 'create_event.select_date'.tr(),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color:
                           date != null
@@ -1145,7 +1146,7 @@ class _DateTimeField extends StatelessWidget {
                   child: Text(
                     time != null
                         ? '${time!.hour.toString().padLeft(2, '0')}:${time!.minute.toString().padLeft(2, '0')}'
-                        : 'Seleziona ora',
+                        : 'create_event.select_time'.tr(),
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color:
                           time != null

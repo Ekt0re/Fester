@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'register_step2_page.dart';
 
 class RegisterStep1Page extends StatefulWidget {
@@ -111,7 +112,7 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'ORGANIZZA LA TUA FESTA!',
+                          'register.subtitle'.tr(),
                           style: theme.textTheme.bodySmall?.copyWith(
                             letterSpacing: 1.2,
                             color: theme.colorScheme.onSurface.withOpacity(0.6),
@@ -121,7 +122,7 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Registrati - Step 1/3',
+                            'register.step1_title'.tr(),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -131,13 +132,13 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                         TextFormField(
                           controller: _nameController,
                           style: theme.textTheme.bodyLarge,
-                          decoration: const InputDecoration(
-                            labelText: 'Nome',
-                            prefixIcon: Icon(Icons.person_outline),
+                          decoration: InputDecoration(
+                            labelText: 'register.first_name_label'.tr(),
+                            prefixIcon: const Icon(Icons.person_outline),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Inserisci il tuo nome';
+                              return 'register.first_name_error'.tr();
                             }
                             return null;
                           },
@@ -146,13 +147,13 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                         TextFormField(
                           controller: _surnameController,
                           style: theme.textTheme.bodyLarge,
-                          decoration: const InputDecoration(
-                            labelText: 'Cognome',
-                            prefixIcon: Icon(Icons.person_outline),
+                          decoration: InputDecoration(
+                            labelText: 'register.last_name_label'.tr(),
+                            prefixIcon: const Icon(Icons.person_outline),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Inserisci il tuo cognome';
+                              return 'register.last_name_error'.tr();
                             }
                             return null;
                           },
@@ -176,7 +177,7 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                               children: [
                                 Text(
                                   _selectedDate == null
-                                      ? 'Data di nascita'
+                                      ? 'register.dob_label'.tr()
                                       : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                                   style: theme.textTheme.bodyLarge?.copyWith(
                                     color:
@@ -187,7 +188,9 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                                 ),
                                 Icon(
                                   Icons.calendar_today,
-                                  color: theme.iconTheme.color?.withOpacity(0.6),
+                                  color: theme.iconTheme.color?.withOpacity(
+                                    0.6,
+                                  ),
                                   size: 20,
                                 ),
                               ],
@@ -200,7 +203,7 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                           height: 50,
                           child: ElevatedButton(
                             onPressed: _goToNextStep,
-                            child: const Text('Avanti >'),
+                            child: Text('register.next_button'.tr()),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -219,7 +222,7 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('ACCEDI'),
+                            child: Text('register.login_button'.tr()),
                           ),
                         ),
                       ],

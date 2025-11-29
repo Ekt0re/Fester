@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/staff_user_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../theme/app_theme.dart';
 
 class StaffProfileScreen extends StatefulWidget {
@@ -73,7 +74,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossibile aprire il link')),
+          SnackBar(content: Text('person_profile.launch_error'.tr())),
         );
       }
     }
@@ -83,7 +84,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
     if (_currentStaff.staffUserId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Errore: ID staff mancante')),
+          SnackBar(content: Text('${'settings.error_prefix'.tr()} ID staff mancante')),
         );
       }
       return;
@@ -107,19 +108,19 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Rimuovi Staff'),
+            title: Text('staff.remove_title'.tr()),
             content: Text(
               'Sei sicuro di voler rimuovere ${_currentStaff.staff?.firstName} dallo staff?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annulla'),
+                child: Text('settings.reset_dialog.cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Rimuovi'),
+                child: Text('staff.remove_confirm'.tr()),
               ),
             ],
           ),
@@ -139,7 +140,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Errore rimozione staff: $e')));
+          ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} rimozione staff: $e')));
           setState(() => _isLoading = false);
         }
       }
@@ -206,7 +207,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Immagine profilo aggiornata!')),
+        SnackBar(content: Text('staff.image_updated'.tr())),
       );
     } catch (e, stackTrace) {
       debugPrint('[ERROR] _uploadProfileImage: $e');
@@ -697,185 +698,445 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    // Avatar
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          key: ValueKey(staffUser?.imagePath ?? 'default'),
-                          radius: 60,
-                          backgroundColor: theme.colorScheme.primary
-                              .withOpacity(0.1),
-                          backgroundImage:
-                              (staffUser?.imagePath != null &&
-                                      staffUser!.imagePath!.isNotEmpty)
-                                  ? NetworkImage(staffUser.imagePath!)
-                                      as ImageProvider
-                                  : null,
-                          child:
-                              (staffUser?.imagePath == null ||
-                                      staffUser!.imagePath!.isEmpty)
-                                  ? Text(
-                                    (staffUser?.firstName ?? '?')[0]
-                                        .toUpperCase(),
+              : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isDesktop = constraints.maxWidth > 900;
+
+                  if (isDesktop) {
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(32),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left Column: Profile Card
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: theme.cardTheme.color,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: theme.colorScheme.outline.withOpacity(
+                                    0.2,
+                                  ),
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  // Avatar
+                                  Stack(
+                                    children: [
+                                      CircleAvatar(
+                                        key: ValueKey(
+                                          staffUser?.imagePath ?? 'default',
+                                        ),
+                                        radius: 80,
+                                        backgroundColor: theme
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.1),
+                                        backgroundImage:
+                                            (staffUser?.imagePath != null &&
+                                                    staffUser!
+                                                        .imagePath!
+                                                        .isNotEmpty)
+                                                ? NetworkImage(
+                                                      staffUser.imagePath!,
+                                                    )
+                                                    as ImageProvider
+                                                : null,
+                                        child:
+                                            (staffUser?.imagePath == null ||
+                                                    staffUser!
+                                                        .imagePath!
+                                                        .isEmpty)
+                                                ? Text(
+                                                  (staffUser?.firstName ??
+                                                          '?')[0]
+                                                      .toUpperCase(),
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 60,
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        theme
+                                                            .colorScheme
+                                                            .primary,
+                                                  ),
+                                                )
+                                                : null,
+                                      ),
+                                      if (_isMe)
+                                        Positioned(
+                                          bottom: 0,
+                                          right: 0,
+                                          child: InkWell(
+                                            onTap:
+                                                _isMe
+                                                    ? _uploadProfileImage
+                                                    : null,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color:
+                                                      theme
+                                                          .scaffoldBackgroundColor,
+                                                  width: 3,
+                                                ),
+                                              ),
+                                              child: const Icon(
+                                                Icons.camera_alt,
+                                                color: Colors.white,
+                                                size: 24,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 32),
+
+                                  // Name & Role
+                                  Text(
+                                    '${staffUser?.firstName} ${staffUser?.lastName}',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 40,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.textTheme.bodyLarge?.color,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary
+                                          .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: InkWell(
+                                      onTap:
+                                          _canEdit && !_isMe ? _editRole : null,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            AppTheme.roleIcons[roleName
+                                                    .toLowerCase()] ??
+                                                Icons.badge,
+                                            size: 20,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            roleName.toUpperCase(),
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                          ),
+                                          if (_canEdit && !_isMe) ...[
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.edit,
+                                              size: 16,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 48),
+                          // Right Column: Details
+                          Expanded(
+                            flex: 2,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'staff_profile.contact_details'.tr(),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                _buildInfoRow(
+                                  'staff_profile.email'.tr(),
+                                  staffUser?.email ?? 'N/A',
+                                  Icons.email_outlined,
+                                  theme,
+                                ),
+                                _buildInfoRow(
+                                  'staff_profile.phone'.tr(),
+                                  staffUser?.phone ?? 'N/A',
+                                  Icons.phone_outlined,
+                                  theme,
+                                ),
+                                _buildInfoRow(
+                                  'staff_profile.date_of_birth'.tr(),
+                                  staffUser?.dateOfBirth != null
+                                      ? '${staffUser!.dateOfBirth!.day}/${staffUser.dateOfBirth!.month}/${staffUser.dateOfBirth!.year}'
+                                      : 'N/A',
+                                  Icons.cake_outlined,
+                                  theme,
+                                ),
+                                _buildInfoRow(
+                                  'staff_profile.member_since'.tr(),
+                                  '${_currentStaff.createdAt.day}/${_currentStaff.createdAt.month}/${_currentStaff.createdAt.year}',
+                                  Icons.calendar_today_outlined,
+                                  theme,
+                                ),
+                                const SizedBox(height: 32),
+                                if (_isMe) ...[
+                                  Text(
+                                    'staff_profile.actions'.tr(),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.textTheme.bodyLarge?.color,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: _editProfile,
+                                      icon: const Icon(Icons.edit),
+                                      label: Text('staff_profile.edit_profile'.tr()),
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    // Mobile Layout
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          // Avatar
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                key: ValueKey(
+                                  staffUser?.imagePath ?? 'default',
+                                ),
+                                radius: 60,
+                                backgroundColor: theme.colorScheme.primary
+                                    .withOpacity(0.1),
+                                backgroundImage:
+                                    (staffUser?.imagePath != null &&
+                                            staffUser!.imagePath!.isNotEmpty)
+                                        ? NetworkImage(staffUser.imagePath!)
+                                            as ImageProvider
+                                        : null,
+                                child:
+                                    (staffUser?.imagePath == null ||
+                                            staffUser!.imagePath!.isEmpty)
+                                        ? Text(
+                                          (staffUser?.firstName ?? '?')[0]
+                                              .toUpperCase(),
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                        )
+                                        : null,
+                              ),
+                              if (_isMe)
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: InkWell(
+                                    onTap: _isMe ? _uploadProfileImage : null,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.primary,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: theme.scaffoldBackgroundColor,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Name & Role
+                          Text(
+                            '${staffUser?.firstName} ${staffUser?.lastName}',
+                            style: GoogleFonts.outfit(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: theme.textTheme.bodyLarge?.color,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: InkWell(
+                              onTap: _canEdit && !_isMe ? _editRole : null,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    AppTheme.roleIcons[roleName
+                                            .toLowerCase()] ??
+                                        Icons.badge,
+                                    size: 16,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    roleName.toUpperCase(),
+                                    style: GoogleFonts.outfit(
                                       fontWeight: FontWeight.bold,
                                       color: theme.colorScheme.primary,
                                     ),
-                                  )
-                                  : null,
-                        ),
-                        if (_isMe)
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: InkWell(
-                              onTap: _isMe ? _uploadProfileImage : null,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: theme.scaffoldBackgroundColor,
-                                    width: 2,
                                   ),
-                                ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                                  if (_canEdit && !_isMe) ...[
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.edit,
+                                      size: 14,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+                          const SizedBox(height: 32),
 
-                    // Name & Role
-                    Text(
-                      '${staffUser?.firstName} ${staffUser?.lastName}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: theme.textTheme.bodyLarge?.color,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: InkWell(
-                        onTap: _canEdit && !_isMe ? _editRole : null,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              AppTheme.roleIcons[roleName.toLowerCase()] ??
-                                  Icons.badge,
-                              size: 16,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              roleName.toUpperCase(),
-                              style: GoogleFonts.outfit(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                            if (_canEdit && !_isMe) ...[
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.edit,
-                                size: 14,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Details
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: theme.cardTheme.color,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
+                          // Info Cards
                           _buildInfoRow(
-                            'Email',
-                            staffUser?.email ?? 'N/D',
+                            'staff_profile.email'.tr(),
+                            staffUser?.email ?? 'N/A',
                             Icons.email_outlined,
                             theme,
                           ),
-                          if (staffUser?.phone != null)
-                            _buildInfoRow(
-                              'Telefono',
-                              staffUser!.phone!,
-                              Icons.phone_outlined,
-                              theme,
+                          _buildInfoRow(
+                            'staff_profile.phone'.tr(),
+                            staffUser?.phone ?? 'N/A',
+                            Icons.phone_outlined,
+                            theme,
+                          ),
+                          _buildInfoRow(
+                            'staff_profile.date_of_birth'.tr(),
+                            staffUser?.dateOfBirth != null
+                                ? '${staffUser!.dateOfBirth!.day}/${staffUser.dateOfBirth!.month}/${staffUser.dateOfBirth!.year}'
+                                : 'N/A',
+                            Icons.cake_outlined,
+                            theme,
+                          ),
+                          _buildInfoRow(
+                            'staff_profile.member_since'.tr(),
+                            '${_currentStaff.createdAt.day}/${_currentStaff.createdAt.month}/${_currentStaff.createdAt.year}',
+                            Icons.calendar_today_outlined,
+                            theme,
+                          ),
+
+                          const SizedBox(height: 32),
+                          if (_isMe) ...[
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _deleteAccount,
+                                icon: const Icon(Icons.delete_forever),
+                                label: Text('staff_profile.delete_account'.tr()),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
                             ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // Contact Actions
+                          if (staffUser?.email != null)
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed:
+                                    () => _launchUrl(
+                                      'mailto:${staffUser!.email}',
+                                    ),
+                                icon: const Icon(Icons.mail),
+                                label: Text('staff_profile.send_email'.tr()),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (staffUser?.phone != null) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed:
+                                    () => _launchUrl('tel:${staffUser!.phone}'),
+                                icon: const Icon(Icons.phone),
+                                label: Text('staff_profile.call'.tr()),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Actions
-                    if (staffUser?.email != null)
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed:
-                              () => _launchUrl('mailto:${staffUser!.email}'),
-                          icon: const Icon(Icons.mail),
-                          label: const Text('INVIA EMAIL'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                        ),
-                      ),
-                    if (staffUser?.phone != null) ...[
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed:
-                              () => _launchUrl('tel:${staffUser!.phone}'),
-                          icon: const Icon(Icons.phone),
-                          label: const Text('CHIAMA'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                    );
+                  }
+                },
               ),
     );
   }

@@ -27,6 +27,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
   final _menuDescriptionController = TextEditingController();
 
   final List<MenuItemData> _menuItems = [];
+  List<Map<String, dynamic>> _transactionTypes = [];
   final Set<String> _expandedItems = {}; // Item espansi
   final Set<String> _confirmedItems = {}; // Item confermati (collassati)
   bool _isLoading = false;
@@ -35,6 +36,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
   void initState() {
     super.initState();
     _initializeData();
+    _loadTransactionTypes();
   }
 
   void _initializeData() {
@@ -55,6 +57,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                 description: item['description'] as String?,
                 price: (item['price'] as num?)?.toDouble(),
                 availableQuantity: item['available_quantity'] as int?,
+                isAlcoholic: item['is_alcoholic'] as bool? ?? false,
               );
             }).toList();
 
@@ -67,6 +70,29 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
     } else {
       // Altrimenti proviamo a caricare dal DB se c'è un eventId
       _loadExistingMenu();
+    }
+  }
+
+  Future<void> _loadTransactionTypes() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('transaction_type')
+          .select()
+          .order('id', ascending: true);
+      setState(() {
+        _transactionTypes = List<Map<String, dynamic>>.from(response);
+      });
+    } catch (e) {
+      debugPrint('Error loading transaction types: $e');
+      // Fallback to hardcoded values
+      setState(() {
+        _transactionTypes = [
+          {'id': 1, 'name': 'Bevanda'},
+          {'id': 2, 'name': 'Cibo'},
+          {'id': 3, 'name': 'Biglietto'},
+          {'id': 4, 'name': 'Extra'},
+        ];
+      });
     }
   }
 
@@ -107,12 +133,14 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
         final items =
             (itemsResponse as List).map((item) {
               return MenuItemData(
+                id: item['id'] as String?,
                 tempId: item['id'] as String,
                 transactionTypeId: item['transaction_type_id'] as int,
                 name: item['name'] as String,
                 description: item['description'] as String?,
                 price: (item['price'] as num).toDouble(),
                 availableQuantity: item['available_quantity'] as int?,
+                isAlcoholic: item['is_alcoholic'] as bool? ?? false,
               );
             }).toList();
 
@@ -206,6 +234,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                 item.description?.isEmpty ?? true ? null : item.description,
             'price': item.price!,
             'available_quantity': item.availableQuantity,
+            'is_alcoholic': item.isAlcoholic,
           };
         }).toList();
 
@@ -359,6 +388,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                           index: index,
                           isExpanded: isExpanded,
                           isConfirmed: isConfirmed,
+                          transactionTypes: _transactionTypes,
                           onRemove: () => _removeMenuItem(index),
                           onChanged: () => setState(() {}),
                           onConfirm: () => _confirmMenuItem(item.tempId),
@@ -442,6 +472,7 @@ class _MenuItemCard extends StatefulWidget {
   final int index;
   final bool isExpanded;
   final bool isConfirmed;
+  final List<Map<String, dynamic>> transactionTypes;
   final VoidCallback onRemove;
   final VoidCallback onChanged;
   final VoidCallback onConfirm;
@@ -452,6 +483,7 @@ class _MenuItemCard extends StatefulWidget {
     required this.index,
     required this.isExpanded,
     required this.isConfirmed,
+    required this.transactionTypes,
     required this.onRemove,
     required this.onChanged,
     required this.onConfirm,
@@ -573,6 +605,36 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                         ),
                       ),
                     const SizedBox(width: 8),
+                    if (widget.item.isAlcoholic)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.local_bar,
+                              size: 12,
+                              color: Colors.orange.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Alcolico',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.orange.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(width: 8),
                     Icon(
                       Icons.edit_outlined,
                       size: 20,
@@ -605,18 +667,46 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                     theme: theme,
                     label: 'Tipo',
                     value: widget.item.transactionTypeId,
-                    items: const [
-                      {'id': 1, 'name': 'Bevanda'},
-                      {'id': 2, 'name': 'Cibo'},
-                      {'id': 3, 'name': 'Biglietto'},
-                      {'id': 4, 'name': 'Extra'},
-                    ],
+                    items: widget.transactionTypes,
                     onChanged: (value) {
                       widget.item.transactionTypeId = value;
+                      // Reset alcoholic flag if not a drink
+                      if (value != 1) {
+                        widget.item.isAlcoholic = false;
+                      }
                       widget.onChanged();
                     },
                   ),
                   const SizedBox(height: 12),
+
+                  // Alcoholic toggle (solo per bevande)
+                  if (widget.item.transactionTypeId == 1)
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Row(
+                        children: [
+                          Icon(
+                            Icons.local_bar,
+                            size: 20,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Contiene Alcol',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      value: widget.item.isAlcoholic,
+                      onChanged: (value) {
+                        widget.item.isAlcoholic = value;
+                        widget.onChanged();
+                      },
+                    ),
+                  if (widget.item.transactionTypeId == 1)
+                    const SizedBox(height: 12),
 
                   // Nome
                   _buildItemTextField(
@@ -834,17 +924,17 @@ class _PriceTextField extends StatefulWidget {
 }
 
 class _PriceTextFieldState extends State<_PriceTextField> {
-  late final TextEditingController _controller;
+  late TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    // Inizializza con il valore formattato con la virgola
-    final initialText =
-        widget.initialValue != null
-            ? widget.initialValue!.toStringAsFixed(2).replaceAll('.', ',')
-            : '';
-    _controller = TextEditingController(text: initialText);
+    _controller = TextEditingController(
+      text:
+          widget.initialValue != null
+              ? widget.initialValue!.toStringAsFixed(2).replaceAll('.', ',')
+              : '',
+    );
   }
 
   @override
@@ -877,15 +967,13 @@ class _PriceTextFieldState extends State<_PriceTextField> {
             controller: _controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
-              // Permetti solo numeri, virgola e punto
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*[,.]?\d{0,2}')),
             ],
             style: widget.theme.textTheme.bodyLarge,
             onChanged: (value) {
               if (value.isEmpty) {
                 widget.onChanged(null);
               } else {
-                // Normalizza: sostituisci virgola con punto per il parsing
                 final normalized = value.replaceAll(',', '.');
                 final parsed = double.tryParse(normalized);
                 widget.onChanged(parsed);
@@ -908,20 +996,24 @@ class _PriceTextFieldState extends State<_PriceTextField> {
 
 // Classe per gestire i dati temporanei degli item
 class MenuItemData {
+  String? id;
   final String tempId;
   int? transactionTypeId;
   String? name;
   String? description;
   double? price;
   int? availableQuantity;
+  bool isAlcoholic;
 
   MenuItemData({
+    this.id,
     required this.tempId,
     this.transactionTypeId,
     this.name,
     this.description,
     this.price,
     this.availableQuantity,
+    this.isAlcoholic = false,
   });
 
   bool isValid() {

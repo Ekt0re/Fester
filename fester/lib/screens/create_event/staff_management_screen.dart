@@ -1,5 +1,6 @@
 import 'package:fester/services/SupabaseServicies/models/event_staff.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class StaffManagementScreen extends StatefulWidget {
   final List<EventStaff> initialStaff;
@@ -69,11 +70,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
   void _addNewMember() {
     final newId = DateTime.now().millisecondsSinceEpoch.toString();
     setState(() {
-      _staffList.add(StaffMemberUI(
-        id: newId,
-        email: '',
-        role: 'Staff1',
-      ));
+      _staffList.add(StaffMemberUI(id: newId, email: '', role: 'Staff1'));
       _expandedItems.add(newId);
     });
   }
@@ -106,16 +103,17 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
   }
 
   void _notifyParent() {
-    final List<EventStaff> eventStaffList = _staffList.map((uiMember) {
-      return EventStaff(
-        id: uiMember.id, // ID temporaneo per i nuovi, reale per esistenti
-        eventId: '', // Sarà impostato dal parent o al salvataggio
-        staffUserId: null, // Gestito dal trigger DB
-        roleId: _mapRoleNameToRoleId(uiMember.role),
-        mail: uiMember.email,
-        createdAt: DateTime.now(),
-      );
-    }).toList();
+    final List<EventStaff> eventStaffList =
+        _staffList.map((uiMember) {
+          return EventStaff(
+            id: uiMember.id, // ID temporaneo per i nuovi, reale per esistenti
+            eventId: '', // Sarà impostato dal parent o al salvataggio
+            staffUserId: null, // Gestito dal trigger DB
+            roleId: _mapRoleNameToRoleId(uiMember.role),
+            mail: uiMember.email,
+            createdAt: DateTime.now(),
+          );
+        }).toList();
     widget.onStaffUpdated(eventStaffList);
   }
 
@@ -142,14 +140,16 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Gestione Staff',
+                    'staff.management_title'.tr(),
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.onSurface,
                     ),
                   ),
                   Text(
-                    '${_staffList.length} Membri',
+                    'staff.members_count'.tr(
+                      args: [_staffList.length.toString()],
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.6),
                     ),
@@ -164,7 +164,8 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _staffList.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  separatorBuilder:
+                      (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final member = _staffList[index];
                     return _StaffMemberCard(
@@ -205,16 +206,20 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.people_outline, size: 48, color: theme.colorScheme.onSurface.withOpacity(0.3)),
+            Icon(
+              Icons.people_outline,
+              size: 48,
+              color: theme.colorScheme.onSurface.withOpacity(0.3),
+            ),
             const SizedBox(height: 12),
             Text(
-              'Nessun membro dello staff',
+              'staff.empty_title'.tr(),
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
             Text(
-              'Aggiungi persone per gestire l\'evento',
+              'staff.empty_subtitle'.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.4),
               ),
@@ -242,7 +247,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
             Icon(Icons.add, color: theme.colorScheme.primary),
             const SizedBox(width: 8),
             Text(
-              'Aggiungi Membro',
+              'staff.add_member'.tr(),
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -261,13 +266,11 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         minimumSize: const Size(double.infinity, 50),
       ),
       child: Text(
-        'Conferma',
+        'staff.confirm'.tr(),
         style: theme.textTheme.titleMedium?.copyWith(
           color: Colors.white,
           fontWeight: FontWeight.w600,
@@ -354,9 +357,10 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isConfirmed
-              ? theme.colorScheme.primary.withOpacity(0.5)
-              : theme.colorScheme.outline.withOpacity(0.1),
+          color:
+              isConfirmed
+                  ? theme.colorScheme.primary.withOpacity(0.5)
+                  : theme.colorScheme.outline.withOpacity(0.1),
         ),
       ),
       child: Column(
@@ -375,14 +379,18 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isConfirmed
-                          ? theme.colorScheme.primary.withOpacity(0.2)
-                          : theme.colorScheme.surface,
+                      color:
+                          isConfirmed
+                              ? theme.colorScheme.primary.withOpacity(0.2)
+                              : theme.colorScheme.surface,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.person_outline,
-                      color: isConfirmed ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                      color:
+                          isConfirmed
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurface,
                       size: 20,
                     ),
                   ),
@@ -393,7 +401,7 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
                       children: [
                         Text(
                           widget.member.email.isEmpty
-                              ? 'Nuovo Membro'
+                              ? 'staff.new_member'.tr()
                               : widget.member.email,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.onSurface,
@@ -411,8 +419,10 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete_outline,
-                        color: theme.colorScheme.error),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      color: theme.colorScheme.error,
+                    ),
                     onPressed: widget.onDelete,
                   ),
                   Icon(
@@ -431,7 +441,9 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: theme.colorScheme.outline.withOpacity(0.1)),
+                  top: BorderSide(
+                    color: theme.colorScheme.outline.withOpacity(0.1),
+                  ),
                 ),
               ),
               child: Form(
@@ -442,15 +454,15 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
                     _buildTextField(
                       theme: theme,
                       controller: _emailController,
-                      label: 'Email Staff',
-                      hint: 'Inserisci email',
+                      label: 'staff.email_label'.tr(),
+                      hint: 'staff.email_hint'.tr(),
                       icon: Icons.email_outlined,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Email richiesta';
+                          return 'staff.email_required'.tr();
                         }
                         if (!value.contains('@')) {
-                          return 'Email non valida';
+                          return 'staff.email_invalid'.tr();
                         }
                         return null;
                       },
@@ -470,7 +482,7 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
                           ),
                         ),
                         child: Text(
-                          'Conferma',
+                          'staff.confirm'.tr(),
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
@@ -508,12 +520,19 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.3)),
-            prefixIcon: Icon(icon, color: theme.colorScheme.onSurface.withOpacity(0.6)),
+            hintStyle: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.3),
+            ),
+            prefixIcon: Icon(
+              icon,
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
+            ),
             filled: true,
             fillColor: theme.colorScheme.surface,
             border: OutlineInputBorder(
@@ -543,7 +562,7 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Ruolo',
+          'staff.role_label'.tr(),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurface.withOpacity(0.7),
             fontWeight: FontWeight.w500,
@@ -561,26 +580,35 @@ class _StaffMemberCardState extends State<_StaffMemberCard> {
               value: _selectedRole,
               dropdownColor: theme.cardTheme.color,
               isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down, color: theme.colorScheme.onSurface.withOpacity(0.6)),
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface),
-              items: ['Staff1', 'Staff2', 'Staff3'].map((String role) {
-                return DropdownMenuItem<String>(
-                  value: role,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.badge_outlined,
-                        size: 18,
-                        color: _selectedRole == role
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface.withOpacity(0.6),
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+              items:
+                  ['Staff1', 'Staff2', 'Staff3'].map((String role) {
+                    return DropdownMenuItem<String>(
+                      value: role,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.badge_outlined,
+                            size: 18,
+                            color:
+                                _selectedRole == role
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurface.withOpacity(
+                                      0.6,
+                                    ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(role),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      Text(role),
-                    ],
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
                   setState(() {

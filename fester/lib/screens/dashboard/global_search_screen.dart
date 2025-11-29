@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -33,6 +34,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   String _searchQuery = '';
   bool _showStaff = true;
   bool _showGuests = true;
+  int? _selectedStatusId;
+  int? _selectedRoleId;
+  List<Map<String, dynamic>> _roles = [];
   Timer? _debounce;
 
   @override
@@ -71,6 +75,17 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         debugPrint('Error loading statuses: $e');
       }
 
+      // Load roles
+      try {
+        final rolesResponse = await Supabase.instance.client
+            .from('role')
+            .select()
+            .order('id');
+        _roles = List<Map<String, dynamic>>.from(rolesResponse);
+      } catch (e) {
+        debugPrint('Error loading roles: $e');
+      }
+
       // Load staff
       try {
         final staffList = await _eventService.getEventStaff(widget.eventId);
@@ -102,7 +117,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         for (final p in participants) {
           final person = p['person'];
           final status = p['status'];
-          // role variable removed to fix lint
 
           if (person != null) {
             results.add(
@@ -116,7 +130,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 imagePath: null,
                 type: SearchResultType.guest,
                 roleName: status?['name'] ?? 'Sconosciuto',
-                originalData: p, // Store the full participation object
+                originalData: p,
               ),
             );
           }
@@ -135,9 +149,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore caricamento: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'search.load_error'.tr()}$e')),
+        );
       }
     }
   }
@@ -154,6 +168,20 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             }
             if (!_showGuests && result.type == SearchResultType.guest) {
               return false;
+            }
+
+            // Filter by status (only for guests)
+            if (_selectedStatusId != null &&
+                result.type == SearchResultType.guest) {
+              final participation = result.originalData as Map<String, dynamic>;
+              if (participation['status_id'] != _selectedStatusId) return false;
+            }
+
+            // Filter by role (only for guests)
+            if (_selectedRoleId != null &&
+                result.type == SearchResultType.guest) {
+              final participation = result.originalData as Map<String, dynamic>;
+              if (participation['role_id'] != _selectedRoleId) return false;
             }
 
             // Filter by search query
@@ -180,7 +208,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         },
       );
     } else {
-      // For guests, originalData is the participation map. We need person_id.
       final participation = result.originalData as Map<String, dynamic>;
       final personId = participation['person_id'];
 
@@ -201,7 +228,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     String participationId,
     int currentStatusId,
   ) async {
-    // Logic: confirmed -> checked_in -> inside -> outside -> left -> confirmed
     final currentIndex = _statuses.indexWhere(
       (s) => s['id'] == currentStatusId,
     );
@@ -248,7 +274,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         newStatusId: newStatusId,
       );
 
-      // Update local state
       final index = _allResults.indexWhere(
         (r) =>
             r.type == SearchResultType.guest &&
@@ -260,12 +285,10 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         final oldData = oldResult.originalData as Map<String, dynamic>;
         final newStatus = _statuses.firstWhere((s) => s['id'] == newStatusId);
 
-        // Create updated participation map
         final updatedData = Map<String, dynamic>.from(oldData);
         updatedData['status_id'] = newStatusId;
         updatedData['status'] = newStatus;
 
-        // Create updated SearchResult
         final updatedResult = SearchResult(
           id: oldResult.id,
           name: oldResult.name,
@@ -280,14 +303,14 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
         if (mounted) {
           setState(() {
             _allResults[index] = updatedResult;
-            _filterList(_searchController.text); // Re-filter to update view
+            _filterList(_searchController.text);
           });
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore aggiornamento stato: $e')),
+          SnackBar(content: Text('${'search.status_update_error'.tr()}$e')),
         );
       }
     }
@@ -303,7 +326,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Seleziona Stato',
+                'search.select_status'.tr(),
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -349,9 +372,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               initialTransactionType: type,
               onSuccess: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Transazione creata con successo'),
-                  ),
+                  SnackBar(content: Text('search.transaction_success'.tr())),
                 );
               },
             ),
@@ -373,7 +394,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Ricerca Persone',
+          'search.title'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -381,131 +402,270 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Cerca per nome, email o telefono...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon:
-                    _searchQuery.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            _filterList('');
-                          },
-                        )
-                        : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: theme.colorScheme.surface,
-              ),
-            ),
-          ),
-
-          // Filters
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                FilterChip(
-                  label: const Text('Staff'),
-                  selected: _showStaff,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _showStaff = selected;
-                      _filterList(_searchQuery);
-                    });
-                  },
-                  avatar: Icon(
-                    Icons.badge,
-                    size: 18,
-                    color: _showStaff ? Colors.white : Colors.blue,
-                  ),
-                  selectedColor: Colors.blue,
-                  checkmarkColor: Colors.white,
-                ),
-                const SizedBox(width: 8),
-                FilterChip(
-                  label: const Text('Ospiti'),
-                  selected: _showGuests,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _showGuests = selected;
-                      _filterList(_searchQuery);
-                    });
-                  },
-                  avatar: Icon(
-                    Icons.person,
-                    size: 18,
-                    color: _showGuests ? Colors.white : Colors.green,
-                  ),
-                  selectedColor: Colors.green,
-                  checkmarkColor: Colors.white,
-                ),
-                const Spacer(),
-                Text(
-                  '${_filteredResults.length} risultati',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Results List
-          Expanded(
-            child:
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _filteredResults.isEmpty
-                    ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 64,
-                            color: theme.colorScheme.onSurface.withOpacity(0.3),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _searchQuery.isEmpty
-                                ? 'Nessuna persona trovata'
-                                : 'Nessun risultato per "$_searchQuery"',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.6,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 900;
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: InputDecoration(
+                              hintText: 'search.placeholder'.tr(),
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon:
+                                  _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                        icon: const Icon(Icons.clear),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          _filterList('');
+                                        },
+                                      )
+                                      : null,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
+                              filled: true,
+                              fillColor: theme.colorScheme.surface,
                             ),
                           ),
+                        ),
+                        if (isDesktop) ...[
+                          const SizedBox(width: 16),
+                          _buildFilterChip(
+                            label: 'search.staff'.tr(),
+                            selected: _showStaff,
+                            onSelected: (val) {
+                              // Impedisci di deselezionare entrambi i filtri
+                              if (!val && !_showGuests) return;
+                              setState(() {
+                                _showStaff = val;
+                                _filterList(_searchQuery);
+                              });
+                            },
+                            color: Colors.blue,
+                            icon: Icons.badge,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildFilterChip(
+                            label: 'search.guests'.tr(),
+                            selected: _showGuests,
+                            onSelected: (val) {
+                              // Impedisci di deselezionare entrambi i filtri
+                              if (!val && !_showStaff) return;
+                              setState(() {
+                                _showGuests = val;
+                                _filterList(_searchQuery);
+                              });
+                            },
+                            color: Colors.green,
+                            icon: Icons.person,
+                          ),
                         ],
-                      ),
-                    )
-                    : ListView.builder(
-                      itemCount: _filteredResults.length,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemBuilder: (context, index) {
-                        final result = _filteredResults[index];
-                        if (result.type == SearchResultType.guest) {
-                          return _buildGuestCard(result);
-                        } else {
-                          return _buildStaffCard(result, theme);
-                        }
-                      },
+                      ],
                     ),
-          ),
-        ],
+                    const SizedBox(height: 16),
+                    if (_showGuests)
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (!isDesktop) ...[
+                              _buildFilterChip(
+                                label: 'search.staff'.tr(),
+                                selected: _showStaff,
+                                onSelected: (val) {
+                                  // Impedisci di deselezionare entrambi i filtri
+                                  if (!val && !_showGuests) return;
+                                  setState(() {
+                                    _showStaff = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                                color: Colors.blue,
+                                icon: Icons.badge,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildFilterChip(
+                                label: 'search.guests'.tr(),
+                                selected: _showGuests,
+                                onSelected: (val) {
+                                  // Impedisci di deselezionare entrambi i filtri
+                                  if (!val && !_showStaff) return;
+                                  setState(() {
+                                    _showGuests = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                                color: Colors.green,
+                                icon: Icons.person,
+                              ),
+                              const SizedBox(width: 16),
+                            ],
+                            if (_statuses.isNotEmpty)
+                              _buildDropdownFilter(
+                                hint: 'search.all_statuses'.tr(),
+                                value: _selectedStatusId,
+                                items: _statuses,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedStatusId = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                              ),
+                            const SizedBox(width: 12),
+                            if (_roles.isNotEmpty)
+                              _buildDropdownFilter(
+                                hint: 'search.all_roles'.tr(),
+                                value: _selectedRoleId,
+                                items: _roles,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _selectedRoleId = val;
+                                    _filterList(_searchQuery);
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child:
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _filteredResults.isEmpty
+                        ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 64,
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.3,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _searchQuery.isEmpty
+                                    ? 'search.no_people_found'.tr()
+                                    : 'search.no_results'.tr(
+                                      args: [_searchQuery],
+                                    ),
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : isDesktop
+                        ? GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 400,
+                                mainAxisExtent: 200,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                          itemCount: _filteredResults.length,
+                          itemBuilder: (context, index) {
+                            final result = _filteredResults[index];
+                            if (result.type == SearchResultType.guest) {
+                              return _buildGuestCard(result);
+                            } else {
+                              return _buildStaffCard(result, theme);
+                            }
+                          },
+                        )
+                        : ListView.builder(
+                          itemCount: _filteredResults.length,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemBuilder: (context, index) {
+                            final result = _filteredResults[index];
+                            if (result.type == SearchResultType.guest) {
+                              return _buildGuestCard(result);
+                            } else {
+                              return _buildStaffCard(result, theme);
+                            }
+                          },
+                        ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool selected,
+    required Function(bool) onSelected,
+    required Color color,
+    required IconData icon,
+  }) {
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      avatar: Icon(icon, size: 18, color: selected ? Colors.white : color),
+      selectedColor: color,
+      checkmarkColor: Colors.white,
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : Colors.black87,
+        fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+
+  Widget _buildDropdownFilter({
+    required String hint,
+    required int? value,
+    required List<Map<String, dynamic>> items,
+    required Function(int?) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: value,
+          hint: Text(hint, style: const TextStyle(fontSize: 14)),
+          icon: const Icon(Icons.arrow_drop_down),
+          isDense: true,
+          onChanged: onChanged,
+          items: [
+            DropdownMenuItem<int>(
+              value: null,
+              child: Text(hint, style: const TextStyle(fontSize: 14)),
+            ),
+            ...items.map((item) {
+              return DropdownMenuItem<int>(
+                value: item['id'],
+                child: Text(item['name'], style: const TextStyle(fontSize: 14)),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -517,7 +677,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     final participationId = participation['id'];
     final statusId = participation['status_id'];
 
-    // Check if VIP
     final isVip =
         role?['name']?.toString().toLowerCase().contains('vip') ?? false;
 
@@ -550,7 +709,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Avatar
               CircleAvatar(
                 radius: 28,
                 backgroundColor: badgeColor.withOpacity(0.2),
@@ -564,8 +722,6 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                         : null,
               ),
               const SizedBox(width: 16),
-
-              // Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -645,12 +801,16 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                             color: theme.colorScheme.onSurface.withOpacity(0.6),
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            result.phone,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.6,
+                          Expanded(
+                            child: Text(
+                              result.phone,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.6,
+                                ),
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -659,11 +819,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                   ],
                 ),
               ),
-
-              // Arrow
               Icon(
                 Icons.chevron_right,
-                color: theme.colorScheme.onSurface.withOpacity(0.3),
+                color: theme.colorScheme.onSurface.withOpacity(0.4),
               ),
             ],
           ),
@@ -673,7 +831,8 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 }
 
-// Search Result Model
+enum SearchResultType { staff, guest }
+
 class SearchResult {
   final String id;
   final String name;
@@ -695,5 +854,3 @@ class SearchResult {
     required this.originalData,
   });
 }
-
-enum SearchResultType { staff, guest }

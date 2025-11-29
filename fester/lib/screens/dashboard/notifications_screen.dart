@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../services/notification_service.dart';
@@ -41,7 +42,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento notifiche: $e')),
+          SnackBar(content: Text('${'notifications.load_error'.tr()}$e')),
         );
       }
     }
@@ -93,12 +94,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Notifiche'),
+        title: Text('notifications.title'.tr()),
         actions: [
           if (_notifications.any((n) => n['is_read'] == false))
             TextButton(
               onPressed: _markAllAsRead,
-              child: const Text('Segna tutte lette'),
+              child: Text('notifications.mark_all_read'.tr()),
             ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -133,7 +134,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Nessuna notifica',
+                                'notifications.empty'.tr(),
                                 style: theme.textTheme.titleLarge?.copyWith(
                                   color: theme.colorScheme.onSurface
                                       .withOpacity(0.6),
@@ -233,12 +234,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   String _formatTime(String? timestamp) {
-    if (timestamp == null) return 'Sconosciuto';
+    if (timestamp == null) return 'notifications.unknown_time'.tr();
     try {
       final time = DateTime.parse(timestamp);
       return timeago.format(time, locale: 'it');
     } catch (e) {
-      return 'Sconosciuto';
+      return 'notifications.unknown_time'.tr();
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -140,8 +141,8 @@ class NotificationService {
     await saveNotification(
       eventId: eventId,
       type: typeWarning,
-      title: 'Warning Ricevuto',
-      message: '$personName ha ricevuto un warning: $reason',
+      title: 'notifications_service.warning_received_title'.tr(),
+      message: 'notifications_service.warning_received_message'.tr(args: [personName, reason]),
       data: {
         'person_name': personName,
         'person_id': personId,
@@ -160,8 +161,8 @@ class NotificationService {
     await saveNotification(
       eventId: eventId,
       type: typeDrinkLimit,
-      title: 'Limite Drink Superato',
-      message: '$personName ha superato il limite ($drinkCount/$limit drink)',
+      title: 'notifications_service.drink_limit_exceeded_title'.tr(),
+      message: 'notifications_service.drink_limit_exceeded_message'.tr(args: [personName, drinkCount.toString(), limit.toString()]),
       data: {
         'person_name': personName,
         'person_id': personId,
@@ -178,8 +179,8 @@ class NotificationService {
     await saveNotification(
       eventId: eventId,
       type: typeEventStart,
-      title: 'Evento in Partenza',
-      message: 'L\'evento "$eventName" inizia tra 10 minuti',
+      title: 'notifications_service.event_starting_title'.tr(),
+      message: 'notifications_service.event_starting_message'.tr(args: [eventName]),
       data: {'event_name': eventName},
     );
   }
@@ -191,8 +192,8 @@ class NotificationService {
     await saveNotification(
       eventId: eventId,
       type: typeEventEnd,
-      title: 'Evento in Chiusura',
-      message: 'L\'evento "$eventName" termina tra 30 minuti',
+      title: 'notifications_service.event_ending_title'.tr(),
+      message: 'notifications_service.event_ending_message'.tr(args: [eventName]),
       data: {'event_name': eventName},
     );
   }
@@ -204,8 +205,8 @@ class NotificationService {
     await saveNotification(
       eventId: eventId,
       type: typeSync,
-      title: 'Sincronizzazione Completata',
-      message: 'Aggiornati $updatedItems elementi',
+      title: 'notifications_service.sync_completed_title'.tr(),
+      message: 'notifications_service.sync_completed_message'.tr(args: [updatedItems.toString()]),
       data: {'count': updatedItems},
     );
   }

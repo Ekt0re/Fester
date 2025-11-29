@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,6 +10,7 @@ import '../../widgets/animated_settings_icon.dart';
 import '../../services/notification_service.dart';
 import '../settings/settings_screen.dart';
 import 'event_settings_screen.dart';
+import 'event_export_screen.dart';
 import '../profile/staff_profile_screen.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 
@@ -126,7 +128,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       if (mounted) {
         if (!silent) setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento evento: $e')),
+          SnackBar(content: Text('${'dashboard.load_error'.tr()}$e')),
         );
       }
     }
@@ -134,8 +136,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
 
   String _getTimeSinceSync() {
     final diff = DateTime.now().difference(_lastSync);
-    if (diff.inMinutes < 1) return 'Adesso';
-    return '${diff.inMinutes} min fa';
+    if (diff.inMinutes < 1) return 'dashboard.time.now'.tr();
+    return '${diff.inMinutes}${'dashboard.time.minutes_ago'.tr()}';
   }
 
   @override
@@ -153,7 +155,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
 
   Widget _buildMobileLayout() {
     final user = Supabase.instance.client.auth.currentUser;
-    final userName = user?.userMetadata?['first_name'] ?? 'Organizzatore';
+    final userName =
+        user?.userMetadata?['first_name'] ?? 'dashboard.organizer_default'.tr();
 
     final theme = Theme.of(context);
     return Scaffold(
@@ -233,7 +236,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
 
   Widget _buildDesktopLayout() {
     final user = Supabase.instance.client.auth.currentUser;
-    final userName = user?.userMetadata?['first_name'] ?? 'Organizzatore';
+    final userName =
+        user?.userMetadata?['first_name'] ?? 'dashboard.organizer_default'.tr();
 
     final theme = Theme.of(context);
     return Scaffold(
@@ -255,16 +259,6 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
               } else if (index == 3) {
                 // Navigate to Menu Management Screen
                 Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
-              } else if (index == 4) {
-                // Navigate to Event Settings
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) =>
-                            EventSettingsScreen(eventId: widget.eventId),
-                  ),
-                );
               } else {
                 setState(() {
                   _selectedIndex = index;
@@ -339,26 +333,22 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 ],
               ),
             ),
-            destinations: const [
+            destinations: [
               NavigationRailDestination(
-                icon: Icon(Icons.home),
-                label: Text('Home'),
+                icon: const Icon(Icons.home),
+                label: Text('dashboard.nav.home'.tr()),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.search),
-                label: Text('Cerca'),
+                icon: const Icon(Icons.search),
+                label: Text('dashboard.nav.search'.tr()),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.notifications),
-                label: Text('Notifiche'),
+                icon: const Icon(Icons.notifications),
+                label: Text('dashboard.nav.notifications'.tr()),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.restaurant_menu),
-                label: Text('Menù'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.settings),
-                label: Text('Gestisci evento'),
+                icon: const Icon(Icons.restaurant_menu),
+                label: Text('dashboard.nav.menu'.tr()),
               ),
             ],
             trailing: Expanded(
@@ -366,34 +356,154 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 24.0),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  SettingsScreen(eventId: widget.eventId),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.settings,
-                          color: theme.colorScheme.onPrimary.withOpacity(0.7),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Impostazioni',
-                          style: GoogleFonts.outfit(
-                            color: theme.colorScheme.onPrimary.withOpacity(0.7),
-                            fontSize: 12,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Event Menu Button
+                      PopupMenuButton<String>(
+                        offset: const Offset(200, 0),
+                        icon: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.secondary.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.more_vert,
+                            color: theme.colorScheme.onPrimary,
                           ),
                         ),
-                      ],
-                    ),
+                        tooltip: 'dashboard.manage_event'.tr(),
+                        itemBuilder:
+                            (context) => [
+                              PopupMenuItem(
+                                value: 'settings',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.settings,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'dashboard.event_settings'.tr(),
+                                      style: GoogleFonts.outfit(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'export',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.download,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'dashboard.export_data'.tr(),
+                                      style: GoogleFonts.outfit(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'divider',
+                                enabled: false,
+                                child: Divider(),
+                              ),
+                              PopupMenuItem(
+                                value: 'statistics',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.analytics_outlined,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'dashboard.advanced_stats'.tr(),
+                                      style: GoogleFonts.outfit(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                        onSelected: (value) {
+                          if (value == 'settings') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EventSettingsScreen(
+                                      eventId: widget.eventId,
+                                    ),
+                              ),
+                            );
+                          } else if (value == 'export') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EventExportScreen(
+                                      eventId: widget.eventId,
+                                      eventName: _event?.name ?? 'Evento',
+                                    ),
+                              ),
+                            );
+                          } else if (value == 'statistics') {
+                            Navigator.pushNamed(
+                              context,
+                              '/event/${widget.eventId}/statistics',
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'dashboard.manage_event'.tr(),
+                        style: GoogleFonts.outfit(
+                          color: theme.colorScheme.onPrimary.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // App Settings Button
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      SettingsScreen(eventId: widget.eventId),
+                            ),
+                          );
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.settings,
+                              color: theme.colorScheme.onPrimary.withOpacity(
+                                0.7,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'dashboard.settings'.tr(),
+                              style: GoogleFonts.outfit(
+                                color: theme.colorScheme.onPrimary.withOpacity(
+                                  0.7,
+                                ),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -450,7 +560,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
             ),
           ),
           Text(
-            'ORGANIZZA LA TUA FESTA!',
+            'dashboard.subtitle'.tr(),
             style: GoogleFonts.outfit(
               color: theme.colorScheme.onSurface.withOpacity(0.6),
               fontSize: 10,
@@ -514,7 +624,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Benvenuto, $userName!',
+                            'dashboard.welcome'.tr(args: [userName]),
                             style: GoogleFonts.outfit(
                               color: Colors.white,
                               fontSize: isDesktop ? 28 : 22,
@@ -548,7 +658,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Gestisci il tuo evento con facilità',
+                      'dashboard.manage_ease'.tr(),
                       style: GoogleFonts.outfit(
                         color: Colors.white70,
                         fontSize: isDesktop ? 16 : 14,
@@ -560,7 +670,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                         const Icon(Icons.sync, color: Colors.orange, size: 16),
                         const SizedBox(width: 4),
                         Text(
-                          'Ultimo sync: ${_getTimeSinceSync()}',
+                          'dashboard.last_sync'.tr(args: [_getTimeSinceSync()]),
                           style: GoogleFonts.outfit(
                             color: Colors.white70,
                             fontSize: 12,
@@ -603,7 +713,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   _DashboardCard(
                     icon: Icons.people,
                     iconColor: const Color(0xFFE0BBE4),
-                    label: 'Elenco ospiti',
+                    label: 'dashboard.guest_list'.tr(),
                     value: '$_guestCount',
                     onTap: () {
                       Navigator.pushNamed(
@@ -615,7 +725,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   _DashboardCard(
                     icon: Icons.restaurant_menu,
                     iconColor: const Color(0xFF957DAD),
-                    label: 'Gestione Menù',
+                    label: 'dashboard.menu_management'.tr(),
                     value: '$_menuItemCount',
                     onTap: () {
                       Navigator.pushNamed(
@@ -627,7 +737,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   _DashboardCard(
                     icon: Icons.person,
                     iconColor: const Color(0xFFD291BC),
-                    label: 'Gestisci staff',
+                    label: 'dashboard.manage_staff'.tr(),
                     value: '$_staffCount',
                     onTap: () {
                       Navigator.pushNamed(
@@ -639,7 +749,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   _DashboardCard(
                     icon: Icons.bar_chart,
                     iconColor: const Color(0xFFFEC8D8),
-                    label: 'Visualizza statistiche',
+                    label: 'dashboard.view_stats'.tr(),
                     value: '',
                     onTap: () {
                       Navigator.pushNamed(
@@ -679,7 +789,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                       borderRadius: BorderRadius.circular(24),
                       child: Center(
                         child: Text(
-                          'SCAN QR',
+                          'dashboard.scan_qr'.tr(),
                           style: GoogleFonts.outfit(
                             color: Colors.white,
                             fontSize: 24,
@@ -710,7 +820,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          'Usa l\'app mobile per scansionare i QR code',
+                          'dashboard.desktop_qr_hint'.tr(),
                           style: GoogleFonts.outfit(
                             color: theme.colorScheme.onSurface.withOpacity(0.6),
                             fontSize: 16,

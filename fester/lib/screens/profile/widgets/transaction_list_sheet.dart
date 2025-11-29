@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../services/SupabaseServicies/transaction_service.dart';
 
 class TransactionListSheet extends StatefulWidget {
@@ -55,19 +55,19 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Elimina Transazione'),
-            content: const Text(
-              'Sei sicuro di voler eliminare questa transazione?',
+            title: Text('transaction_list.delete_title'.tr()),
+            content: Text(
+              'transaction_list.delete_confirm'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annulla'),
+                child: Text('transaction_list.cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Elimina'),
+                child: Text('transaction_list.delete'.tr()),
               ),
             ],
           ),
@@ -78,7 +78,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
         await _transactionService.deleteTransaction(id);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Transazione eliminata')),
+            SnackBar(content: Text('transaction_list.deleted'.tr())),
           );
           widget.onTransactionUpdated?.call();
           Navigator.pop(context);
@@ -87,7 +87,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+          ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')));
         }
       }
     }
@@ -105,27 +105,27 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Modifica Transazione'),
+            title: Text('transaction_list.edit_title'.tr()),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: amountController,
-                  decoration: const InputDecoration(labelText: 'Importo'),
+                  decoration: InputDecoration(labelText: 'transaction_list.amount_label'.tr()),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
                 ),
                 TextField(
                   controller: descriptionController,
-                  decoration: const InputDecoration(labelText: 'Descrizione'),
+                  decoration: InputDecoration(labelText: 'transaction_list.description_label'.tr()),
                 ),
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annulla'),
+                child: Text('transaction_list.cancel'.tr()),
               ),
               TextButton(
                 onPressed: () async {
@@ -144,11 +144,11 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(
                         context,
-                      ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+                      ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')));
                     }
                   }
                 },
-                child: const Text('Salva'),
+                child: Text('transaction_list.save'.tr()),
               ),
             ],
           ),
@@ -194,7 +194,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Transazioni',
+                'transaction_list.title'.tr(),
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -210,7 +210,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                             setState(() => _showNonMonetary = val ?? false),
                   ),
                   Text(
-                    'Mostra tutto',
+                    'transaction_list.show_all'.tr(),
                     style: GoogleFonts.outfit(
                       color: theme.textTheme.bodyLarge?.color,
                     ),
@@ -226,7 +226,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                 filteredTransactions.isEmpty
                     ? Center(
                       child: Text(
-                        'Nessuna transazione trovata.',
+                        'transaction_list.empty'.tr(),
                         style: GoogleFonts.outfit(color: Colors.grey),
                       ),
                     )
@@ -339,14 +339,14 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                                   },
                                   itemBuilder:
                                       (context) => [
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'edit',
-                                          child: Text('Modifica'),
+                                          child: Text('transaction_list.edit_title'.tr()),
                                         ),
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'delete',
                                           child: Text(
-                                            'Elimina',
+                                            'transaction_list.delete'.tr(),
                                             style: TextStyle(color: Colors.red),
                                           ),
                                         ),
@@ -371,7 +371,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'TOTALE',
+                  'transaction_list.total'.tr(),
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

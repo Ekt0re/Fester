@@ -1,5 +1,6 @@
 import 'package:fester/services/SupabaseServicies/supabase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 import 'registration_confirmation_page.dart';
@@ -63,8 +64,8 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
       _logger.w('❌ Terms not accepted');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Devi accettare i termini e condizioni'),
+          SnackBar(
+            content: Text('register.terms_error'.tr()),
             backgroundColor: Colors.orange,
           ),
         );
@@ -95,7 +96,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
 
       if (authResponse.user == null) {
         _logger.e('❌ Auth response contains no user data');
-        throw Exception('Impossibile creare l\'utente. Riprova più tardi.');
+        throw Exception('register.error_create_user'.tr());
       }
 
       _logger.i('👤 User created with ID: ${authResponse.user?.id}');
@@ -117,7 +118,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
       _logger.e('Error message: $e');
       _logger.t('Stack trace: $stackTrace');
 
-      String errorMessage = 'Errore durante la registrazione';
+      String errorMessage = 'register.error_generic'.tr();
 
       if (e is AuthException) {
         _logger.w('🔍 AuthException details:');
@@ -127,19 +128,18 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
         if (e.statusCode == '400') {
           if (e.message.contains('already registered') ||
               e.message.contains('already in use')) {
-            errorMessage = 'Email già registrata';
+            errorMessage = 'register.error_email_exists'.tr();
           } else if (e.message.contains('password')) {
-            errorMessage = 'La password non rispetta i requisiti di sicurezza';
+            errorMessage = 'register.error_password_security'.tr();
           } else if (e.message.contains('email')) {
-            errorMessage = 'Indirizzo email non valido';
+            errorMessage = 'register.error_email_invalid'.tr();
           }
         } else if (e.statusCode == '422') {
-          errorMessage = 'Dati non validi. Controlla i campi inseriti.';
+          errorMessage = 'register.error_invalid_data'.tr();
         }
       } else if (e.toString().contains('host lookup failed') ||
           e.toString().contains('Connection failed')) {
-        errorMessage =
-            'Errore di connessione. Verifica la tua connessione internet.';
+        errorMessage = 'register.error_connection'.tr();
       }
 
       _logger.w('📢 Showing error to user: $errorMessage');
@@ -201,7 +201,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'ORGANIZZA LA TUA FESTA!',
+                          'register.subtitle'.tr(),
                           style: theme.textTheme.bodySmall?.copyWith(
                             letterSpacing: 1.2,
                             color: theme.colorScheme.onSurface.withOpacity(0.6),
@@ -213,7 +213,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                           obscureText: _obscurePassword,
                           style: theme.textTheme.bodyLarge,
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: 'login.password_label'.tr(),
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -229,10 +229,10 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Inserisci una password';
+                              return 'login.password_error_empty'.tr();
                             }
                             if (value.length < 8) {
-                              return 'La password deve essere di almeno 8 caratteri';
+                              return 'register.password_error_length'.tr();
                             }
                             return null;
                           },
@@ -243,7 +243,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                           obscureText: _obscureConfirmPassword,
                           style: theme.textTheme.bodyLarge,
                           decoration: InputDecoration(
-                            labelText: 'Conferma Password',
+                            labelText: 'register.confirm_password_label'.tr(),
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -261,10 +261,12 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Conferma la password';
+                              return 'register.confirm_password_error_empty'
+                                  .tr();
                             }
                             if (value != _passwordController.text) {
-                              return 'Le password non corrispondono';
+                              return 'register.confirm_password_error_match'
+                                  .tr();
                             }
                             return null;
                           },
@@ -275,8 +277,9 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                             Checkbox(
                               value: _acceptTerms,
                               onChanged:
-                                  (value) =>
-                                      setState(() => _acceptTerms = value ?? false),
+                                  (value) => setState(
+                                    () => _acceptTerms = value ?? false,
+                                  ),
                               activeColor: theme.colorScheme.primary,
                             ),
                             Expanded(
@@ -284,9 +287,9 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                                 text: TextSpan(
                                   style: theme.textTheme.bodyMedium,
                                   children: [
-                                    const TextSpan(text: 'Accetto i '),
+                                    TextSpan(text: 'register.terms_agree'.tr()),
                                     TextSpan(
-                                      text: 'termini e condizioni',
+                                      text: 'register.terms_link'.tr(),
                                       style: TextStyle(
                                         color: theme.colorScheme.primary,
                                         fontWeight: FontWeight.bold,
@@ -320,14 +323,16 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                                         color: Colors.white,
                                       ),
                                     )
-                                    : const Text('Crea Account'),
+                                    : Text(
+                                      'register.create_account_button'.tr(),
+                                    ),
                           ),
                         ),
                         const SizedBox(height: 20),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
-                            '< Indietro',
+                            'forgot_password.back_button'.tr(),
                             style: TextStyle(
                               color: theme.colorScheme.onSurface,
                               fontWeight: FontWeight.w600,

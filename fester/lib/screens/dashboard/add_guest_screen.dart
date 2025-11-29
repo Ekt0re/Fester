@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../profile/widgets/transaction_list_sheet.dart';
 import '../../services/SupabaseServicies/person_service.dart';
 import '../../services/SupabaseServicies/participation_service.dart';
@@ -173,7 +174,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore caricamento dati: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'add_guest.data_load_error'.tr()}$e')));
       }
     }
   }
@@ -269,7 +270,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ospite aggiornato con successo!')),
+            SnackBar(content: Text('add_guest.guest_updated'.tr())),
           );
           Navigator.pop(context, true);
         }
@@ -318,7 +319,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ospite aggiunto con successo!')),
+            SnackBar(content: Text('add_guest.guest_added'.tr())),
           );
           Navigator.pop(context, true);
         }
@@ -327,7 +328,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore durante il salvataggio: $e')),
+          SnackBar(content: Text('${'add_guest.save_error'.tr()}$e')),
         );
       }
     }
@@ -379,7 +380,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Errore caricamento sottogruppi: $e')),
+            SnackBar(content: Text('${'add_guest.subgroup_load_error'.tr()}$e')),
           );
         }
       }
@@ -392,24 +393,24 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Crea Nuovo Gruppo'),
+            title: Text('add_guest.create_group_dialog_title'.tr()),
             content: TextField(
               controller: textController,
-              decoration: const InputDecoration(
-                labelText: 'Nome Gruppo',
-                hintText: 'Inserisci il nome del gruppo',
+              decoration: InputDecoration(
+                labelText: 'add_guest.group_name_label'.tr(),
+                hintText: 'add_guest.group_name_hint'.tr(),
               ),
               autofocus: true,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annulla'),
+                child: Text('common.cancel'.tr()),
               ),
               TextButton(
                 onPressed:
                     () => Navigator.pop(context, textController.text.trim()),
-                child: const Text('Crea'),
+                child: Text('add_guest.create'.tr()),
               ),
             ],
           ),
@@ -433,7 +434,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Errore creazione gruppo: $e')),
+            SnackBar(content: Text('${'add_guest.group_create_error'.tr()}$e')),
           );
         }
       }
@@ -443,7 +444,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
   Future<void> _createNewSottogruppo() async {
     if (_selectedGruppoId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Seleziona prima un gruppo')),
+        SnackBar(content: Text('add_guest.select_group_first'.tr())),
       );
       return;
     }
@@ -453,24 +454,24 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Crea Nuovo Sottogruppo'),
+            title: Text('add_guest.create_subgroup_dialog_title'.tr()),
             content: TextField(
               controller: textController,
-              decoration: const InputDecoration(
-                labelText: 'Nome Sottogruppo',
-                hintText: 'Inserisci il nome del sottogruppo',
+              decoration: InputDecoration(
+                labelText: 'add_guest.subgroup_name_label'.tr(),
+                hintText: 'add_guest.subgroup_name_hint'.tr(),
               ),
               autofocus: true,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annulla'),
+                child: Text('common.cancel'.tr()),
               ),
               TextButton(
                 onPressed:
                     () => Navigator.pop(context, textController.text.trim()),
-                child: const Text('Crea'),
+                child: Text('add_guest.create'.tr()),
               ),
             ],
           ),
@@ -493,7 +494,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Errore creazione sottogruppo: $e')),
+            SnackBar(content: Text('${'add_guest.subgroup_create_error'.tr()}$e')),
           );
         }
       }
@@ -538,7 +539,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                     setDialogState(() => isSearching = false);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Errore ricerca: $e')),
+                        SnackBar(content: Text('${'add_guest.search_error'.tr()}$e')),
                       );
                     }
                   }
@@ -546,7 +547,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
               }
 
               return AlertDialog(
-                title: const Text('Cerca Invitante (Staff o Ospite)'),
+                title: Text('add_guest.search_inviter_title'.tr()),
                 content: SizedBox(
                   width: 500,
                   height: 400,
@@ -555,9 +556,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                       TextField(
                         controller: searchController,
                         autofocus: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Cerca',
-                          hintText: 'Nome, cognome, email, telefono...',
+                        decoration: InputDecoration(
+                          labelText: 'add_guest.search_label'.tr(),
+                          hintText: 'add_guest.search_hint'.tr(),
                           prefixIcon: Icon(Icons.search),
                           border: OutlineInputBorder(),
                         ),
@@ -620,7 +621,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                       if (!isSearching &&
                           searchResults.isEmpty &&
                           searchController.text.isNotEmpty)
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -632,7 +633,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Nessun risultato trovato',
+                                  'add_guest.no_results'.tr(),
                                   style: TextStyle(color: Colors.grey),
                                 ),
                               ],
@@ -640,7 +641,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                           ),
                         ),
                       if (searchController.text.isEmpty)
-                        const Expanded(
+                        Expanded(
                           child: Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -652,7 +653,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  'Inizia a digitare per cercare',
+                                  'add_guest.start_typing'.tr(),
                                   style: TextStyle(color: Colors.grey),
                                 ),
                               ],
@@ -665,7 +666,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Chiudi'),
+                    child: Text('common.close'.tr()),
                   ),
                 ],
               );
@@ -687,7 +688,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          widget.personId != null ? 'Modifica Ospite' : 'Aggiungi Ospite',
+          widget.personId != null ? 'add_guest.edit_guest'.tr() : 'add_guest.add_guest'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
@@ -698,343 +699,788 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // First Name
-                      _buildTextField(
-                        controller: _firstNameController,
-                        label: 'Nome',
-                        hint: 'Inserisci il nome',
-                        icon: Icons.person_outline,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Il nome è obbligatorio';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Last Name
-                      _buildTextField(
-                        controller: _lastNameController,
-                        label: 'Cognome',
-                        hint: 'Inserisci il cognome',
-                        icon: Icons.person,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Il cognome è obbligatorio';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Email
-                      _buildTextField(
-                        controller: _emailController,
-                        label: 'Email (opzionale)',
-                        hint: 'esempio@email.com',
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            final emailRegex = RegExp(
-                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                            );
-                            if (!emailRegex.hasMatch(value)) {
-                              return 'Email non valida';
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Phone
-                      _buildTextField(
-                        controller: _phoneController,
-                        label: 'Telefono (opzionale)',
-                        hint: '+39 123 456 7890',
-                        icon: Icons.phone_outlined,
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Date of Birth
-                      InkWell(
-                        onTap: _selectDate,
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: theme.colorScheme.outline.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.cake_outlined,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  _dateOfBirth == null
-                                      ? 'Data di nascita (opzionale)'
-                                      : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
-                                  style: GoogleFonts.outfit(
-                                    color:
-                                        _dateOfBirth == null
-                                            ? theme.colorScheme.onSurface
-                                                .withOpacity(0.5)
-                                            : theme.colorScheme.onSurface,
-                                  ),
-                                ),
-                              ),
-                              if (_dateOfBirth != null)
-                                IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed:
-                                      () => setState(() => _dateOfBirth = null),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Codice Fiscale
-                      _buildTextField(
-                        controller: _codiceFiscaleController,
-                        label: 'Codice Fiscale (opzionale)',
-                        hint: 'RSSMRA80A01H501U',
-                        icon: Icons.badge_outlined,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Indirizzo
-                      _buildTextField(
-                        controller: _indirizzoController,
-                        label: 'Indirizzo (opzionale)',
-                        hint: 'Via Roma 123, Milano',
-                        icon: Icons.home_outlined,
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Gruppo Dropdown
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(child: _buildGruppoDropdown(theme)),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle_outline),
-                                color: theme.colorScheme.primary,
-                                onPressed: _createNewGruppo,
-                                tooltip: 'Crea nuovo gruppo',
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Sottogruppo Dropdown
-                      if (_selectedGruppoId != null)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildSottogruppoDropdown(theme),
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle_outline),
-                                  color: theme.colorScheme.primary,
-                                  onPressed: _createNewSottogruppo,
-                                  tooltip: 'Crea nuovo sottogruppo',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-
-                      // Local ID
-                      _buildTextField(
-                        controller: _localIdController,
-                        label: 'ID Locale (opzionale)',
-                        hint: '001',
-                        icon: Icons.confirmation_number_outlined,
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Invited By
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Invitato da (opzionale)',
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.7,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: _searchInvitedBy,
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surface,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.colorScheme.outline.withOpacity(
-                                    0.3,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
+              : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isDesktop = constraints.maxWidth > 900;
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Form(
+                      key: _formKey,
+                      child:
+                          isDesktop
+                              ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    Icons.person_search,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 12),
+                                  // Left Column: Personal Info
                                   Expanded(
-                                    child: Text(
-                                      _selectedInvitedByName != null
-                                          ? '$_selectedInvitedByName ($_selectedInvitedByType)'
-                                          : 'Cerca persona...',
-                                      style: GoogleFonts.outfit(
-                                        color:
-                                            _selectedInvitedByName == null
-                                                ? theme.colorScheme.onSurface
-                                                    .withOpacity(0.5)
-                                                : theme.colorScheme.onSurface,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        _buildSectionTitle(
+                                          theme,
+                                          'add_guest.personal_info'.tr(),
+                                        ),
+                                        _buildTextField(
+                                          controller: _firstNameController,
+                                          label: 'add_guest.name'.tr(),
+                                          hint: 'add_guest.name_hint'.tr(),
+                                          icon: Icons.person_outline,
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
+                                              return 'add_guest.name_required'.tr();
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _lastNameController,
+                                          label: 'add_guest.surname'.tr(),
+                                          hint: 'add_guest.surname_hint'.tr(),
+                                          icon: Icons.person,
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.trim().isEmpty) {
+                                              return 'add_guest.surname_required'.tr();
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _emailController,
+                                          label: 'add_guest.email_optional'.tr(),
+                                          hint: 'add_guest.email_hint'.tr(),
+                                          icon: Icons.email_outlined,
+                                          keyboardType:
+                                              TextInputType.emailAddress,
+                                          validator: (value) {
+                                            if (value != null &&
+                                                value.isNotEmpty) {
+                                              final emailRegex = RegExp(
+                                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                              );
+                                              if (!emailRegex.hasMatch(value)) {
+                                                return 'add_guest.email_invalid'.tr();
+                                              }
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _phoneController,
+                                          label: 'add_guest.phone_optional'.tr(),
+                                          hint: 'add_guest.phone_hint'.tr(),
+                                          icon: Icons.phone_outlined,
+                                          keyboardType: TextInputType.phone,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        InkWell(
+                                          onTap: _selectDate,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.surface,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: theme.colorScheme.outline
+                                                    .withOpacity(0.3),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.cake_outlined,
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Text(
+                                                    _dateOfBirth == null
+                                                        ? 'add_guest.birth_date_optional'.tr()
+                                                        : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
+                                                    style: GoogleFonts.outfit(
+                                                      color:
+                                                          _dateOfBirth == null
+                                                              ? theme
+                                                                  .colorScheme
+                                                                  .onSurface
+                                                                  .withOpacity(
+                                                                    0.5,
+                                                                  )
+                                                              : theme
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (_dateOfBirth != null)
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.clear,
+                                                    ),
+                                                    onPressed:
+                                                        () => setState(
+                                                          () =>
+                                                              _dateOfBirth =
+                                                                  null,
+                                                        ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _codiceFiscaleController,
+                                          label: 'add_guest.fiscal_code_optional'.tr(),
+                                          hint: 'add_guest.fiscal_code_hint'.tr(),
+                                          icon: Icons.badge_outlined,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildTextField(
+                                          controller: _indirizzoController,
+                                          label: 'add_guest.address_optional'.tr(),
+                                          hint: 'add_guest.address_hint'.tr(),
+                                          icon: Icons.home_outlined,
+                                          maxLines: 2,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 32),
+                                  // Right Column: Event Info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        _buildSectionTitle(
+                                          theme,
+                                          'add_guest.event_details'.tr(),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: _buildGruppoDropdown(
+                                                    theme,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.add_circle_outline,
+                                                  ),
+                                                  color:
+                                                      theme.colorScheme.primary,
+                                                  onPressed: _createNewGruppo,
+                                                  tooltip: 'add_guest.create_new_group'.tr(),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        if (_selectedGruppoId != null)
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child:
+                                                        _buildSottogruppoDropdown(
+                                                          theme,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.add_circle_outline,
+                                                    ),
+                                                    color:
+                                                        theme
+                                                            .colorScheme
+                                                            .primary,
+                                                    onPressed:
+                                                        _createNewSottogruppo,
+                                                    tooltip:
+                                                        'add_guest.create_new_subgroup'.tr(),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 16),
+                                            ],
+                                          ),
+                                        _buildTextField(
+                                          controller: _localIdController,
+                                          label: 'add_guest.local_id_optional'.tr(),
+                                          hint: 'add_guest.local_id_hint'.tr(),
+                                          icon:
+                                              Icons
+                                                  .confirmation_number_outlined,
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'add_guest.invited_by_optional'.tr(),
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: theme
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withOpacity(0.7),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            InkWell(
+                                              onTap: _searchInvitedBy,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(
+                                                  16,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      theme.colorScheme.surface,
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .outline
+                                                        .withOpacity(0.3),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.person_search,
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .primary,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Text(
+                                                        _selectedInvitedByName !=
+                                                                null
+                                                            ? '$_selectedInvitedByName ($_selectedInvitedByType)'
+                                                            : 'add_guest.search_person'.tr(),
+                                                        style: GoogleFonts.outfit(
+                                                          color:
+                                                              _selectedInvitedByName ==
+                                                                      null
+                                                                  ? theme
+                                                                      .colorScheme
+                                                                      .onSurface
+                                                                      .withOpacity(
+                                                                        0.5,
+                                                                      )
+                                                                  : theme
+                                                                      .colorScheme
+                                                                      .onSurface,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    if (_selectedInvitedById !=
+                                                        null)
+                                                      IconButton(
+                                                        icon: const Icon(
+                                                          Icons.clear,
+                                                        ),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            _selectedInvitedById =
+                                                                null;
+                                                            _selectedInvitedByName =
+                                                                null;
+                                                            _selectedInvitedByType =
+                                                                null;
+                                                          });
+                                                        },
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        if (_roles.isNotEmpty)
+                                          _buildDropdown(
+                                            label: 'add_guest.role'.tr(),
+                                            value: _selectedRoleId,
+                                            icon: Icons.star_outline,
+                                            items: _roles,
+                                            onChanged: (value) {
+                                              setState(
+                                                () => _selectedRoleId = value!,
+                                              );
+                                            },
+                                          ),
+                                        const SizedBox(height: 16),
+                                        if (_statuses.isNotEmpty)
+                                          _buildDropdown(
+                                            label: 'add_guest.status'.tr(),
+                                            value: _selectedStatusId,
+                                            icon: Icons.pending_outlined,
+                                            items: _statuses,
+                                            onChanged: (value) {
+                                              setState(
+                                                () =>
+                                                    _selectedStatusId = value!,
+                                              );
+                                            },
+                                          ),
+                                        if (widget.personId != null) ...[
+                                          const SizedBox(height: 16),
+                                          OutlinedButton.icon(
+                                            onPressed: _openTransactionList,
+                                            icon: Icon(
+                                              Icons.receipt_long,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                            label: Text(
+                                              'add_guest.manage_transactions'.tr(),
+                                              style: GoogleFonts.outfit(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 16,
+                                                  ),
+                                              side: BorderSide(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 32),
+                                        ElevatedButton(
+                                          onPressed:
+                                              _isLoading ? null : _saveGuest,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                theme.colorScheme.primary,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'add_guest.save_guest'.tr(),
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color:
+                                                  theme.colorScheme.onPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                              : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // First Name
+                                  _buildTextField(
+                                    controller: _firstNameController,
+                                    label: 'add_guest.name'.tr(),
+                                    hint: 'add_guest.name_hint'.tr(),
+                                    icon: Icons.person_outline,
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'add_guest.name_required'.tr();
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Last Name
+                                  _buildTextField(
+                                    controller: _lastNameController,
+                                    label: 'add_guest.surname'.tr(),
+                                    hint: 'add_guest.surname_hint'.tr(),
+                                    icon: Icons.person,
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'add_guest.surname_required'.tr();
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Email
+                                  _buildTextField(
+                                    controller: _emailController,
+                                    label: 'add_guest.email_optional'.tr(),
+                                    hint: 'add_guest.email_hint'.tr(),
+                                    icon: Icons.email_outlined,
+                                    keyboardType: TextInputType.emailAddress,
+                                    validator: (value) {
+                                      if (value != null && value.isNotEmpty) {
+                                        final emailRegex = RegExp(
+                                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                        );
+                                        if (!emailRegex.hasMatch(value)) {
+                                          return 'add_guest.email_invalid'.tr();
+                                        }
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Phone
+                                  _buildTextField(
+                                    controller: _phoneController,
+                                    label: 'add_guest.phone_optional'.tr(),
+                                    hint: 'add_guest.phone_hint'.tr(),
+                                    icon: Icons.phone_outlined,
+                                    keyboardType: TextInputType.phone,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Date of Birth
+                                  InkWell(
+                                    onTap: _selectDate,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.surface,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: theme.colorScheme.outline
+                                              .withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.cake_outlined,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              _dateOfBirth == null
+                                                  ? 'add_guest.birth_date_optional'.tr()
+                                                  : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
+                                              style: GoogleFonts.outfit(
+                                                color:
+                                                    _dateOfBirth == null
+                                                        ? theme
+                                                            .colorScheme
+                                                            .onSurface
+                                                            .withOpacity(0.5)
+                                                        : theme
+                                                            .colorScheme
+                                                            .onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                          if (_dateOfBirth != null)
+                                            IconButton(
+                                              icon: const Icon(Icons.clear),
+                                              onPressed:
+                                                  () => setState(
+                                                    () => _dateOfBirth = null,
+                                                  ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ),
-                                  if (_selectedInvitedById != null)
-                                    IconButton(
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () {
-                                        setState(() {
-                                          _selectedInvitedById = null;
-                                          _selectedInvitedByName = null;
-                                          _selectedInvitedByType = null;
-                                        });
+                                  const SizedBox(height: 16),
+
+                                  // Codice Fiscale
+                                  _buildTextField(
+                                    controller: _codiceFiscaleController,
+                                    label: 'add_guest.fiscal_code_optional'.tr(),
+                                    hint: 'add_guest.fiscal_code_hint'.tr(),
+                                    icon: Icons.badge_outlined,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Indirizzo
+                                  _buildTextField(
+                                    controller: _indirizzoController,
+                                    label: 'add_guest.address_optional'.tr(),
+                                    hint: 'add_guest.address_hint'.tr(),
+                                    icon: Icons.home_outlined,
+                                    maxLines: 2,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Gruppo Dropdown
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: _buildGruppoDropdown(theme),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.add_circle_outline,
+                                            ),
+                                            color: theme.colorScheme.primary,
+                                            onPressed: _createNewGruppo,
+                                            tooltip: 'add_guest.create_new_group'.tr(),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Sottogruppo Dropdown
+                                  if (_selectedGruppoId != null)
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _buildSottogruppoDropdown(
+                                                theme,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.add_circle_outline,
+                                              ),
+                                              color: theme.colorScheme.primary,
+                                              onPressed: _createNewSottogruppo,
+                                              tooltip: 'add_guest.create_new_subgroup'.tr(),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                      ],
+                                    ),
+
+                                  // Local ID
+                                  _buildTextField(
+                                    controller: _localIdController,
+                                    label: 'add_guest.local_id_optional'.tr(),
+                                    hint: 'add_guest.local_id_hint'.tr(),
+                                    icon: Icons.confirmation_number_outlined,
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Invited By
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'add_guest.invited_by_optional'.tr(),
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.7),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      InkWell(
+                                        onTap: _searchInvitedBy,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: theme.colorScheme.surface,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(
+                                              color: theme.colorScheme.outline
+                                                  .withOpacity(0.3),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.person_search,
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  _selectedInvitedByName != null
+                                                      ? '$_selectedInvitedByName ($_selectedInvitedByType)'
+                                                      : 'add_guest.search_person'.tr(),
+                                                  style: GoogleFonts.outfit(
+                                                    color:
+                                                        _selectedInvitedByName ==
+                                                                null
+                                                            ? theme
+                                                                .colorScheme
+                                                                .onSurface
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                )
+                                                            : theme
+                                                                .colorScheme
+                                                                .onSurface,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (_selectedInvitedById != null)
+                                                IconButton(
+                                                  icon: const Icon(Icons.clear),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _selectedInvitedById =
+                                                          null;
+                                                      _selectedInvitedByName =
+                                                          null;
+                                                      _selectedInvitedByType =
+                                                          null;
+                                                    });
+                                                  },
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Role Dropdown
+                                  if (_roles.isNotEmpty)
+                                    _buildDropdown(
+                                      label: 'add_guest.role'.tr(),
+                                      value: _selectedRoleId,
+                                      icon: Icons.star_outline,
+                                      items: _roles,
+                                      onChanged: (value) {
+                                        setState(
+                                          () => _selectedRoleId = value!,
+                                        );
                                       },
                                     ),
+                                  const SizedBox(height: 16),
+
+                                  // Status Dropdown
+                                  if (_statuses.isNotEmpty)
+                                    _buildDropdown(
+                                      label: 'add_guest.status'.tr(),
+                                      value: _selectedStatusId,
+                                      icon: Icons.pending_outlined,
+                                      items: _statuses,
+                                      onChanged: (value) {
+                                        setState(
+                                          () => _selectedStatusId = value!,
+                                        );
+                                      },
+                                    ),
+                                  // Transaction Management Button (Only if editing)
+                                  if (widget.personId != null) ...[
+                                    const SizedBox(height: 16),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        _openTransactionList();
+                                      },
+                                      icon: Icon(
+                                        Icons.receipt_long,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      label: Text(
+                                        'add_guest.manage_transactions'.tr(),
+                                        style: GoogleFonts.outfit(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        side: BorderSide(
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+
+                                  const SizedBox(height: 32),
+
+                                  // Save Button
+                                  ElevatedButton(
+                                    onPressed: _isLoading ? null : _saveGuest,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          theme.colorScheme.primary,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'add_guest.save_guest'.tr(),
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.onPrimary,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Role Dropdown
-                      if (_roles.isNotEmpty)
-                        _buildDropdown(
-                          label: 'Ruolo',
-                          value: _selectedRoleId,
-                          icon: Icons.star_outline,
-                          items: _roles,
-                          onChanged: (value) {
-                            setState(() => _selectedRoleId = value!);
-                          },
-                        ),
-                      const SizedBox(height: 16),
-
-                      // Status Dropdown
-                      if (_statuses.isNotEmpty)
-                        _buildDropdown(
-                          label: 'Stato',
-                          value: _selectedStatusId,
-                          icon: Icons.pending_outlined,
-                          items: _statuses,
-                          onChanged: (value) {
-                            setState(() => _selectedStatusId = value!);
-                          },
-                        ),
-                      // Transaction Management Button (Only if editing)
-                      if (widget.personId != null) ...[
-                        const SizedBox(height: 16),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            // We need to fetch transactions first or pass them.
-                            // Since we don't have them here, we'll open the sheet and let it handle it?
-                            // But TransactionListSheet expects a list.
-                            // We should probably fetch them here or modify TransactionListSheet.
-                            // Given the constraint, let's fetch them quickly or just pass empty and let it load?
-                            // Actually, the user wants to open it "con già spuntata la checkbox 'mostra tutto'".
-                            // We can pass a flag to TransactionListSheet to fetch data if empty?
-                            // Or better, fetch here.
-                            _openTransactionList();
-                          },
-                          icon: Icon(
-                            Icons.receipt_long,
-                            color: theme.colorScheme.primary,
-                          ),
-                          label: Text(
-                            'Gestisci Transazioni',
-                            style: GoogleFonts.outfit(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: BorderSide(color: theme.colorScheme.primary),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
-
-                      const SizedBox(height: 32),
-
-                      // Save Button
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _saveGuest,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Salva Ospite',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
     );
   }
@@ -1074,7 +1520,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento transazioni: $e')),
+          SnackBar(content: Text('${'add_guest.transaction_load_error'.tr()}$e')),
         );
       }
     }
@@ -1306,6 +1752,20 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSectionTitle(ThemeData theme, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        title,
+        style: GoogleFonts.outfit(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
     );
   }
 }

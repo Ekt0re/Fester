@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/participation_service.dart';
@@ -103,7 +104,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento ospiti: $e')),
+          SnackBar(content: Text('${'guest_list.load_error'.tr()}$e')),
         );
       }
     }
@@ -236,7 +237,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Seleziona Stato',
+                'guest_list.select_status'.tr(),
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -282,8 +283,8 @@ class _GuestListScreenState extends State<GuestListScreen> {
               initialTransactionType: type,
               onSuccess: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Transazione creata con successo'),
+                  SnackBar(
+                    content: Text('guest_list.transaction_success'.tr()),
                   ),
                 );
               },
@@ -349,14 +350,14 @@ class _GuestListScreenState extends State<GuestListScreen> {
         title: Column(
           children: [
             Text(
-              'Elenco ospiti',
+              'guest_list.title'.tr(),
               style: GoogleFonts.outfit(
                 color: theme.colorScheme.onPrimary,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              'Totale: ${_allParticipations.length} - Arrivati: $arrivedCount',
+              '${'guest_list.total'.tr()}${_allParticipations.length} - ${'guest_list.arrived'.tr()}$arrivedCount',
               style: GoogleFonts.outfit(
                 color: theme.colorScheme.onPrimary.withOpacity(0.7),
                 fontSize: 12,
@@ -385,7 +386,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
                         controller: _searchController,
                         focusNode: _searchFocusNode,
                         decoration: InputDecoration(
-                          hintText: 'Cerca ospite...',
+                          hintText: 'guest_list.search_placeholder'.tr(),
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
                           fillColor: theme.colorScheme.surface,
@@ -443,7 +444,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
                       child: DropdownButtonFormField<int>(
                         value: _selectedGruppoId,
                         decoration: InputDecoration(
-                          labelText: 'Gruppo',
+                          labelText: 'guest_list.group'.tr(),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
@@ -455,9 +456,9 @@ class _GuestListScreenState extends State<GuestListScreen> {
                           fillColor: theme.colorScheme.surface,
                         ),
                         items: [
-                          const DropdownMenuItem<int>(
+                          DropdownMenuItem<int>(
                             value: null,
-                            child: Text('Tutti'),
+                            child: Text('guest_list.all'.tr()),
                           ),
                           ..._gruppi.map(
                             (g) => DropdownMenuItem<int>(
@@ -483,7 +484,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
                       child: DropdownButtonFormField<int>(
                         value: _selectedSottogruppoId,
                         decoration: InputDecoration(
-                          labelText: 'Sottogruppo',
+                          labelText: 'guest_list.subgroup'.tr(),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
@@ -495,9 +496,9 @@ class _GuestListScreenState extends State<GuestListScreen> {
                           fillColor: theme.colorScheme.surface,
                         ),
                         items: [
-                          const DropdownMenuItem<int>(
+                          DropdownMenuItem<int>(
                             value: null,
-                            child: Text('Tutti'),
+                            child: Text('guest_list.all'.tr()),
                           ),
                           ..._sottogruppi
                               .where(

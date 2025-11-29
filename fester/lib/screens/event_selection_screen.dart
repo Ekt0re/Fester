@@ -1,4 +1,4 @@
-// lib/screens/event_selection_screen.dart
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../services/SupabaseServicies/event_service.dart';
 import '../services/SupabaseServicies/staff_user_service.dart';
@@ -35,8 +35,8 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Carica gli eventi dello staff corrente
-      final events = await _eventService.getMyEvents();
+      // Carica gli eventi dello staff corrente (inclusi archiviati)
+      final events = await _eventService.getMyEvents(includeArchived: true);
 
       // Separa eventi attivi e archiviati
       final List<EventWithDetails> activeList = [];
@@ -90,7 +90,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore nel caricamento eventi: $e')),
+          SnackBar(content: Text('${'event_selection.load_error'.tr()}$e')),
         );
       }
     }
@@ -101,32 +101,31 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
     final settings = eventDetails.settings;
 
     if (eventDetails.event.deletedAt != null) {
-      return 'Terminato';
+      return 'event_status.ended'.tr();
     }
 
     if (settings == null) {
-      return 'In programmazione';
+      return 'event_status.scheduled'.tr();
     }
 
     if (now.isBefore(settings.startAt)) {
-      return 'In programmazione';
+      return 'event_status.scheduled'.tr();
     } else if (settings.endAt != null && now.isAfter(settings.endAt!)) {
-      return 'Terminato';
+      return 'event_status.ended'.tr();
     } else {
-      return 'Avviato';
+      return 'event_status.started'.tr();
     }
   }
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Avviato':
-        return Colors.green;
-      case 'In programmazione':
-        return Colors.orange;
-      case 'Terminato':
-        return Colors.red;
-      default:
-        return Colors.grey;
+    if (status == 'event_status.started'.tr()) {
+      return Colors.green;
+    } else if (status == 'event_status.scheduled'.tr()) {
+      return Colors.orange;
+    } else if (status == 'event_status.ended'.tr()) {
+      return Colors.red;
+    } else {
+      return Colors.grey;
     }
   }
 
@@ -153,9 +152,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
           ),
@@ -171,7 +168,9 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                   padding: const EdgeInsets.all(24.0),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1200), // Increased max width for grid
+                      constraints: const BoxConstraints(
+                        maxWidth: 1200,
+                      ), // Increased max width for grid
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           final isDesktop = constraints.maxWidth > 900;
@@ -182,17 +181,18 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                'ORGANIZZA LA TUA FESTA!',
+                                'event_selection.subtitle'.tr(),
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.w500,
                                   letterSpacing: 1.2,
-                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.7),
                                 ),
                               ),
                               const SizedBox(height: 32),
                               Text(
-                                'Seleziona l\'evento che vuoi gestire!',
+                                'event_selection.select_event'.tr(),
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.titleMedium,
                               ),
@@ -207,7 +207,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    'Nessun evento attivo.\nCrea il tuo primo evento!',
+                                    'event_selection.no_active_events'.tr(),
                                     textAlign: TextAlign.center,
                                     style: theme.textTheme.bodyLarge,
                                   ),
@@ -216,16 +216,28 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                 GridView.builder(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: crossAxisCount,
-                                    crossAxisSpacing: spacing,
-                                    mainAxisSpacing: spacing,
-                                    childAspectRatio: isDesktop ? 3 : 2.5, // Adjust ratio as needed
-                                    mainAxisExtent: 100, // Fixed height for cards
-                                  ),
-                                  itemCount: (_showArchived ? _archivedEvents : _activeEvents).length,
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: crossAxisCount,
+                                        crossAxisSpacing: spacing,
+                                        mainAxisSpacing: spacing,
+                                        childAspectRatio:
+                                            isDesktop
+                                                ? 3
+                                                : 2.5, // Adjust ratio as needed
+                                        mainAxisExtent:
+                                            100, // Fixed height for cards
+                                      ),
+                                  itemCount:
+                                      (_showArchived
+                                              ? _archivedEvents
+                                              : _activeEvents)
+                                          .length,
                                   itemBuilder: (context, index) {
-                                    final list = _showArchived ? _archivedEvents : _activeEvents;
+                                    final list =
+                                        _showArchived
+                                            ? _archivedEvents
+                                            : _activeEvents;
                                     final eventDetails = list[index];
                                     return _EventCard(
                                       eventDetails: eventDetails,
@@ -234,10 +246,46 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                         _getEventStatus(eventDetails),
                                       ),
                                       onTap: () {
+                                        if (eventDetails.event.deletedAt !=
+                                            null) {
+                                          return; // Prevent navigation for archived events
+                                        }
                                         Navigator.pushNamed(
                                           context,
                                           '/event/${eventDetails.event.id}',
                                         );
+                                      },
+                                      onRestore: () async {
+                                        try {
+                                          await _eventService.restoreEvent(
+                                            eventDetails.event.id,
+                                          );
+                                          _loadEvents();
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'event_selection.event_restored'
+                                                      .tr(),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  '${'event_selection.error'.tr()}$e',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
                                       },
                                     );
                                   },
@@ -248,22 +296,33 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                               // Pulsante visualizza eventi archiviati
                               OutlinedButton.icon(
                                 onPressed: () {
-                                  setState(() => _showArchived = !_showArchived);
+                                  setState(
+                                    () => _showArchived = !_showArchived,
+                                  );
                                 },
                                 icon: Icon(
-                                  _showArchived ? Icons.event_available : Icons.archive,
-                                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                  _showArchived
+                                      ? Icons.event_available
+                                      : Icons.archive,
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.6),
                                 ),
                                 label: Text(
                                   _showArchived
-                                      ? 'Mostra eventi attivi'
-                                      : 'Visualizza eventi passati',
-                                  style: TextStyle(color: theme.colorScheme.onSurface),
+                                      ? 'event_selection.show_active'.tr()
+                                      : 'event_selection.show_archived'.tr(),
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   backgroundColor: theme.cardTheme.color,
-                                  side: BorderSide(color: theme.colorScheme.outline),
+                                  side: BorderSide(
+                                    color: theme.colorScheme.outline,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -278,13 +337,16 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                   await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => const CreateEventFlow(),
+                                      builder:
+                                          (context) => const CreateEventFlow(),
                                     ),
                                   );
                                   _loadEvents();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 18,
+                                  ),
                                   backgroundColor: theme.colorScheme.surface,
                                   foregroundColor: theme.colorScheme.onSurface,
                                   elevation: 2,
@@ -293,7 +355,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  'Crea il tuo evento!',
+                                  'event_selection.create_event_button'.tr(),
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -311,9 +373,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
         onPressed: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const CreateEventFlow(),
-            ),
+            MaterialPageRoute(builder: (context) => const CreateEventFlow()),
           );
           _loadEvents();
         },
@@ -329,18 +389,20 @@ class _EventCard extends StatelessWidget {
   final String status;
   final Color statusColor;
   final VoidCallback onTap;
+  final VoidCallback? onRestore;
 
   const _EventCard({
     required this.eventDetails,
     required this.status,
     required this.statusColor,
     required this.onTap,
+    this.onRestore,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -400,6 +462,15 @@ class _EventCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (eventDetails.event.deletedAt != null &&
+                    onRestore != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.restore),
+                    tooltip: 'event_selection.restore_tooltip'.tr(),
+                    onPressed: onRestore,
+                  ),
+                ],
               ],
             ),
           ),

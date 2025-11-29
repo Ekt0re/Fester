@@ -11,7 +11,7 @@ class EventService {
 
   /// Get all events for current staff_user
   /// Uses RLS policies: automatically filters events where user is creator or staff
-  Future<List<Event>> getMyEvents() async {
+  Future<List<Event>> getMyEvents({bool includeArchived = false}) async {
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
@@ -19,11 +19,13 @@ class EventService {
       debugPrint('[EventService] Getting events for staff_user: $userId');
 
       // Simplified query thanks to RLS policies (event_select_unified)
-      final response = await _supabase
-          .from('event')
-          .select()
-          .isFilter('deleted_at', null)
-          .order('created_at', ascending: false);
+      var query = _supabase.from('event').select();
+
+      if (!includeArchived) {
+        query = query.isFilter('deleted_at', null);
+      }
+
+      final response = await query.order('created_at', ascending: false);
 
       debugPrint('[EventService] Found ${(response as List).length} events');
       return (response as List).map((json) => Event.fromJson(json)).toList();
@@ -152,6 +154,18 @@ class EventService {
       await _supabase
           .from('event')
           .update({'deleted_at': DateTime.now().toIso8601String()})
+          .eq('id', eventId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Restore event (undo soft delete)
+  Future<void> restoreEvent(String eventId) async {
+    try {
+      await _supabase
+          .from('event')
+          .update({'deleted_at': null})
           .eq('id', eventId);
     } catch (e) {
       rethrow;
