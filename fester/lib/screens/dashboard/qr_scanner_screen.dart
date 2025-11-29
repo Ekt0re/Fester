@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -122,8 +123,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           // Assume it's a valid UUID
         } else {
           _showNotification(
-            title: 'Codice Non Valido',
-            message: 'Formato non riconosciuto',
+            title: 'qr.invalid_code'.tr(),
+            message: 'qr.format_error'.tr(),
             isError: true,
           );
           return;
@@ -135,8 +136,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         final String content = cleanCode.substring(4); // Remove FEV-
         if (content.length < 36) {
           _showNotification(
-            title: 'Codice Corrotto',
-            message: 'Lunghezza non valida',
+            title: 'qr.corrupt_code'.tr(),
+            message: 'qr.length_error'.tr(),
             isError: true,
           );
           return;
@@ -153,8 +154,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
       if (participation == null) {
         _showNotification(
-          title: 'Non Trovato',
-          message: 'Partecipazione inesistente',
+          title: 'qr.not_found'.tr(),
+          message: 'qr.participation_not_found'.tr(),
           isError: true,
         );
         return;
@@ -163,8 +164,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       // 3. Verify Event Match
       if (participation.eventId != widget.eventId) {
         _showNotification(
-          title: 'Evento Errato',
-          message: 'Il biglietto è per un altro evento',
+          title: 'qr.wrong_event'.tr(),
+          message: 'qr.wrong_event_msg'.tr(),
           isError: true,
         );
         return;
@@ -174,9 +175,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       if (_enteredStatusId != null &&
           participation.statusId == _enteredStatusId) {
         _showNotification(
-          title: 'Già Entrato',
+          title: 'qr.already_entered'.tr(),
           message:
-              '${participation.person?['first_name'] ?? 'Ospite'} è già dentro',
+              '${participation.person?['first_name'] ?? 'Ospite'} ${'qr.is_inside'.tr()}',
           isWarning: true,
         );
         _addToRecentScans(participation);
@@ -192,21 +193,25 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
         // 6. Success
         _showNotification(
-          title: 'Ingresso Autorizzato',
+          title: 'qr.access_granted'.tr(),
           message:
-              'Benvenuto ${participation.person?['first_name'] ?? 'Ospite'}!',
+              '${'qr.welcome'.tr()} ${participation.person?['first_name'] ?? 'Ospite'}!',
           isSuccess: true,
         );
         _addToRecentScans(participation);
       } else {
         _showNotification(
-          title: 'Errore Configurazione',
-          message: 'Stato "Entrato" non trovato nel sistema',
+          title: 'qr.config_error'.tr(),
+          message: 'qr.status_not_found'.tr(),
           isError: true,
         );
       }
     } catch (e) {
-      _showNotification(title: 'Errore', message: e.toString(), isError: true);
+      _showNotification(
+        title: 'qr.error'.tr(),
+        message: e.toString(),
+        isError: true,
+      );
     } finally {
       // Small delay before allowing next scan
       await Future.delayed(const Duration(seconds: 2));
@@ -284,20 +289,20 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Inserimento Manuale'),
+            title: Text('qr.manual_entry_title'.tr()),
             content: TextField(
               controller: _manualCodeController,
-              decoration: const InputDecoration(
-                labelText: 'Codice Biglietto',
-                hintText: 'FEV-... o UUID',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'qr.manual_entry_label'.tr(),
+                hintText: 'qr.manual_entry_hint'.tr(),
+                border: const OutlineInputBorder(),
               ),
               autofocus: true,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annulla'),
+                child: Text('qr.cancel'.tr()),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -307,7 +312,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     _manualCodeController.clear();
                   }
                 },
-                child: const Text('Verifica'),
+                child: Text('qr.verify'.tr()),
               ),
             ],
           ),
@@ -407,7 +412,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Controllo Accessi',
+                          'qr.title'.tr(),
                           style: GoogleFonts.outfit(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -423,7 +428,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                               child: ElevatedButton.icon(
                                 onPressed: () => _controller.switchCamera(),
                                 icon: const Icon(Icons.cameraswitch),
-                                label: const Text('Cambia Camera'),
+                                label: Text('qr.switch_camera'.tr()),
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,
@@ -450,7 +455,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                                               : Colors.grey,
                                     ),
                                     label: Text(
-                                      isTorchOn ? 'Torcia ON' : 'Torcia OFF',
+                                      isTorchOn
+                                          ? 'qr.torch_on'.tr()
+                                          : 'qr.torch_off'.tr(),
                                     ),
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(
@@ -467,7 +474,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
                         // Manual Entry
                         Text(
-                          'Inserimento Manuale',
+                          'qr.manual_entry_title'.tr(),
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -480,10 +487,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                             Expanded(
                               child: TextField(
                                 controller: _manualCodeController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Codice biglietto...',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
+                                decoration: InputDecoration(
+                                  hintText: 'qr.manual_entry_label'.tr(),
+                                  border: const OutlineInputBorder(),
+                                  contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 12,
                                     vertical: 16,
                                   ),
@@ -511,7 +518,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
                         const SizedBox(height: 32),
                         Text(
-                          'Ultimi Ingressi',
+                          'qr.recent_scans'.tr(),
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -675,7 +682,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                               child: ElevatedButton.icon(
                                 onPressed: _showManualEntryDialog,
                                 icon: const Icon(Icons.keyboard),
-                                label: const Text('INSERISCI CODICE'),
+                                label: Text('qr.manual_entry_button'.tr()),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
                                   foregroundColor: Colors.black,

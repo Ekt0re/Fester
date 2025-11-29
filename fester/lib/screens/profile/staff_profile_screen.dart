@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/staff_user_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../theme/app_theme.dart';
 
 class StaffProfileScreen extends StatefulWidget {
@@ -73,7 +74,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossibile aprire il link')),
+          SnackBar(content: Text('person_profile.launch_error'.tr())),
         );
       }
     }
@@ -83,7 +84,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
     if (_currentStaff.staffUserId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Errore: ID staff mancante')),
+          SnackBar(content: Text('${'settings.error_prefix'.tr()} ID staff mancante')),
         );
       }
       return;
@@ -107,19 +108,19 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Rimuovi Staff'),
+            title: Text('staff.remove_title'.tr()),
             content: Text(
               'Sei sicuro di voler rimuovere ${_currentStaff.staff?.firstName} dallo staff?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annulla'),
+                child: Text('settings.reset_dialog.cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Rimuovi'),
+                child: Text('staff.remove_confirm'.tr()),
               ),
             ],
           ),
@@ -139,7 +140,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Errore rimozione staff: $e')));
+          ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} rimozione staff: $e')));
           setState(() => _isLoading = false);
         }
       }
@@ -206,7 +207,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Immagine profilo aggiornata!')),
+        SnackBar(content: Text('staff.image_updated'.tr())),
       );
     } catch (e, stackTrace) {
       debugPrint('[ERROR] _uploadProfileImage: $e');
@@ -866,7 +867,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Dettagli Contatto',
+                                  'staff_profile.contact_details'.tr(),
                                   style: GoogleFonts.outfit(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
@@ -875,19 +876,19 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                 ),
                                 const SizedBox(height: 24),
                                 _buildInfoRow(
-                                  'Email',
+                                  'staff_profile.email'.tr(),
                                   staffUser?.email ?? 'N/A',
                                   Icons.email_outlined,
                                   theme,
                                 ),
                                 _buildInfoRow(
-                                  'Telefono',
+                                  'staff_profile.phone'.tr(),
                                   staffUser?.phone ?? 'N/A',
                                   Icons.phone_outlined,
                                   theme,
                                 ),
                                 _buildInfoRow(
-                                  'Data di Nascita',
+                                  'staff_profile.date_of_birth'.tr(),
                                   staffUser?.dateOfBirth != null
                                       ? '${staffUser!.dateOfBirth!.day}/${staffUser.dateOfBirth!.month}/${staffUser.dateOfBirth!.year}'
                                       : 'N/A',
@@ -895,7 +896,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                   theme,
                                 ),
                                 _buildInfoRow(
-                                  'Membro dal',
+                                  'staff_profile.member_since'.tr(),
                                   '${_currentStaff.createdAt.day}/${_currentStaff.createdAt.month}/${_currentStaff.createdAt.year}',
                                   Icons.calendar_today_outlined,
                                   theme,
@@ -903,7 +904,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                 const SizedBox(height: 32),
                                 if (_isMe) ...[
                                   Text(
-                                    'Azioni',
+                                    'staff_profile.actions'.tr(),
                                     style: GoogleFonts.outfit(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
@@ -916,7 +917,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                     child: ElevatedButton.icon(
                                       onPressed: _editProfile,
                                       icon: const Icon(Icons.edit),
-                                      label: const Text('MODIFICA PROFILO'),
+                                      label: Text('staff_profile.edit_profile'.tr()),
                                       style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16,
@@ -1050,19 +1051,19 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
                           // Info Cards
                           _buildInfoRow(
-                            'Email',
+                            'staff_profile.email'.tr(),
                             staffUser?.email ?? 'N/A',
                             Icons.email_outlined,
                             theme,
                           ),
                           _buildInfoRow(
-                            'Telefono',
+                            'staff_profile.phone'.tr(),
                             staffUser?.phone ?? 'N/A',
                             Icons.phone_outlined,
                             theme,
                           ),
                           _buildInfoRow(
-                            'Data di Nascita',
+                            'staff_profile.date_of_birth'.tr(),
                             staffUser?.dateOfBirth != null
                                 ? '${staffUser!.dateOfBirth!.day}/${staffUser.dateOfBirth!.month}/${staffUser.dateOfBirth!.year}'
                                 : 'N/A',
@@ -1070,7 +1071,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                             theme,
                           ),
                           _buildInfoRow(
-                            'Membro dal',
+                            'staff_profile.member_since'.tr(),
                             '${_currentStaff.createdAt.day}/${_currentStaff.createdAt.month}/${_currentStaff.createdAt.year}',
                             Icons.calendar_today_outlined,
                             theme,
@@ -1083,7 +1084,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                               child: OutlinedButton.icon(
                                 onPressed: _deleteAccount,
                                 icon: const Icon(Icons.delete_forever),
-                                label: const Text('ELIMINA ACCOUNT'),
+                                label: Text('staff_profile.delete_account'.tr()),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: Colors.red,
                                   side: const BorderSide(color: Colors.red),
@@ -1106,7 +1107,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                       'mailto:${staffUser!.email}',
                                     ),
                                 icon: const Icon(Icons.mail),
-                                label: const Text('INVIA EMAIL'),
+                                label: Text('staff_profile.send_email'.tr()),
                                 style: ElevatedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,
@@ -1122,7 +1123,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                 onPressed:
                                     () => _launchUrl('tel:${staffUser!.phone}'),
                                 icon: const Icon(Icons.phone),
-                                label: const Text('CHIAMA'),
+                                label: Text('staff_profile.call'.tr()),
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,

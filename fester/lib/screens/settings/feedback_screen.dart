@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -30,8 +31,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     if (mounted) {
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Grazie per il tuo feedback!'),
+        SnackBar(
+          content: Text('feedback.thanks'.tr()),
           backgroundColor: Colors.green,
         ),
       );
@@ -53,7 +54,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Segnala Bug / Feedback',
+          'feedback.title'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -68,7 +69,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Aiutaci a migliorare',
+                'feedback.help_improve'.tr(),
                 style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -77,7 +78,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Descrivi il problema o il suggerimento che vuoi condividere con noi.',
+                'feedback.description'.tr(),
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -89,7 +90,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 maxLines: 8,
                 style: GoogleFonts.outfit(color: theme.colorScheme.onSurface),
                 decoration: InputDecoration(
-                  hintText: 'Scrivi qui...',
+                  hintText: 'feedback.placeholder'.tr(),
                   hintStyle: GoogleFonts.outfit(
                     color: theme.colorScheme.onSurface.withOpacity(0.4),
                   ),
@@ -109,7 +110,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Per favore inserisci un messaggio';
+                    return 'feedback.validation_error'.tr();
                   }
                   return null;
                 },
@@ -138,7 +139,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                             ),
                           )
                           : Text(
-                            'Invia Segnalazione',
+                            'feedback.send_button'.tr(),
                             style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

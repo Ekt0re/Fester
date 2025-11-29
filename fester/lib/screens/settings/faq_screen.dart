@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class FAQScreen extends StatelessWidget {
   const FAQScreen({super.key});
@@ -18,7 +19,7 @@ class FAQScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'FAQ',
+          'faq.title'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -30,28 +31,28 @@ class FAQScreen extends StatelessWidget {
         children: [
           _buildFAQItem(
             theme,
-            'Come creo un nuovo evento?',
-            'Dalla schermata principale, tocca il pulsante "+" in basso a destra e segui la procedura guidata.',
+            'faq.q1'.tr(),
+            'faq.a1'.tr(),
           ),
           _buildFAQItem(
             theme,
-            'Come aggiungo membri allo staff?',
-            'Vai nella dashboard dell\'evento, seleziona "Gestisci staff" e tocca "Aggiungi membro".',
+            'faq.q2'.tr(),
+            'faq.a2'.tr(),
           ),
           _buildFAQItem(
             theme,
-            'Posso modificare il menù dopo aver creato l\'evento?',
-            'Sì, puoi modificare il menù in qualsiasi momento dalla sezione "Gestione Menù".',
+            'faq.q3'.tr(),
+            'faq.a3'.tr(),
           ),
           _buildFAQItem(
             theme,
-            'Come funzionano le notifiche?',
-            'Le notifiche ti avvisano di nuovi ingressi, ordini o messaggi importanti. Puoi configurarle nelle impostazioni.',
+            'faq.q4'.tr(),
+            'faq.a4'.tr(),
           ),
           _buildFAQItem(
             theme,
-            'È possibile esportare i dati?',
-            'Sì, dalla sezione statistiche puoi esportare i report in vari formati.',
+            'faq.q5'.tr(),
+            'faq.a5'.tr(),
           ),
         ],
       ),

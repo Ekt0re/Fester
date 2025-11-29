@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/app_theme.dart';
@@ -129,7 +130,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Export ${_selectedFormat.name.toUpperCase()} completato!',
+            'export.success'.tr(args: [_selectedFormat.name.toUpperCase()]),
             style: GoogleFonts.outfit(),
           ),
           backgroundColor: AppTheme.statusConfirmed,
@@ -140,7 +141,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Errore durante export: $e'),
+          content: Text('${'export.error'.tr()}$e'),
           backgroundColor: AppTheme.errorLight,
         ),
       );
@@ -160,7 +161,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Esporta Dati Evento',
+          'export.title'.tr(),
           style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
@@ -208,7 +209,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                               ),
                             ),
                             Text(
-                              'Seleziona i dati da esportare',
+                              'export.subtitle'.tr(),
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 color:
@@ -228,7 +229,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                 // Format selection
                 _buildSection(
                   theme: theme,
-                  title: 'FORMATO EXPORT',
+                  title: 'export.format_title'.tr(),
                   icon: Icons.description,
                   child: Row(
                     children: [
@@ -236,7 +237,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                         child: _buildFormatOption(
                           theme,
                           ExportFormat.csv,
-                          'CSV',
+                          'export.format_csv'.tr(),
                           Icons.table_chart,
                         ),
                       ),
@@ -245,7 +246,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                         child: _buildFormatOption(
                           theme,
                           ExportFormat.excel,
-                          'Excel',
+                          'export.format_excel'.tr(),
                           Icons.grid_on,
                         ),
                       ),
@@ -254,7 +255,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                         child: _buildFormatOption(
                           theme,
                           ExportFormat.pdf,
-                          'PDF',
+                          'export.format_pdf'.tr(),
                           Icons.picture_as_pdf,
                         ),
                       ),
@@ -266,27 +267,27 @@ class _EventExportScreenState extends State<EventExportScreen> {
                 // Data selection
                 _buildSection(
                   theme: theme,
-                  title: 'SELEZIONA DATI DA INCLUDERE',
+                  title: 'export.data_selection_title'.tr(),
                   icon: Icons.checklist,
                   child: Column(
                     children: [
                       _buildDataCategory(
                         theme: theme,
-                        title: 'Dati Evento',
+                        title: 'export.category.event'.tr(),
                         icon: Icons.event_note,
                         children: [
                           _buildCheckbox(
-                            'Informazioni base',
+                            'export.option.event_info'.tr(),
                             _includeEventInfo,
                             (v) => setState(() => _includeEventInfo = v!),
                           ),
                           _buildCheckbox(
-                            'Impostazioni evento',
+                            'export.option.event_settings'.tr(),
                             _includeEventSettings,
                             (v) => setState(() => _includeEventSettings = v!),
                           ),
                           _buildCheckbox(
-                            'Statistiche generali',
+                            'export.option.event_stats'.tr(),
                             _includeEventStats,
                             (v) => setState(() => _includeEventStats = v!),
                           ),
@@ -295,11 +296,11 @@ class _EventExportScreenState extends State<EventExportScreen> {
                       const SizedBox(height: 16),
                       _buildDataCategory(
                         theme: theme,
-                        title: 'Dati Ospiti (Persone & Partecipazioni)',
+                        title: 'export.category.guests'.tr(),
                         icon: Icons.people,
                         children: [
                           Text(
-                            'Dati Persona:',
+                            'export.subcategory.person'.tr(),
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
@@ -307,38 +308,38 @@ class _EventExportScreenState extends State<EventExportScreen> {
                             ),
                           ),
                           _buildCheckbox(
-                            'Nome completo',
+                            'export.option.person_name'.tr(),
                             _includePersonName,
                             (v) => setState(() => _includePersonName = v!),
                           ),
                           _buildCheckbox(
-                            'Email',
+                            'export.option.person_email'.tr(),
                             _includePersonEmail,
                             (v) => setState(() => _includePersonEmail = v!),
                           ),
                           _buildCheckbox(
-                            'Telefono',
+                            'export.option.person_phone'.tr(),
                             _includePersonPhone,
                             (v) => setState(() => _includePersonPhone = v!),
                           ),
                           _buildCheckbox(
-                            'Data di nascita',
+                            'export.option.person_birth_date'.tr(),
                             _includePersonBirthDate,
                             (v) => setState(() => _includePersonBirthDate = v!),
                           ),
                           _buildCheckbox(
-                            'Immagine profilo',
+                            'export.option.person_image'.tr(),
                             _includePersonImage,
                             (v) => setState(() => _includePersonImage = v!),
                           ),
                           _buildCheckbox(
-                            'Note',
+                            'export.option.person_notes'.tr(),
                             _includePersonNotes,
                             (v) => setState(() => _includePersonNotes = v!),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Dati Partecipazione:',
+                            'export.subcategory.participation'.tr(),
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
@@ -346,40 +347,40 @@ class _EventExportScreenState extends State<EventExportScreen> {
                             ),
                           ),
                           _buildCheckbox(
-                            'ID partecipazione',
+                            'export.option.participation_id'.tr(),
                             _includeParticipationId,
                             (v) => setState(() => _includeParticipationId = v!),
                           ),
                           _buildCheckbox(
-                            'Stato partecipazione',
+                            'export.option.participation_status'.tr(),
                             _includeParticipationStatus,
                             (v) => setState(
                               () => _includeParticipationStatus = v!,
                             ),
                           ),
                           _buildCheckbox(
-                            'Timestamp creazione/aggiornamento',
+                            'export.option.participation_timestamps'.tr(),
                             _includeParticipationTimestamps,
                             (v) => setState(
                               () => _includeParticipationTimestamps = v!,
                             ),
                           ),
                           _buildCheckbox(
-                            'Invitato da (referrer)',
+                            'export.option.participation_referrer'.tr(),
                             _includeParticipationReferrer,
                             (v) => setState(
                               () => _includeParticipationReferrer = v!,
                             ),
                           ),
                           _buildCheckbox(
-                            'Numero accompagnatori',
+                            'export.option.participation_guests'.tr(),
                             _includeParticipationGuests,
                             (v) => setState(
                               () => _includeParticipationGuests = v!,
                             ),
                           ),
                           _buildCheckbox(
-                            'Tavolo assegnato',
+                            'export.option.participation_table'.tr(),
                             _includeParticipationTable,
                             (v) =>
                                 setState(() => _includeParticipationTable = v!),
@@ -389,35 +390,35 @@ class _EventExportScreenState extends State<EventExportScreen> {
                       const SizedBox(height: 16),
                       _buildDataCategory(
                         theme: theme,
-                        title: 'Transazioni',
+                        title: 'export.category.transactions'.tr(),
                         icon: Icons.attach_money,
                         children: [
                           _buildCheckbox(
-                            'Storico completo',
+                            'export.option.transaction_history'.tr(),
                             _includeTransactionHistory,
                             (v) =>
                                 setState(() => _includeTransactionHistory = v!),
                           ),
                           _buildCheckbox(
-                            'Dettagli transazione (ID, timestamp, tipo)',
+                            'export.option.transaction_details'.tr(),
                             _includeTransactionDetails,
                             (v) =>
                                 setState(() => _includeTransactionDetails = v!),
                           ),
                           _buildCheckbox(
-                            'Staff che ha effettuato la transazione',
+                            'export.option.transaction_staff'.tr(),
                             _includeTransactionStaff,
                             (v) =>
                                 setState(() => _includeTransactionStaff = v!),
                           ),
                           _buildCheckbox(
-                            'Riepilogo per tipo',
+                            'export.option.transaction_summary'.tr(),
                             _includeTransactionSummary,
                             (v) =>
                                 setState(() => _includeTransactionSummary = v!),
                           ),
                           _buildCheckbox(
-                            'Saldo finale',
+                            'export.option.transaction_balance'.tr(),
                             _includeTransactionBalance,
                             (v) =>
                                 setState(() => _includeTransactionBalance = v!),
@@ -427,27 +428,27 @@ class _EventExportScreenState extends State<EventExportScreen> {
                       const SizedBox(height: 16),
                       _buildDataCategory(
                         theme: theme,
-                        title: 'Staff Evento',
+                        title: 'export.category.staff'.tr(),
                         icon: Icons.badge,
                         children: [
                           _buildCheckbox(
-                            'Lista staff assegnato',
+                            'export.option.staff_list'.tr(),
                             _includeEventStaffList,
                             (v) => setState(() => _includeEventStaffList = v!),
                           ),
                           _buildCheckbox(
-                            'Dati personali staff',
+                            'export.option.staff_details'.tr(),
                             _includeEventStaffDetails,
                             (v) =>
                                 setState(() => _includeEventStaffDetails = v!),
                           ),
                           _buildCheckbox(
-                            'Ruoli e permessi',
+                            'export.option.staff_roles'.tr(),
                             _includeEventStaffRoles,
                             (v) => setState(() => _includeEventStaffRoles = v!),
                           ),
                           _buildCheckbox(
-                            'Email e contatti',
+                            'export.option.staff_contacts'.tr(),
                             _includeEventStaffContacts,
                             (v) =>
                                 setState(() => _includeEventStaffContacts = v!),
@@ -457,26 +458,26 @@ class _EventExportScreenState extends State<EventExportScreen> {
                       const SizedBox(height: 16),
                       _buildDataCategory(
                         theme: theme,
-                        title: 'Gruppi e Sottogruppi',
+                        title: 'export.category.groups'.tr(),
                         icon: Icons.group_work,
                         children: [
                           _buildCheckbox(
-                            'Lista gruppi evento',
+                            'export.option.groups_list'.tr(),
                             _includeGroupsList,
                             (v) => setState(() => _includeGroupsList = v!),
                           ),
                           _buildCheckbox(
-                            'Membri per gruppo',
+                            'export.option.groups_members'.tr(),
                             _includeGroupsMembers,
                             (v) => setState(() => _includeGroupsMembers = v!),
                           ),
                           _buildCheckbox(
-                            'Sottogruppi',
+                            'export.option.subgroups'.tr(),
                             _includeSubgroups,
                             (v) => setState(() => _includeSubgroups = v!),
                           ),
                           _buildCheckbox(
-                            'Gerarchia gruppi',
+                            'export.option.groups_hierarchy'.tr(),
                             _includeGroupsHierarchy,
                             (v) => setState(() => _includeGroupsHierarchy = v!),
                           ),
@@ -485,21 +486,21 @@ class _EventExportScreenState extends State<EventExportScreen> {
                       const SizedBox(height: 16),
                       _buildDataCategory(
                         theme: theme,
-                        title: 'Menù',
+                        title: 'export.category.menu'.tr(),
                         icon: Icons.restaurant_menu,
                         children: [
                           _buildCheckbox(
-                            'Lista items menù',
+                            'export.option.menu_items'.tr(),
                             _includeMenuItems,
                             (v) => setState(() => _includeMenuItems = v!),
                           ),
                           _buildCheckbox(
-                            'Statistiche vendite',
+                            'export.option.menu_stats'.tr(),
                             _includeMenuStats,
                             (v) => setState(() => _includeMenuStats = v!),
                           ),
                           _buildCheckbox(
-                            'Indicatore items alcolici',
+                            'export.option.menu_alcoholic'.tr(),
                             _includeMenuAlcoholic,
                             (v) => setState(() => _includeMenuAlcoholic = v!),
                           ),
@@ -513,7 +514,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                 // Preview
                 _buildSection(
                   theme: theme,
-                  title: 'ANTEPRIMA',
+                  title: 'export.preview_title'.tr(),
                   icon: Icons.preview,
                   child: Row(
                     children: [
@@ -522,7 +523,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                           theme,
                           Icons.dataset,
                           '~$_estimatedRecords',
-                          'record',
+                          'export.preview_record'.tr(),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -531,7 +532,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                           theme,
                           Icons.storage,
                           '~${_estimatedSizeMB.toStringAsFixed(1)} MB',
-                          'dimensione',
+                          'export.preview_size'.tr(),
                         ),
                       ),
                     ],
@@ -557,7 +558,9 @@ class _EventExportScreenState extends State<EventExportScreen> {
                             )
                             : const Icon(Icons.download, size: 28),
                     label: Text(
-                      _isExporting ? 'ESPORTAZIONE...' : 'SCARICA REPORT',
+                      _isExporting
+                          ? 'export.button_exporting'.tr()
+                          : 'export.button_download'.tr(),
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

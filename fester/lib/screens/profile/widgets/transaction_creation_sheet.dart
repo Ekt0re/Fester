@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../services/SupabaseServicies/event_service.dart';
 import '../../../services/SupabaseServicies/transaction_service.dart';
 import '../../../services/SupabaseServicies/person_service.dart';
@@ -100,7 +101,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore caricamento dati: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'transaction.load_error'.tr()}$e')));
       }
     }
   }
@@ -138,7 +139,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
   Future<void> _createTransaction() async {
     if (_selectedTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Seleziona un tipo di transazione')),
+        SnackBar(content: Text('transaction.select_type_error'.tr())),
       );
       return;
     }
@@ -151,7 +152,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
 
     if (type.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Errore: Tipo transazione non valido')),
+        SnackBar(content: Text('transaction.invalid_type_error'.tr())),
       );
       return;
     }
@@ -162,7 +163,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     if (_nameController.text.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Inserisci un nome')));
+      ).showSnackBar(SnackBar(content: Text('transaction.name_error'.tr())));
       return;
     }
 
@@ -175,7 +176,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
       if (parsedAmount == null || parsedAmount <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Inserisci un prezzo valido (maggiore di 0)'),
+            content: Text('transaction.price_error'.tr()),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -214,14 +215,14 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
         widget.onSuccess();
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Transazione aggiunta!')));
+        ).showSnackBar(SnackBar(content: Text('transaction.success'.tr())));
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')));
       }
     }
   }
@@ -297,7 +298,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
           const SizedBox(height: 24),
 
           Text(
-            'Nuova Transazione',
+            'transaction.new_title'.tr(),
             style: GoogleFonts.outfit(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -315,14 +316,14 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
               DropdownButtonFormField<String>(
                 value: _selectedMenuItemId,
                 decoration: _inputDecoration(
-                  'Seleziona dal Menu (Opzionale)',
+                  'transaction.select_menu'.tr(),
                   theme,
                 ),
                 items: [
                   DropdownMenuItem<String>(
                     value: null,
                     child: Text(
-                      'Nessuno (Personalizzato)',
+                      'transaction.none_custom'.tr(),
                       style: GoogleFonts.outfit(color: Colors.grey[600]),
                     ),
                   ),
@@ -362,7 +363,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Nessun tipo di transazione disponibile. Contatta l\'amministratore.',
+                        'transaction.no_types'.tr(),
                         style: GoogleFonts.outfit(
                           color: theme.textTheme.bodyLarge?.color,
                         ),
@@ -374,7 +375,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             else
               DropdownButtonFormField<dynamic>(
                 value: _selectedTypeId,
-                decoration: _inputDecoration('Tipo Transazione', theme),
+                decoration: _inputDecoration('transaction.type_label'.tr(), theme),
                 items:
                     _transactionTypes.map((type) {
                       final name = (type['name'] as String).toUpperCase();
@@ -414,7 +415,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                   onChanged:
                       (val) => setState(() => _isAlcoholic = val ?? true),
                   title: Text(
-                    'Bevanda Alcolica',
+                    'transaction.alcoholic_label'.tr(),
                     style: GoogleFonts.outfit(
                       color: theme.textTheme.bodyLarge?.color,
                     ),
@@ -428,7 +429,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             // Name
             TextField(
               controller: _nameController,
-              decoration: _inputDecoration('Nome', theme),
+              decoration: _inputDecoration('transaction.name_label'.tr(), theme),
               style: GoogleFonts.outfit(
                 color: theme.textTheme.bodyLarge?.color,
               ),
@@ -438,7 +439,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             // Description
             TextField(
               controller: _descriptionController,
-              decoration: _inputDecoration('Descrizione (Opzionale)', theme),
+              decoration: _inputDecoration('transaction.description_label'.tr(), theme),
               style: GoogleFonts.outfit(
                 color: theme.textTheme.bodyLarge?.color,
               ),
@@ -461,7 +462,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                       ],
                       decoration: _inputDecoration(
-                        isMonetary ? 'Prezzo (€)' : 'Prezzo (Non applicabile)',
+                        isMonetary ? 'transaction.price_label'.tr() : 'transaction.price_na_label'.tr(),
                         theme,
                       ),
                       style: GoogleFonts.outfit(
@@ -536,7 +537,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                   shadowColor: colorScheme.primary.withOpacity(0.4),
                 ),
                 child: Text(
-                  'AGGIUNGI TRANSAZIONE',
+                  'transaction.add_button'.tr(),
                   style: GoogleFonts.outfit(
                     color: colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,

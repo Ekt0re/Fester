@@ -13,6 +13,8 @@ import 'language_settings_screen.dart';
 import 'notification_settings_screen.dart';
 import 'faq_screen.dart';
 import 'support_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../config/localization_config.dart';
 import 'feedback_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -87,19 +89,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Reset Impostazioni'),
-            content: const Text(
-              'Sei sicuro di voler resettare tutte le impostazioni ai valori di default?',
+            title: Text('settings.reset_dialog.title'.tr()),
+            content: Text(
+              'settings.reset_dialog.content'.tr(),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annulla'),
+                child: Text('settings.reset_dialog.cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Reset'),
+                child: Text('settings.reset_dialog.confirm'.tr()),
               ),
             ],
           ),
@@ -111,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Impostazioni resettate')));
+        ).showSnackBar(SnackBar(content: Text('settings.reset_success'.tr())));
       }
     }
   }
@@ -121,17 +123,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Logout'),
-            content: const Text('Sei sicuro di voler uscire?'),
+            title: Text('settings.logout_dialog.title'.tr()),
+            content: Text('settings.logout_dialog.content'.tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annulla'),
+                child: Text('settings.logout_dialog.cancel'.tr()),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Esci'),
+                child: Text('settings.logout_dialog.confirm'.tr()),
               ),
             ],
           ),
@@ -169,7 +171,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Settings',
+          'settings.title'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -196,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _buildLogoutButton(theme),
                         const SizedBox(height: 16),
                         Text(
-                          'App Version $_appVersion',
+                          '${'settings.app_version_prefix'.tr()} $_appVersion',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurface.withOpacity(0.5),
                           ),
@@ -212,16 +214,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (widget.eventId != null) ...[
-                          _buildSectionHeader(theme, 'EVENT SETTINGS'),
+                          _buildSectionHeader(
+                            theme,
+                            'settings.event_settings'.tr(),
+                          ),
                           const SizedBox(height: 12),
                           _buildEventSettingsSection(theme),
                           const SizedBox(height: 32),
                         ],
-                        _buildSectionHeader(theme, 'PREFERENCES'),
+                        _buildSectionHeader(theme, 'settings.preferences'.tr()),
                         const SizedBox(height: 12),
                         _buildPreferencesSection(theme),
                         const SizedBox(height: 32),
-                        _buildSectionHeader(theme, 'HELP & SUPPORT'),
+                        _buildSectionHeader(
+                          theme,
+                          'settings.help_support'.tr(),
+                        ),
                         const SizedBox(height: 12),
                         _buildHelpSection(theme),
                       ],
@@ -240,16 +248,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildUserProfile(theme, user),
                   const SizedBox(height: 32),
                   if (widget.eventId != null) ...[
-                    _buildSectionHeader(theme, 'EVENT SETTINGS'),
+                    _buildSectionHeader(theme, 'settings.event_settings'.tr()),
                     const SizedBox(height: 12),
                     _buildEventSettingsSection(theme),
                     const SizedBox(height: 32),
                   ],
-                  _buildSectionHeader(theme, 'PREFERENCES'),
+                  _buildSectionHeader(theme, 'settings.preferences'.tr()),
                   const SizedBox(height: 12),
                   _buildPreferencesSection(theme),
                   const SizedBox(height: 32),
-                  _buildSectionHeader(theme, 'HELP & SUPPORT'),
+                  _buildSectionHeader(theme, 'settings.help_support'.tr()),
                   const SizedBox(height: 12),
                   _buildHelpSection(theme),
                   const SizedBox(height: 32),
@@ -257,7 +265,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
-                      'App Version $_appVersion',
+                      '${'settings.app_version'.tr()} $_appVersion',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.5),
                       ),
@@ -275,11 +283,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildUserProfile(ThemeData theme, User? user) {
     final userMetadata = user?.userMetadata;
-    final firstName = userMetadata?['first_name'] ?? 'User';
+    final firstName =
+        userMetadata?['first_name'] ?? 'settings.user_default'.tr();
     final lastName = userMetadata?['last_name'] ?? '';
     final fullName = '$firstName $lastName'.trim();
     final userId = user?.id.substring(0, 8) ?? 'N/A';
-    final role = userMetadata?['role'] ?? 'Event Manager';
+    final role = userMetadata?['role'] ?? 'settings.role_default'.tr();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -326,14 +335,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'ID: $userId',
+                  '${'settings.id_prefix'.tr()} $userId',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Role: $role',
+                  '${'settings.role_prefix'.tr()} $role',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
@@ -376,14 +385,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 } else if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Nessun evento trovato')),
+                    SnackBar(content: Text('settings.no_event'.tr())),
                   );
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${'settings.error_prefix'.tr()} $e'),
+                    ),
+                  );
                 }
               }
             },
@@ -412,8 +423,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         SettingsTile(
           icon: Icons.settings_applications,
-          title: 'Impostazioni Evento',
-          subtitle: 'Gestisci le impostazioni dell\'evento corrente',
+          title: 'settings.event_settings'.tr(),
+          subtitle: 'settings.manage_event_settings'.tr(),
           onTap: () {
             if (widget.eventId != null) {
               Navigator.pushNamed(context, '/event/${widget.eventId}/settings');
@@ -429,20 +440,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         SettingsTile(
           icon: Icons.language,
-          title: 'Language & Region',
-          subtitle: _getLanguageName(_settings.language),
+          title: 'settings.language_region'.tr(),
+          subtitle: LocalizationConfig.getLanguageName(
+            context.locale.languageCode,
+          ),
           onTap: () async {
             final result = await Navigator.push<String>(
               context,
               MaterialPageRoute(
                 builder:
                     (context) => LanguageSettingsScreen(
-                      currentLanguage: _settings.language,
+                      currentLanguage: context.locale.languageCode,
                     ),
               ),
             );
-            if (result != null) {
-              await _updateSettings(_settings.copyWith(language: result));
+            if (result != null && mounted) {
+              await context.setLocale(
+                LocalizationConfig.supportedLocales.firstWhere(
+                  (l) => l.languageCode == result,
+                ),
+              );
+              if (mounted) {
+                await _updateSettings(_settings.copyWith(language: result));
+              }
             }
           },
         ),
@@ -452,7 +472,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Theme.of(context).brightness == Brightness.dark
                   ? Icons.dark_mode
                   : Icons.light_mode,
-          title: 'Dark mode',
+          title: 'settings.dark_mode'.tr(),
           trailing: Switch(
             value: Theme.of(context).brightness == Brightness.dark,
             onChanged: (value) {
@@ -469,8 +489,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 8),
         SettingsTile(
           icon: Icons.notifications,
-          title: 'Notification Settings',
-          subtitle: 'Gestisci le notifiche',
+          title: 'settings.notifications'.tr(),
+          subtitle: 'settings.manage_notifications'.tr(),
           onTap: () {
             Navigator.push(
               context,
@@ -483,7 +503,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 8),
         SettingsTile(
           icon: Icons.vibration,
-          title: 'Vibration',
+          title: 'settings.vibration'.tr(),
           trailing: Switch(
             value: _settings.vibrationEnabled,
             onChanged: (value) {
@@ -500,7 +520,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         SettingsTile(
           icon: Icons.help_outline,
-          title: 'FAQ',
+          title: 'settings.faq'.tr(),
           onTap: () {
             Navigator.push(
               context,
@@ -511,7 +531,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 8),
         SettingsTile(
           icon: Icons.support_agent,
-          title: 'Contact Support',
+          title: 'settings.contact_support'.tr(),
           onTap: () {
             Navigator.push(
               context,
@@ -522,7 +542,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 8),
         SettingsTile(
           icon: Icons.feedback_outlined,
-          title: 'Send Feedback',
+          title: 'settings.send_feedback'.tr(),
           onTap: () {
             Navigator.push(
               context,
@@ -533,7 +553,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 8),
         SettingsTile(
           icon: Icons.refresh,
-          title: 'Reset Settings',
+          title: 'settings.reset_settings'.tr(),
           iconColor: Colors.orange,
           onTap: _resetSettings,
         ),
@@ -555,7 +575,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         child: Text(
-          'Log Out',
+          'settings.logout'.tr(),
           style: theme.textTheme.titleMedium?.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -563,24 +583,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
-  }
-
-  String _getLanguageName(String code) {
-    switch (code) {
-      case 'it':
-        return 'Italiano';
-      case 'en':
-        return 'English';
-      case 'de':
-        return 'Deutsch';
-      case 'es':
-        return 'Español';
-      case 'fr':
-        return 'Français';
-      case 'zh':
-        return '中文';
-      default:
-        return 'Italiano';
-    }
   }
 }

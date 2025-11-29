@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import '../../theme/app_theme.dart';
 import '../../services/SupabaseServicies/person_service.dart';
@@ -128,7 +129,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento profilo: $e')),
+          SnackBar(content: Text('${'person_profile.profile_load_error'.tr()}$e')),
         );
       }
     }
@@ -139,7 +140,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     if (!await launchUrl(url)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossibile aprire il link')),
+          SnackBar(content: Text('person_profile.launch_error'.tr())),
         );
       }
     }
@@ -177,7 +178,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 ListTile(
                   leading: Icon(Icons.phone, color: theme.colorScheme.primary),
                   title: Text(
-                    'Chiama $phone',
+                    'person_profile.call_user'.tr(args: [phone.toString()]),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   ),
                   onTap: () {
@@ -188,7 +189,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 ListTile(
                   leading: Icon(Icons.email, color: theme.colorScheme.primary),
                   title: Text(
-                    'Invia Email a $email',
+                    'person_profile.email_user'.tr(args: [email.toString()]),
                     style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                   ),
                   onTap: () {
@@ -275,7 +276,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'QR Code Ospite',
+                    'person_profile.qr_code_title'.tr(),
                     style: GoogleFonts.outfit(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -318,7 +319,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Chiudi'),
+                      child: Text('common.close'.tr()),
                     ),
                   ),
                 ],
@@ -343,12 +344,12 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Stato aggiornato')));
+        ).showSnackBar(SnackBar(content: Text('person_profile.status_updated'.tr())));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore aggiornamento stato: $e')),
+          SnackBar(content: Text('${'person_profile.status_update_error'.tr()}$e')),
         );
       }
     }
@@ -407,7 +408,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
         ElevatedButton.icon(
           onPressed: _showQRCode,
           icon: const Icon(Icons.qr_code, size: 18),
-          label: const Text('Mostra QR Code'),
+          label: Text('person_profile.show_qr_code'.tr()),
           style: ElevatedButton.styleFrom(
             backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
             foregroundColor: theme.colorScheme.primary,
@@ -428,13 +429,13 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       decoration: _cardDecoration(theme),
       child: Column(
         children: [
-          Text('CONSUMAZIONI', style: _headerStyle(theme)),
+          Text('person_profile.consumptions_title'.tr(), style: _headerStyle(theme)),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               ConsumptionGraph(
-                label: 'ALCOL',
+                label: 'person_profile.alcohol_label'.tr(),
                 count: _alcoholCount,
                 maxCount: _maxDrinks,
                 icon: AppTheme.transactionIcons['drink']!,
@@ -443,7 +444,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                     () => _showTransactionMenu('drink', isAlcoholic: true),
               ),
               ConsumptionGraph(
-                label: 'ANALCOL',
+                label: 'person_profile.non_alcohol_label'.tr(),
                 count: _nonAlcoholCount,
                 maxCount: null,
                 icon: Icons.free_breakfast,
@@ -452,7 +453,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                     () => _showTransactionMenu('drink', isAlcoholic: false),
               ),
               ConsumptionGraph(
-                label: 'CIBO',
+                label: 'person_profile.food_label'.tr(),
                 count: _foodCount,
                 maxCount: null,
                 icon: AppTheme.transactionIcons['food']!,
@@ -466,7 +467,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Totale: ',
+                'person_profile.total_label'.tr(),
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   color: theme.textTheme.bodyMedium?.color,
@@ -486,7 +487,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           TextButton(
             onPressed: _showTransactionList,
             child: Text(
-              'Visualizza elenco transazioni',
+              'person_profile.view_transactions'.tr(),
               style: GoogleFonts.outfit(
                 color: theme.textTheme.bodyLarge?.color,
                 decoration: TextDecoration.underline,
@@ -522,11 +523,11 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('DETTAGLI', style: _headerStyle(theme)),
+                  Text('person_profile.details_title'.tr(), style: _headerStyle(theme)),
                   const SizedBox(height: 12),
-                  _detailRow('NOME', firstName, theme),
-                  _detailRow('COGNOME', lastName, theme),
-                  _detailRow('ETÀ', age, theme),
+                  _detailRow('person_profile.name_label'.tr(), firstName, theme),
+                  _detailRow('person_profile.surname_label'.tr(), lastName, theme),
+                  _detailRow('person_profile.age_label'.tr(), age, theme),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -561,7 +562,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('CONTATTO', style: _headerStyle(theme)),
+                  Text('person_profile.contact_title'.tr(), style: _headerStyle(theme)),
                   const SizedBox(height: 12),
                   if (email != null && email.toString().isNotEmpty)
                     Padding(
@@ -613,7 +614,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                         onPressed: () => _contactUser(email, phone),
                         icon: const Icon(Icons.contact_phone, size: 16),
                         label: Text(
-                          'CONTATTA',
+                          'person_profile.contact_button'.tr(),
                           style: GoogleFonts.outfit(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
@@ -630,7 +631,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                       ),
                     )
                   else
-                    Text('Nessun contatto', style: _labelStyle(theme)),
+                    Text('person_profile.no_contact'.tr(), style: _labelStyle(theme)),
                 ],
               ),
             ),
@@ -668,16 +669,16 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('INFORMAZIONI AGGIUNTIVE', style: _headerStyle(theme)),
+          Text('person_profile.additional_info'.tr(), style: _headerStyle(theme)),
           const SizedBox(height: 12),
           if (codiceFiscale != null && codiceFiscale.isNotEmpty)
-            _detailRow('CODICE FISCALE', codiceFiscale, theme),
+            _detailRow('person_profile.fiscal_code'.tr(), codiceFiscale, theme),
           if (indirizzo != null && indirizzo.isNotEmpty)
-            _detailRow('INDIRIZZO', indirizzo, theme),
+            _detailRow('person_profile.address'.tr(), indirizzo, theme),
           if (invitedByName != null &&
               invitedByName.isNotEmpty &&
               invitedById != null)
-            _groupLinkRow('INVITATO DA', invitedByName, theme, () {
+            _groupLinkRow('person_profile.invited_by'.tr(), invitedByName, theme, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -692,7 +693,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             }),
           if (sottogruppo != null)
             _groupLinkRow(
-              'SOTTOGRUPPO',
+              'person_profile.subgroup'.tr(),
               sottogruppo['name'],
               theme,
               () => _showGroupMembers(
@@ -703,7 +704,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             ),
           if (gruppo != null)
             _groupLinkRow(
-              'GRUPPO',
+              'person_profile.group'.tr(),
               gruppo['name'],
               theme,
               () => _showGroupMembers(gruppo['id'], gruppo['name'], false),
@@ -771,7 +772,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('STATO PARTECIPAZIONE', style: _headerStyle(theme)),
+          Text('person_profile.participation_status'.tr(), style: _headerStyle(theme)),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -826,7 +827,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Visualizza cronologia stati',
+                  'person_profile.view_status_history'.tr(),
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     color: colorScheme.primary,
@@ -859,7 +860,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'AREA SEGNALAZIONI',
+              'person_profile.reports_area'.tr(),
               style: GoogleFonts.outfit(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -871,7 +872,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 onPressed: () => _showTransactionMenu('report'),
                 icon: Icon(Icons.add, size: 16, color: colorScheme.error),
                 label: Text(
-                  'AGGIUNGI',
+                  'person_profile.add_report'.tr(),
                   style: GoogleFonts.outfit(
                     color: colorScheme.error,
                     fontWeight: FontWeight.bold,
@@ -951,7 +952,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             decoration: _cardDecoration(theme),
             child: Center(
               child: Text(
-                'Nessuna segnalazione',
+                'person_profile.no_reports'.tr(),
                 style: GoogleFonts.outfit(color: Colors.grey),
               ),
             ),
@@ -978,7 +979,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
         backgroundColor: theme.scaffoldBackgroundColor,
         body: Center(
           child: Text(
-            'Profilo non trovato',
+            'person_profile.profile_not_found'.tr(),
             style: TextStyle(color: theme.textTheme.bodyLarge?.color),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'register_step3_page.dart';
 
 class RegisterStep2Page extends StatefulWidget {
@@ -81,7 +82,7 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'ORGANIZZA LA TUA FESTA!',
+                          'register.subtitle'.tr(),
                           style: theme.textTheme.bodySmall?.copyWith(
                             letterSpacing: 1.2,
                             color: theme.colorScheme.onSurface.withOpacity(0.6),
@@ -91,7 +92,7 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Registrati - Step 2/3',
+                            'register.step2_title'.tr(),
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -102,16 +103,16 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           style: theme.textTheme.bodyLarge,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
+                          decoration: InputDecoration(
+                            labelText: 'login.email_label'.tr(),
+                            prefixIcon: const Icon(Icons.email_outlined),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Inserisci la tua email';
+                              return 'login.email_error_empty'.tr();
                             }
                             if (!value.contains('@')) {
-                              return 'Email non valida';
+                              return 'login.email_error_invalid'.tr();
                             }
                             return null;
                           },
@@ -121,16 +122,16 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                           controller: _phoneController,
                           keyboardType: TextInputType.phone,
                           style: theme.textTheme.bodyLarge,
-                          decoration: const InputDecoration(
-                            labelText: 'Telefono',
-                            prefixIcon: Icon(Icons.phone_outlined),
+                          decoration: InputDecoration(
+                            labelText: 'register.phone_label'.tr(),
+                            prefixIcon: const Icon(Icons.phone_outlined),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Inserisci il tuo numero di telefono';
+                              return 'register.phone_error_empty'.tr();
                             }
                             if (value.length < 10) {
-                              return 'Numero di telefono non valido';
+                              return 'register.phone_error_invalid'.tr();
                             }
                             return null;
                           },
@@ -141,14 +142,14 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                           height: 50,
                           child: ElevatedButton(
                             onPressed: _goToNextStep,
-                            child: const Text('Avanti >'),
+                            child: Text('register.next_button'.tr()),
                           ),
                         ),
                         const SizedBox(height: 20),
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: Text(
-                            '< Indietro',
+                            'forgot_password.back_button'.tr(),
                             style: TextStyle(
                               color: theme.colorScheme.onSurface,
                               fontWeight: FontWeight.w600,

@@ -1,7 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
-import '../services/SupabaseServicies/supabase_config.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../services/SupabaseServicies/deep_link_handler.dart';
+import 'login_page.dart';
 
 class SetNewPasswordPage extends StatefulWidget {
   const SetNewPasswordPage({super.key});
@@ -20,29 +21,43 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
     // Non fare signOut! Permetti di arrivare a questa schermata anche da autenticato
   }
 
-  Future<void> _submit() async {
+  Future<void> _updatePassword() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
-      await SupabaseConfig.client.auth.updateUser(
+      await Supabase.instance.client.auth.updateUser(
         UserAttributes(password: _passwordController.text),
       );
       if (mounted) {
         // RESETTA recovery mode flag - password cambiata con successo
         DeepLinkHandler.setRecoveryMode(false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password aggiornata! Accedi subito.')),
-        );
-        Navigator.of(context).pushReplacementNamed('/login');
+        _navigateToLogin();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore:   [4m${e.toString()} [0m')),
+          SnackBar(
+            content: Text('${'set_new_password.error'.tr()}${e.toString()}'),
+          ),
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _navigateToLogin() {
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('set_new_password.success'.tr())));
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
     }
   }
 
@@ -72,52 +87,56 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Imposta una nuova password',
+                          'set_new_password.title'.tr(),
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         TextFormField(
                           controller: _passwordController,
                           obscureText: true,
                           style: theme.textTheme.bodyLarge,
-                          decoration: const InputDecoration(
-                            labelText: 'Nuova password',
-                            prefixIcon: Icon(Icons.lock_outline),
+                          decoration: InputDecoration(
+                            labelText: 'set_new_password.label'.tr(),
+                            prefixIcon: const Icon(Icons.lock_outline),
                           ),
-                          validator: (v) => v != null && v.length >= 8 ? null : 'Minimo 8 caratteri',
+                          validator: (value) {
+                            if (value == null || value.length < 8) {
+                              return 'set_new_password.error_length'.tr();
+                            }
+                            return null;
+                          },
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
-                          height: 48,
+                          height: 50,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _submit,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text('Salva'),
+                            onPressed: _isLoading ? null : _updatePassword,
+                            child:
+                                _isLoading
+                                    ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                    : Text('set_new_password.save_button'.tr()),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
                         TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pushReplacementNamed('/login');
-                          },
+                          onPressed: () => Navigator.pop(context),
                           child: Text(
-                            'Annulla',
+                            'set_new_password.cancel_button'.tr(),
                             style: TextStyle(
                               color: theme.colorScheme.onSurface,
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),

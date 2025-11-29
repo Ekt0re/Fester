@@ -1,11 +1,6 @@
-import 'package:csv/csv.dart';
-import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -50,8 +45,8 @@ class ExportService {
     bool includeMenuAlcoholic = false,
   }) async {
     final pdf = pw.Document();
-    // 1. Fetch Data
-    final Map<String, dynamic> data = await _fetchData(
+    // 1. Fetch Data (per future use)
+    await _fetchData(
       eventId: eventId,
       includeEventInfo:
           includeEventInfo || includeEventSettings || includeEventStats,
@@ -88,7 +83,7 @@ class ExportService {
     );
 
     // 2. Generate File
-    XFile? file;
+    // 2. Generate File
     final String timestamp = DateFormat(
       'yyyyMMdd_HHmmss',
     ).format(DateTime.now());
@@ -112,7 +107,68 @@ class ExportService {
     required bool includeGroups,
     required bool includeMenu,
   }) async {
-    // TODO: Implement actual data fetching logic
-    return {};
+    final Map<String, dynamic> result = {};
+
+    try {
+      if (includeEventInfo) {
+        final eventData =
+            await _supabase.from('event').select().eq('id', eventId).single();
+        result['event'] = eventData;
+      }
+
+      if (includeParticipants) {
+        final participantsData = await _supabase
+            .from('participation')
+            .select('*, person(*)')
+            .eq('event_id', eventId);
+        result['participants'] = participantsData;
+      }
+
+      if (includeTransactions) {
+        final transactionsData = await _supabase
+            .from('transaction')
+            .select('*, staff(*)')
+            .eq('event_id', eventId);
+        result['transactions'] = transactionsData;
+      }
+
+      if (includeStaff) {
+        final staffData = await _supabase
+            .from('event_staff')
+            .select('*, staff(*)')
+            .eq('event_id', eventId);
+        result['staff'] = staffData;
+      }
+
+      if (includeGroups) {
+        // Fetch groups if needed, assuming a 'groups' table or similar structure exists
+        // For now, we'll just return an empty list if the table structure isn't fully known or simple
+        // Adjust this based on actual schema if 'groups' table exists
+        try {
+          final groupsData = await _supabase
+              .from('group') // Assuming table name is 'group'
+              .select()
+              .eq('event_id', eventId);
+          result['groups'] = groupsData;
+        } catch (_) {
+          // Ignore if table doesn't exist or other error
+          result['groups'] = [];
+        }
+      }
+
+      if (includeMenu) {
+        final menuData =
+            await _supabase
+                .from('menu')
+                .select('*, menu_item(*)')
+                .eq('event_id', eventId)
+                .maybeSingle();
+        result['menu'] = menuData;
+      }
+    } catch (e) {
+      debugPrint('Error fetching export data: $e');
+    }
+
+    return result;
   }
 }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,7 +9,7 @@ class SupportScreen extends StatelessWidget {
   Future<void> _launchUrl(String urlString) async {
     final Uri url = Uri.parse(urlString);
     if (!await launchUrl(url)) {
-      debugPrint('Could not launch $url');
+      debugPrint('${'support.launch_error'.tr()} $url');
     }
   }
 
@@ -26,7 +27,7 @@ class SupportScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Supporto',
+          'support.title'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -39,7 +40,7 @@ class SupportScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hai bisogno di aiuto?',
+              'support.need_help'.tr(),
               style: GoogleFonts.outfit(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -48,7 +49,7 @@ class SupportScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Il nostro team è a tua disposizione per risolvere qualsiasi problema.',
+              'support.team_available'.tr(),
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -58,7 +59,7 @@ class SupportScreen extends StatelessWidget {
             _buildContactTile(
               theme,
               icon: Icons.email_outlined,
-              title: 'Email',
+              title: 'support.email'.tr(),
               subtitle: 'support@fester.app',
               onTap: () => _launchUrl('mailto:support@fester.app'),
             ),
@@ -66,7 +67,7 @@ class SupportScreen extends StatelessWidget {
             _buildContactTile(
               theme,
               icon: Icons.phone_outlined,
-              title: 'Telefono',
+              title: 'support.phone'.tr(),
               subtitle: '+39 02 12345678',
               onTap: () => _launchUrl('tel:+390212345678'),
             ),
@@ -74,7 +75,7 @@ class SupportScreen extends StatelessWidget {
             _buildContactTile(
               theme,
               icon: Icons.web,
-              title: 'Sito Web',
+              title: 'support.website'.tr(),
               subtitle: 'www.fester.app',
               onTap: () => _launchUrl('https://www.fester.app'),
             ),

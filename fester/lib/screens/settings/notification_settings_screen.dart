@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../services/notification_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -46,26 +47,26 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Impostazioni Notifiche'),
+        title: Text('notification_settings.title'.tr()),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Gestisci quali notifiche ricevere',
+            'notification_settings.subtitle'.tr(),
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 24),
 
-          _buildSectionTitle(theme, 'Notifiche Ospiti'),
+          _buildSectionTitle(theme, 'notification_settings.section_guests'.tr()),
           _buildNotificationTile(
             theme: theme,
             icon: Icons.warning_amber,
             iconColor: Colors.orange,
-            title: 'Warning Ricevuti',
-            subtitle: 'Quando un ospite riceve un warning',
+            title: 'notification_settings.warning_received'.tr(),
+            subtitle: 'notification_settings.warning_received_desc'.tr(),
             value: _warningNotifications,
             onChanged: (value) {
               setState(() => _warningNotifications = value);
@@ -78,8 +79,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             theme: theme,
             icon: Icons.local_bar,
             iconColor: Colors.red,
-            title: 'Limite Drink Superato',
-            subtitle: 'Quando un ospite supera il limite di consumazioni',
+            title: 'notification_settings.drink_limit'.tr(),
+            subtitle: 'notification_settings.drink_limit_desc'.tr(),
             value: _drinkLimitNotifications,
             onChanged: (value) {
               setState(() => _drinkLimitNotifications = value);
@@ -88,13 +89,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
           const SizedBox(height: 24),
 
-          _buildSectionTitle(theme, 'Notifiche Evento'),
+          _buildSectionTitle(theme, 'notification_settings.section_event'.tr()),
           _buildNotificationTile(
             theme: theme,
             icon: Icons.play_circle_outline,
             iconColor: Colors.green,
-            title: 'Inizio Evento',
-            subtitle: '10 minuti prima dell\'inizio',
+            title: 'notification_settings.event_start'.tr(),
+            subtitle: 'notification_settings.event_start_desc'.tr(),
             value: _eventStartNotifications,
             onChanged: (value) {
               setState(() => _eventStartNotifications = value);
@@ -107,8 +108,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             theme: theme,
             icon: Icons.stop_circle_outlined,
             iconColor: Colors.blue,
-            title: 'Fine Evento',
-            subtitle: '30 minuti prima della fine',
+            title: 'notification_settings.event_end'.tr(),
+            subtitle: 'notification_settings.event_end_desc'.tr(),
             value: _eventEndNotifications,
             onChanged: (value) {
               setState(() => _eventEndNotifications = value);
@@ -117,13 +118,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
           const SizedBox(height: 24),
 
-          _buildSectionTitle(theme, 'Notifiche Sistema'),
+          _buildSectionTitle(theme, 'notification_settings.section_system'.tr()),
           _buildNotificationTile(
             theme: theme,
             icon: Icons.sync,
             iconColor: Colors.purple,
-            title: 'Sincronizzazione',
-            subtitle: 'Quando i dati vengono sincronizzati',
+            title: 'notification_settings.sync'.tr(),
+            subtitle: 'notification_settings.sync_desc'.tr(),
             value: _syncNotifications,
             onChanged: (value) {
               setState(() => _syncNotifications = value);
@@ -145,7 +146,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Le notifiche verranno mostrate nella sezione Notifiche dell\'app',
+                      'notification_settings.info_message'.tr(),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.primary,
                       ),

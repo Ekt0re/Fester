@@ -1,26 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../config/localization_config.dart';
 
 class LanguageSettingsScreen extends StatelessWidget {
   final String currentLanguage;
 
-  const LanguageSettingsScreen({
-    super.key,
-    required this.currentLanguage,
-  });
-
-  static const List<Map<String, String>> languages = [
-    {'code': 'it', 'name': 'Italiano', 'flag': '🇮🇹'},
-    {'code': 'en', 'name': 'English', 'flag': '🇬🇧'},
-    {'code': 'de', 'name': 'Deutsch', 'flag': '🇩🇪'},
-    {'code': 'es', 'name': 'Español', 'flag': '🇪🇸'},
-    {'code': 'fr', 'name': 'Français', 'flag': '🇫🇷'},
-    {'code': 'zh', 'name': '中文', 'flag': '🇨🇳'},
-  ];
+  const LanguageSettingsScreen({super.key, required this.currentLanguage});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final languages = LocalizationConfig.supportedLanguages;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -32,7 +23,7 @@ class LanguageSettingsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Language & Region',
+          'settings.language_region'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -54,40 +45,38 @@ class LanguageSettingsScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colorScheme.primary.withOpacity(0.1)
-                    : theme.colorScheme.surface,
+                color:
+                    isSelected
+                        ? theme.colorScheme.primary.withOpacity(0.1)
+                        : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.outline.withOpacity(0.2),
+                  color:
+                      isSelected
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.outline.withOpacity(0.2),
                   width: isSelected ? 2 : 1,
                 ),
               ),
               child: Row(
                 children: [
-                  Text(
-                    language['flag']!,
-                    style: const TextStyle(fontSize: 32),
-                  ),
+                  Text(language['flag']!, style: const TextStyle(fontSize: 32)),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       language['name']!,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color:
+                            isSelected
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
                   if (isSelected)
-                    Icon(
-                      Icons.check_circle,
-                      color: theme.colorScheme.primary,
-                    ),
+                    Icon(Icons.check_circle, color: theme.colorScheme.primary),
                 ],
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -136,7 +137,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore caricamento statistiche: $e')),
+          SnackBar(content: Text('${'statistics.load_error'.tr()}$e')),
         );
       }
     }
@@ -149,7 +150,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(title: const Text('Statistiche Evento')),
+        appBar: AppBar(title: Text('statistics.title'.tr())),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -157,7 +158,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Statistiche Evento'),
+        title: Text('statistics.title'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -183,7 +184,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                   children: [
                     _buildSmallMetricCard(
                       theme: theme,
-                      title: 'Live Attendance',
+                      title: 'statistics.live_attendance'.tr(),
                       value: '$_totalAttendance',
                       subtitle: _maxCapacity > 0 ? '/ $_maxCapacity' : '',
                       icon: Icons.people,
@@ -191,7 +192,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                     ),
                     _buildSmallMetricCard(
                       theme: theme,
-                      title: 'Total Sales',
+                      title: 'statistics.total_sales'.tr(),
                       value: '€${_totalRevenue.toStringAsFixed(0)}',
                       subtitle: '',
                       icon: Icons.monetization_on,
@@ -199,17 +200,17 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                     ),
                     _buildSmallMetricCard(
                       theme: theme,
-                      title: 'Avg. Spend',
+                      title: 'statistics.avg_spend'.tr(),
                       value: '€${_avgSpend.toStringAsFixed(1)}',
-                      subtitle: 'per person',
+                      subtitle: 'statistics.per_person'.tr(),
                       icon: Icons.attach_money,
                       color: Colors.blue,
                     ),
                     _buildSmallMetricCard(
                       theme: theme,
-                      title: 'Check-in Rate',
+                      title: 'statistics.check_in_rate'.tr(),
                       value: '${_checkInRate.toStringAsFixed(1)}%',
-                      subtitle: 'of invited',
+                      subtitle: 'statistics.of_invited'.tr(),
                       icon: Icons.check_circle_outline,
                       color: Colors.purple,
                     ),
@@ -223,7 +224,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                         Expanded(
                           child: _buildSmallMetricCard(
                             theme: theme,
-                            title: 'Live Attendance',
+                            title: 'statistics.live_attendance'.tr(),
                             value: '$_totalAttendance',
                             subtitle: _maxCapacity > 0 ? '/ $_maxCapacity' : '',
                             icon: Icons.people,
@@ -234,7 +235,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                         Expanded(
                           child: _buildSmallMetricCard(
                             theme: theme,
-                            title: 'Total Sales',
+                            title: 'statistics.total_sales'.tr(),
                             value: '€${_totalRevenue.toStringAsFixed(0)}',
                             subtitle: '',
                             icon: Icons.monetization_on,
@@ -249,9 +250,9 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                         Expanded(
                           child: _buildSmallMetricCard(
                             theme: theme,
-                            title: 'Avg. Spend',
+                            title: 'statistics.avg_spend'.tr(),
                             value: '€${_avgSpend.toStringAsFixed(1)}',
-                            subtitle: 'per person',
+                            subtitle: 'statistics.per_person'.tr(),
                             icon: Icons.attach_money,
                             color: Colors.blue,
                           ),
@@ -260,9 +261,9 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                         Expanded(
                           child: _buildSmallMetricCard(
                             theme: theme,
-                            title: 'Check-in Rate',
+                            title: 'statistics.check_in_rate'.tr(),
                             value: '${_checkInRate.toStringAsFixed(1)}%',
-                            subtitle: 'of invited',
+                            subtitle: 'statistics.of_invited'.tr(),
                             icon: Icons.check_circle_outline,
                             color: Colors.purple,
                           ),
@@ -281,7 +282,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                     Expanded(
                       child: _buildSmallMetricCard(
                         theme: theme,
-                        title: 'Active Staff',
+                        title: 'statistics.active_staff'.tr(),
                         value: '$_activeStaff',
                         subtitle: _totalStaff > 0 ? '/ $_totalStaff' : '',
                         icon: Icons.badge,
@@ -292,9 +293,9 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                     Expanded(
                       child: _buildSmallMetricCard(
                         theme: theme,
-                        title: 'Staff/Guest Ratio',
+                        title: 'statistics.staff_guest_ratio'.tr(),
                         value: '1:${_staffGuestRatio.toStringAsFixed(0)}',
-                        subtitle: 'staff per guests',
+                        subtitle: 'statistics.staff_per_guests'.tr(),
                         icon: Icons.group_work,
                         color: Colors.teal,
                       ),
@@ -304,7 +305,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
               else
                 _buildSmallMetricCard(
                   theme: theme,
-                  title: 'Active Staff',
+                  title: 'statistics.active_staff'.tr(),
                   value: '$_activeStaff',
                   subtitle: _totalStaff > 0 ? '/ $_totalStaff' : '',
                   icon: Icons.badge,
@@ -348,7 +349,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Partecipazioni per Status',
+              'statistics.participation_by_status'.tr(),
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -362,7 +363,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                   _statusCounts.isEmpty
                       ? Center(
                         child: Text(
-                          'Nessun dato disponibile',
+                          'statistics.no_data'.tr(),
                           style: theme.textTheme.bodyMedium,
                         ),
                       )
@@ -436,7 +437,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Top Consumed Items',
+              'statistics.top_consumed_items'.tr(),
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -447,7 +448,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
-                  'Most popular: ${_topProducts.first['name']}',
+                  '${'statistics.most_popular'.tr()}${_topProducts.first['name']}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
@@ -489,7 +490,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Total Items',
+                        'statistics.total_items'.tr(),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),

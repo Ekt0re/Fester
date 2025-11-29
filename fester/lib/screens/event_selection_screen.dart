@@ -1,4 +1,4 @@
-// lib/screens/event_selection_screen.dart
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../services/SupabaseServicies/event_service.dart';
 import '../services/SupabaseServicies/staff_user_service.dart';
@@ -90,7 +90,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore nel caricamento eventi: $e')),
+          SnackBar(content: Text('${'event_selection.load_error'.tr()}$e')),
         );
       }
     }
@@ -101,32 +101,31 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
     final settings = eventDetails.settings;
 
     if (eventDetails.event.deletedAt != null) {
-      return 'Terminato';
+      return 'event_status.ended'.tr();
     }
 
     if (settings == null) {
-      return 'In programmazione';
+      return 'event_status.scheduled'.tr();
     }
 
     if (now.isBefore(settings.startAt)) {
-      return 'In programmazione';
+      return 'event_status.scheduled'.tr();
     } else if (settings.endAt != null && now.isAfter(settings.endAt!)) {
-      return 'Terminato';
+      return 'event_status.ended'.tr();
     } else {
-      return 'Avviato';
+      return 'event_status.started'.tr();
     }
   }
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Avviato':
-        return Colors.green;
-      case 'In programmazione':
-        return Colors.orange;
-      case 'Terminato':
-        return Colors.red;
-      default:
-        return Colors.grey;
+    if (status == 'event_status.started'.tr()) {
+      return Colors.green;
+    } else if (status == 'event_status.scheduled'.tr()) {
+      return Colors.orange;
+    } else if (status == 'event_status.ended'.tr()) {
+      return Colors.red;
+    } else {
+      return Colors.grey;
     }
   }
 
@@ -182,7 +181,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                'ORGANIZZA LA TUA FESTA!',
+                                'event_selection.subtitle'.tr(),
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.w500,
@@ -193,7 +192,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                               ),
                               const SizedBox(height: 32),
                               Text(
-                                'Seleziona l\'evento che vuoi gestire!',
+                                'event_selection.select_event'.tr(),
                                 textAlign: TextAlign.center,
                                 style: theme.textTheme.titleMedium,
                               ),
@@ -208,7 +207,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    'Nessun evento attivo.\nCrea il tuo primo evento!',
+                                    'event_selection.no_active_events'.tr(),
                                     textAlign: TextAlign.center,
                                     style: theme.textTheme.bodyLarge,
                                   ),
@@ -266,9 +265,10 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                             ScaffoldMessenger.of(
                                               context,
                                             ).showSnackBar(
-                                              const SnackBar(
+                                              SnackBar(
                                                 content: Text(
-                                                  'Evento ripristinato',
+                                                  'event_selection.event_restored'
+                                                      .tr(),
                                                 ),
                                               ),
                                             );
@@ -279,7 +279,9 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                               context,
                                             ).showSnackBar(
                                               SnackBar(
-                                                content: Text('Errore: $e'),
+                                                content: Text(
+                                                  '${'event_selection.error'.tr()}$e',
+                                                ),
                                               ),
                                             );
                                           }
@@ -307,8 +309,8 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                 ),
                                 label: Text(
                                   _showArchived
-                                      ? 'Mostra eventi attivi'
-                                      : 'Visualizza eventi passati',
+                                      ? 'event_selection.show_active'.tr()
+                                      : 'event_selection.show_archived'.tr(),
                                   style: TextStyle(
                                     color: theme.colorScheme.onSurface,
                                   ),
@@ -353,7 +355,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  'Crea il tuo evento!',
+                                  'event_selection.create_event_button'.tr(),
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -465,7 +467,7 @@ class _EventCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.restore),
-                    tooltip: 'Ripristina evento',
+                    tooltip: 'event_selection.restore_tooltip'.tr(),
                     onPressed: onRestore,
                   ),
                 ],

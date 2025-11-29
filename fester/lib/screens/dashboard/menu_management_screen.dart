@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -87,7 +88,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore caricamento: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'menu.load_error'.tr()}$e')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -114,16 +115,16 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       _menuId = menuResponse['id'];
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Menu creato con successo!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('menu.created_success'.tr())));
         setState(() {});
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore creazione menu: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'menu.create_error'.tr()}$e')),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -143,9 +144,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
   void _confirmMenuItem(String itemId) async {
     final item = _menuItems.firstWhere((i) => i.tempId == itemId);
     if (!item.isValid()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa tutti i campi obbligatori')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('menu.complete_fields'.tr())));
       return;
     }
 
@@ -185,7 +186,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore salvataggio: $e')));
+        ).showSnackBar(SnackBar(content: Text('${'menu.save_error'.tr()}$e')));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -206,9 +207,9 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
         await _supabase.from('menu_item').delete().eq('id', item.id!);
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Errore eliminazione: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${'menu.delete_error'.tr()}$e')),
+          );
         }
         return;
       }
@@ -229,7 +230,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(title: const Text('Gestione Menù')),
+        appBar: AppBar(title: Text('menu.title'.tr())),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -238,7 +239,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
     if (_menuId == null) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(title: const Text('Crea Menù')),
+        appBar: AppBar(title: Text('menu.create_title'.tr())),
         body: Center(
           child: Container(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -248,7 +249,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                 padding: const EdgeInsets.all(24.0),
                 children: [
                   Text(
-                    'CREA MENÙ E PREZZARIO',
+                    'menu.create_header'.tr(),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -259,11 +260,11 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                   _buildTextField(
                     context: context,
                     controller: _menuNameController,
-                    label: 'Nome Menù',
-                    hint: 'Es: Menù Principale',
+                    label: 'menu.name_label'.tr(),
+                    hint: 'menu.name_hint'.tr(),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Inserisci il nome del menù';
+                        return 'menu.name_error'.tr();
                       }
                       return null;
                     },
@@ -272,14 +273,14 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                   _buildTextField(
                     context: context,
                     controller: _menuDescriptionController,
-                    label: 'Descrizione (opzionale)',
-                    hint: 'Descrivi il menù...',
+                    label: 'menu.description_label'.tr(),
+                    hint: 'menu.description_hint'.tr(),
                     maxLines: 3,
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: _createMenu,
-                    child: const Text('Crea Menù'),
+                    child: Text('menu.create_button'.tr()),
                   ),
                 ],
               ),
@@ -334,14 +335,14 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Nessun item aggiunto',
+                      'menu.no_items'.tr(),
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Premi + per aggiungere',
+                      'menu.add_hint'.tr(),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.5),
                       ),
@@ -441,7 +442,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Modifica Item',
+                                    'menu.edit_item'.tr(),
                                     style: theme.textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -473,7 +474,7 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'Seleziona un elemento per modificarlo',
+                                  'menu.select_edit'.tr(),
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     color: theme.colorScheme.onSurface
                                         .withOpacity(0.5),
@@ -717,7 +718,7 @@ class _MenuItemHeader extends StatelessWidget {
                 children: [
                   Text(
                     item.name?.isEmpty ?? true
-                        ? 'Nuovo Item #${index + 1}'
+                        ? 'menu.new_item'.tr(args: [(index + 1).toString()])
                         : item.name!,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.onSurface,
@@ -747,7 +748,7 @@ class _MenuItemHeader extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Qty: ${item.availableQuantity}',
+                    'menu.qty'.tr(args: [item.availableQuantity.toString()]),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.secondary,
                       fontWeight: FontWeight.w600,
@@ -811,7 +812,7 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
         // Transaction Type Dropdown
         _buildDropdown(
           theme: theme,
-          label: 'Tipo',
+          label: 'menu.type_label'.tr(),
           value: widget.item.transactionTypeId,
           items: widget.transactionTypes,
           onChanged: (value) {
@@ -825,8 +826,8 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
         // Name
         _buildItemTextField(
           theme: theme,
-          label: 'Nome',
-          hint: 'Es: Birra Media',
+          label: 'menu.item_name_label'.tr(),
+          hint: 'menu.item_name_hint'.tr(),
           value: widget.item.name,
           onChanged: (value) {
             widget.item.name = value;
@@ -838,8 +839,8 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
         // Description
         _buildItemTextField(
           theme: theme,
-          label: 'Descrizione (opzionale)',
-          hint: 'Dettagli...',
+          label: 'menu.description_label'.tr(),
+          hint: 'menu.item_description_hint'.tr(),
           value: widget.item.description,
           onChanged: (value) {
             widget.item.description = value;
@@ -854,7 +855,7 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
             Expanded(
               child: _buildPriceTextField(
                 theme: theme,
-                label: 'Prezzo (€)',
+                label: 'menu.price_label'.tr(),
                 hint: '0,00',
                 initialValue: widget.item.price,
                 onChanged: (value) {
@@ -867,8 +868,8 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
             Expanded(
               child: _buildItemTextField(
                 theme: theme,
-                label: 'Quantità (opz.)',
-                hint: 'Illimitata',
+                label: 'menu.quantity_label'.tr(),
+                hint: 'menu.quantity_hint'.tr(),
                 value: widget.item.availableQuantity?.toString(),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
@@ -884,7 +885,7 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
         // Alcoholic checkbox (only for beverages)
         if (_isBeverage())
           CheckboxListTile(
-            title: const Text('Alcolico'),
+            title: Text('menu.alcoholic'.tr()),
             value: widget.item.isAlcoholic,
             onChanged: (value) {
               setState(() {
@@ -902,7 +903,7 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
         ElevatedButton.icon(
           onPressed: widget.onConfirm,
           icon: const Icon(Icons.check),
-          label: const Text('Conferma Item'),
+          label: Text('menu.confirm_item'.tr()),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(
@@ -945,7 +946,10 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
             child: DropdownButton<int>(
               value: value,
               isExpanded: true,
-              hint: Text('Seleziona tipo', style: theme.textTheme.bodyMedium),
+              hint: Text(
+                'menu.select_type'.tr(),
+                style: theme.textTheme.bodyMedium,
+              ),
               dropdownColor: theme.colorScheme.surface,
               style: theme.textTheme.bodyLarge,
               items:

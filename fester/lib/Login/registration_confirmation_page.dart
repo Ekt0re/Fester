@@ -1,35 +1,46 @@
 import 'package:fester/services/SupabaseServicies/supabase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'login_page.dart';
 
-class RegistrationConfirmationPage extends StatelessWidget {
-  final String email; // aggiunto
+class RegistrationConfirmationPage extends StatefulWidget {
+  final String email;
 
   const RegistrationConfirmationPage({super.key, required this.email});
 
-  Future<void> _resendConfirmationEmail(BuildContext context) async {
+  @override
+  State<RegistrationConfirmationPage> createState() =>
+      _RegistrationConfirmationPageState();
+}
+
+class _RegistrationConfirmationPageState
+    extends State<RegistrationConfirmationPage> {
+  bool _isResending = false;
+
+  Future<void> _resendEmail() async {
+    setState(() => _isResending = true);
     try {
-      await AuthService().resendVerificationEmail(
-        email: email,
-      ); // passa l'email
-      if (context.mounted) {
+      await AuthService().resendVerificationEmail(email: widget.email);
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Email inviata nuovamente! Controlla la tua casella.',
-            ),
+          SnackBar(
+            content: Text('confirmation.resend_success'.tr()),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore nell\'invio dell\'email: ${e.toString()}'),
+            content: Text('${'confirmation.resend_error'.tr()}${e.toString()}'),
             backgroundColor: Colors.red.shade400,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isResending = false);
       }
     }
   }
@@ -57,45 +68,28 @@ class RegistrationConfirmationPage extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'FESTER 3.0',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'ORGANIZZA LA TUA FESTA!',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          letterSpacing: 1.2,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                      const SizedBox(height: 50),
                       Container(
-                        width: 200,
-                        height: 200,
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(100),
+                          shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.email_outlined,
-                          size: 100,
+                          Icons.mark_email_read_outlined,
+                          size: 64,
                           color: theme.colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 32),
                       Text(
-                        'Conferma il tuo account',
+                        'confirmation.title'.tr(),
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Ti abbiamo inviato un\'email di conferma.\nClicca sul link per attivare il tuo account.',
+                        'confirmation.message'.tr(),
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           height: 1.5,
@@ -110,23 +104,35 @@ class RegistrationConfirmationPage extends StatelessWidget {
                           onPressed: () {
                             Navigator.pushAndRemoveUntil(
                               context,
-                              MaterialPageRoute(builder: (_) => const LoginPage()),
+                              MaterialPageRoute(
+                                builder: (_) => const LoginPage(),
+                              ),
                               (route) => false,
                             );
                           },
-                          child: const Text('Accedi'),
+                          child: Text('confirmation.login_button'.tr()),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       TextButton(
-                        onPressed: () => _resendConfirmationEmail(context),
-                        child: Text(
-                          'Non hai ricevuto l\'email? Rinvia',
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        onPressed: _isResending ? null : _resendEmail,
+                        child:
+                            _isResending
+                                ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                )
+                                : Text(
+                                  'confirmation.resend_link'.tr(),
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                       ),
                     ],
                   ),
