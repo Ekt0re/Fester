@@ -99,9 +99,9 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${'transaction.load_error'.tr()}$e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'transaction.load_error'.tr()}$e')),
+        );
       }
     }
   }
@@ -220,9 +220,9 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')),
+        );
       }
     }
   }
@@ -375,10 +375,12 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             else
               DropdownButtonFormField<dynamic>(
                 value: _selectedTypeId,
-                decoration: _inputDecoration('transaction.type_label'.tr(), theme),
+                decoration: _inputDecoration(
+                  'transaction.type_label'.tr(),
+                  theme,
+                ),
                 items:
                     _transactionTypes.map((type) {
-                      final name = (type['name'] as String).toUpperCase();
                       final typeName = (type['name'] as String).toLowerCase();
                       return DropdownMenuItem<dynamic>(
                         value: type['id'],
@@ -391,7 +393,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              name,
+                              'transaction_type.$typeName'.tr().toUpperCase(),
                               style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 color: theme.textTheme.bodyLarge?.color,
@@ -429,7 +431,10 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             // Name
             TextField(
               controller: _nameController,
-              decoration: _inputDecoration('transaction.name_label'.tr(), theme),
+              decoration: _inputDecoration(
+                'transaction.name_label'.tr(),
+                theme,
+              ),
               style: GoogleFonts.outfit(
                 color: theme.textTheme.bodyLarge?.color,
               ),
@@ -439,7 +444,10 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             // Description
             TextField(
               controller: _descriptionController,
-              decoration: _inputDecoration('transaction.description_label'.tr(), theme),
+              decoration: _inputDecoration(
+                'transaction.description_label'.tr(),
+                theme,
+              ),
               style: GoogleFonts.outfit(
                 color: theme.textTheme.bodyLarge?.color,
               ),
@@ -462,7 +470,9 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
                         FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                       ],
                       decoration: _inputDecoration(
-                        isMonetary ? 'transaction.price_label'.tr() : 'transaction.price_na_label'.tr(),
+                        isMonetary
+                            ? 'transaction.price_label'.tr()
+                            : 'transaction.price_na_label'.tr(),
                         theme,
                       ),
                       style: GoogleFonts.outfit(

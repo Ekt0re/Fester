@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../theme/app_theme.dart';
 
 class StaffCard extends StatelessWidget {
@@ -39,23 +40,26 @@ class StaffCard extends StatelessWidget {
               // Avatar
               CircleAvatar(
                 radius: 24,
-                backgroundColor: isPending
-                    ? colorScheme.surfaceContainerHighest
-                    : colorScheme.primary.withOpacity(0.1),
+                backgroundColor:
+                    isPending
+                        ? colorScheme.surfaceContainerHighest
+                        : colorScheme.primary.withOpacity(0.1),
                 backgroundImage:
                     imageUrl != null ? NetworkImage(imageUrl!) : null,
-                child: imageUrl == null
-                    ? Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: GoogleFonts.outfit(
-                          color: isPending
-                              ? colorScheme.onSurfaceVariant
-                              : colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      )
-                    : null,
+                child:
+                    imageUrl == null
+                        ? Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : '?',
+                          style: GoogleFonts.outfit(
+                            color:
+                                isPending
+                                    ? colorScheme.onSurfaceVariant
+                                    : colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        )
+                        : null,
               ),
               const SizedBox(width: 16),
 
@@ -69,9 +73,12 @@ class StaffCard extends StatelessWidget {
                       style: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: isPending
-                            ? theme.textTheme.bodyLarge?.color?.withOpacity(0.6)
-                            : theme.textTheme.bodyLarge?.color,
+                        color:
+                            isPending
+                                ? theme.textTheme.bodyLarge?.color?.withOpacity(
+                                  0.6,
+                                )
+                                : theme.textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -84,7 +91,7 @@ class StaffCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          role.toUpperCase(),
+                          'roles.${role.toLowerCase()}'.tr().toUpperCase(),
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             color: Colors.grey,
@@ -95,7 +102,9 @@ class StaffCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(4),
@@ -117,8 +126,11 @@ class StaffCard extends StatelessWidget {
               ),
 
               // Arrow
-              Icon(Icons.arrow_forward_ios,
-                  size: 16, color: Colors.grey.shade400),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.grey.shade400,
+              ),
             ],
           ),
         ),

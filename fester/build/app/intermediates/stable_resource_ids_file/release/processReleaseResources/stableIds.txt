@@ -1,5 +1,6 @@
-com.example.fester:xml/image_share_filepaths = 0x7f100002
-com.example.fester:xml/flutter_share_file_paths = 0x7f100001
+com.example.fester:xml/image_share_filepaths = 0x7f100003
+com.example.fester:xml/flutter_share_file_paths = 0x7f100002
+com.example.fester:xml/flutter_printing_file_paths = 0x7f100001
 com.example.fester:xml/flutter_image_picker_file_paths = 0x7f100000
 com.example.fester:styleable/ViewBackgroundHelper = 0x7f0f0045
 com.example.fester:styleable/SwitchPreferenceCompat = 0x7f0f0041

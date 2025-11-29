@@ -129,7 +129,9 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'person_profile.profile_load_error'.tr()}$e')),
+          SnackBar(
+            content: Text('${'person_profile.profile_load_error'.tr()}$e'),
+          ),
         );
       }
     }
@@ -342,44 +344,18 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       await _loadData();
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('person_profile.status_updated'.tr())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('person_profile.status_updated'.tr())),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'person_profile.status_update_error'.tr()}$e')),
+          SnackBar(
+            content: Text('${'person_profile.status_update_error'.tr()}$e'),
+          ),
         );
       }
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-      case 'confermato':
-        return AppTheme.statusConfirmed;
-      case 'checked_in':
-      case 'registrato':
-        return AppTheme.statusCheckedIn;
-      case 'inside':
-      case 'dentro':
-      case 'arrivato':
-        return AppTheme.statusConfirmed;
-      case 'outside':
-      case 'fuori':
-        return AppTheme.statusOutside;
-      case 'left':
-      case 'uscito':
-      case 'partito':
-        return AppTheme.statusLeft;
-      case 'invited':
-      case 'invitato':
-      case 'in arrivo':
-        return AppTheme.statusInvited;
-      default:
-        return AppTheme.statusInvited;
     }
   }
 
@@ -429,7 +405,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       decoration: _cardDecoration(theme),
       child: Column(
         children: [
-          Text('person_profile.consumptions_title'.tr(), style: _headerStyle(theme)),
+          Text(
+            'person_profile.consumptions_title'.tr(),
+            style: _headerStyle(theme),
+          ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -523,10 +502,21 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('person_profile.details_title'.tr(), style: _headerStyle(theme)),
+                  Text(
+                    'person_profile.details_title'.tr(),
+                    style: _headerStyle(theme),
+                  ),
                   const SizedBox(height: 12),
-                  _detailRow('person_profile.name_label'.tr(), firstName, theme),
-                  _detailRow('person_profile.surname_label'.tr(), lastName, theme),
+                  _detailRow(
+                    'person_profile.name_label'.tr(),
+                    firstName,
+                    theme,
+                  ),
+                  _detailRow(
+                    'person_profile.surname_label'.tr(),
+                    lastName,
+                    theme,
+                  ),
                   _detailRow('person_profile.age_label'.tr(), age, theme),
                   const SizedBox(height: 4),
                   Row(
@@ -562,7 +552,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('person_profile.contact_title'.tr(), style: _headerStyle(theme)),
+                  Text(
+                    'person_profile.contact_title'.tr(),
+                    style: _headerStyle(theme),
+                  ),
                   const SizedBox(height: 12),
                   if (email != null && email.toString().isNotEmpty)
                     Padding(
@@ -631,7 +624,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                       ),
                     )
                   else
-                    Text('person_profile.no_contact'.tr(), style: _labelStyle(theme)),
+                    Text(
+                      'person_profile.no_contact'.tr(),
+                      style: _labelStyle(theme),
+                    ),
                 ],
               ),
             ),
@@ -669,7 +665,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('person_profile.additional_info'.tr(), style: _headerStyle(theme)),
+          Text(
+            'person_profile.additional_info'.tr(),
+            style: _headerStyle(theme),
+          ),
           const SizedBox(height: 12),
           if (codiceFiscale != null && codiceFiscale.isNotEmpty)
             _detailRow('person_profile.fiscal_code'.tr(), codiceFiscale, theme),
@@ -678,19 +677,24 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           if (invitedByName != null &&
               invitedByName.isNotEmpty &&
               invitedById != null)
-            _groupLinkRow('person_profile.invited_by'.tr(), invitedByName, theme, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => InvitedGuestsScreen(
-                        inviterId: invitedById,
-                        inviterName: invitedByName,
-                        eventId: widget.eventId,
-                      ),
-                ),
-              );
-            }),
+            _groupLinkRow(
+              'person_profile.invited_by'.tr(),
+              invitedByName,
+              theme,
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => InvitedGuestsScreen(
+                          inviterId: invitedById,
+                          inviterName: invitedByName,
+                          eventId: widget.eventId,
+                        ),
+                  ),
+                );
+              },
+            ),
           if (sottogruppo != null)
             _groupLinkRow(
               'person_profile.subgroup'.tr(),
@@ -772,7 +776,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('person_profile.participation_status'.tr(), style: _headerStyle(theme)),
+          Text(
+            'person_profile.participation_status'.tr(),
+            style: _headerStyle(theme),
+          ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -787,13 +794,14 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 isExpanded: true,
                 items:
                     _statuses.map((s) {
-                      final name = (s['name'] as String).toUpperCase();
-                      final color = _getStatusColor(s['name']);
-                      final icon =
-                          AppTheme.statusIcons[s['name']
-                              .toString()
-                              .toLowerCase()] ??
-                          Icons.help_outline;
+                      final name =
+                          'status.${s['name'].toString().toLowerCase()}'
+                              .tr()
+                              .toUpperCase();
+                      final color = AppTheme.getStatusColor(
+                        s['name'].toString(),
+                      );
+                      final icon = AppTheme.getStatusIcon(s['name'].toString());
 
                       return DropdownMenuItem<int>(
                         value: s['id'] as int,

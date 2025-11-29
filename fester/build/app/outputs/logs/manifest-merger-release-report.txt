@@ -8,6 +8,8 @@ MERGED from [com.google.android.gms:play-services-location:21.2.0] C:\Users\sart
 MERGED from [com.google.android.gms:play-services-location:21.2.0] C:\Users\sarto\.gradle\caches\8.10.2\transforms\bc40bc5f6e40c88241fb805931d29c4c\transformed\jetified-play-services-location-21.2.0\AndroidManifest.xml:7:5-20
 MERGED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:5-32:19
 MERGED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:5-32:19
+MERGED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-17:19
+MERGED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-17:19
 MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-33:19
 MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-33:19
 MERGED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:7:5-12:19
@@ -80,6 +82,7 @@ MERGED from [:flutter_plugin_android_lifecycle] D:\Progetti\Fester 3.0\fester\bu
 MERGED from [:package_info_plus] D:\Progetti\Fester 3.0\fester\build\package_info_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
 MERGED from [:path_provider_android] D:\Progetti\Fester 3.0\fester\build\path_provider_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
 MERGED from [:permission_handler_android] D:\Progetti\Fester 3.0\fester\build\permission_handler_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
+MERGED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-19:12
 MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-35:12
 MERGED from [:sqflite_android] D:\Progetti\Fester 3.0\fester\build\sqflite_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-7:12
 MERGED from [:url_launcher_android] D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:2:1-14:12
@@ -256,6 +259,8 @@ MERGED from [:path_provider_android] D:\Progetti\Fester 3.0\fester\build\path_pr
 MERGED from [:path_provider_android] D:\Progetti\Fester 3.0\fester\build\path_provider_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
 MERGED from [:permission_handler_android] D:\Progetti\Fester 3.0\fester\build\permission_handler_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
 MERGED from [:permission_handler_android] D:\Progetti\Fester 3.0\fester\build\permission_handler_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
+MERGED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
 MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
 MERGED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
 MERGED from [:sqflite_android] D:\Progetti\Fester 3.0\fester\build\sqflite_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:5:5-44
@@ -494,6 +499,16 @@ ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_pic
 		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:30:17-33
 	android:name
 		ADDED from [:image_picker_android] D:\Progetti\Fester 3.0\fester\build\image_picker_android\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:29:17-63
+provider#net.nfet.flutter.printing.PrintFileProvider
+ADDED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:8:9-16:20
+	android:grantUriPermissions
+		ADDED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:12:13-47
+	android:authorities
+		ADDED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:10:13-68
+	android:exported
+		ADDED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:11:13-37
+	android:name
+		ADDED from [:printing] D:\Progetti\Fester 3.0\fester\build\printing\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:9:13-71
 provider#dev.fluttercommunity.plus.share.ShareFileProvider
 ADDED from [:share_plus] D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml:13:9-21:20
 	android:grantUriPermissions

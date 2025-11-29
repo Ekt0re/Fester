@@ -56,9 +56,7 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
       builder:
           (context) => AlertDialog(
             title: Text('transaction_list.delete_title'.tr()),
-            content: Text(
-              'transaction_list.delete_confirm'.tr(),
-            ),
+            content: Text('transaction_list.delete_confirm'.tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -85,9 +83,9 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')),
+          );
         }
       }
     }
@@ -111,14 +109,18 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
               children: [
                 TextField(
                   controller: amountController,
-                  decoration: InputDecoration(labelText: 'transaction_list.amount_label'.tr()),
+                  decoration: InputDecoration(
+                    labelText: 'transaction_list.amount_label'.tr(),
+                  ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
                 ),
                 TextField(
                   controller: descriptionController,
-                  decoration: InputDecoration(labelText: 'transaction_list.description_label'.tr()),
+                  decoration: InputDecoration(
+                    labelText: 'transaction_list.description_label'.tr(),
+                  ),
                 ),
               ],
             ),
@@ -142,9 +144,11 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} $e')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('${'settings.error_prefix'.tr()} $e'),
+                        ),
+                      );
                     }
                   }
                 },
@@ -317,7 +321,9 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                                     )
                                   else
                                     Text(
-                                      typeName.toUpperCase(),
+                                      'transaction_type.${typeName.toLowerCase()}'
+                                          .tr()
+                                          .toUpperCase(),
                                       style: GoogleFonts.outfit(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
@@ -341,7 +347,9 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                                       (context) => [
                                         PopupMenuItem(
                                           value: 'edit',
-                                          child: Text('transaction_list.edit_title'.tr()),
+                                          child: Text(
+                                            'transaction_list.edit_title'.tr(),
+                                          ),
                                         ),
                                         PopupMenuItem(
                                           value: 'delete',

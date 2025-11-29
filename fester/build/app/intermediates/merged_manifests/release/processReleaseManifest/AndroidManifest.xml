@@ -112,6 +112,16 @@
                 android:name="photopicker_activity:0:required"
                 android:value="" />
         </service>
+
+        <provider
+            android:name="net.nfet.flutter.printing.PrintFileProvider"
+            android:authorities="com.example.fester.flutter.printing"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/flutter_printing_file_paths" />
+        </provider>
         <!--
            Declares a provider which allows us to store files to share in
            '.../caches/share_plus' and grant the receiving action access

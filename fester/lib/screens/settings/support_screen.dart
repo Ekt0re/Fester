@@ -60,10 +60,10 @@ class SupportScreen extends StatelessWidget {
               theme,
               icon: Icons.email_outlined,
               title: 'support.email'.tr(),
-              subtitle: 'support@fester.app',
-              onTap: () => _launchUrl('mailto:support@fester.app'),
+              subtitle: 'udevmail@gmail.com',
+              onTap: () => _launchUrl('mailto:udevmail@gmail.com'),
             ),
-            const SizedBox(height: 16),
+   /*         const SizedBox(height: 16),
             _buildContactTile(
               theme,
               icon: Icons.phone_outlined,
@@ -78,7 +78,7 @@ class SupportScreen extends StatelessWidget {
               title: 'support.website'.tr(),
               subtitle: 'www.fester.app',
               onTap: () => _launchUrl('https://www.fester.app'),
-            ),
+            ),*/
           ],
         ),
       ),

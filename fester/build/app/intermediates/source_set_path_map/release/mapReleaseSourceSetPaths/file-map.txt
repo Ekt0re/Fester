@@ -64,8 +64,9 @@ com.example.fester.app-release-62 D:\Progetti\Fester 3.0\fester\build\mobile_sca
 com.example.fester.app-release-63 D:\Progetti\Fester 3.0\fester\build\package_info_plus\intermediates\packaged_res\release\packageReleaseResources
 com.example.fester.app-release-64 D:\Progetti\Fester 3.0\fester\build\path_provider_android\intermediates\packaged_res\release\packageReleaseResources
 com.example.fester.app-release-65 D:\Progetti\Fester 3.0\fester\build\permission_handler_android\intermediates\packaged_res\release\packageReleaseResources
-com.example.fester.app-release-66 D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\packaged_res\release\packageReleaseResources
-com.example.fester.app-release-67 D:\Progetti\Fester 3.0\fester\build\shared_preferences_android\intermediates\packaged_res\release\packageReleaseResources
-com.example.fester.app-release-68 D:\Progetti\Fester 3.0\fester\build\sqflite_android\intermediates\packaged_res\release\packageReleaseResources
-com.example.fester.app-release-69 D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\packaged_res\release\packageReleaseResources
-com.example.fester.app-release-70 D:\Progetti\Fester 3.0\fester\build\vibration\intermediates\packaged_res\release\packageReleaseResources
+com.example.fester.app-release-66 D:\Progetti\Fester 3.0\fester\build\printing\intermediates\packaged_res\release\packageReleaseResources
+com.example.fester.app-release-67 D:\Progetti\Fester 3.0\fester\build\share_plus\intermediates\packaged_res\release\packageReleaseResources
+com.example.fester.app-release-68 D:\Progetti\Fester 3.0\fester\build\shared_preferences_android\intermediates\packaged_res\release\packageReleaseResources
+com.example.fester.app-release-69 D:\Progetti\Fester 3.0\fester\build\sqflite_android\intermediates\packaged_res\release\packageReleaseResources
+com.example.fester.app-release-70 D:\Progetti\Fester 3.0\fester\build\url_launcher_android\intermediates\packaged_res\release\packageReleaseResources
+com.example.fester.app-release-71 D:\Progetti\Fester 3.0\fester\build\vibration\intermediates\packaged_res\release\packageReleaseResources
