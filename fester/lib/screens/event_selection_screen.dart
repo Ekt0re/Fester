@@ -101,31 +101,32 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
     final settings = eventDetails.settings;
 
     if (eventDetails.event.deletedAt != null) {
-      return 'event_status.ended'.tr();
+      return 'ended';
     }
 
     if (settings == null) {
-      return 'event_status.scheduled'.tr();
+      return 'scheduled';
     }
 
     if (now.isBefore(settings.startAt)) {
-      return 'event_status.scheduled'.tr();
+      return 'scheduled';
     } else if (settings.endAt != null && now.isAfter(settings.endAt!)) {
-      return 'event_status.ended'.tr();
+      return 'ended';
     } else {
-      return 'event_status.started'.tr();
+      return 'started';
     }
   }
 
   Color _getStatusColor(String status) {
-    if (status == 'event_status.started'.tr()) {
-      return Colors.green;
-    } else if (status == 'event_status.scheduled'.tr()) {
-      return Colors.orange;
-    } else if (status == 'event_status.ended'.tr()) {
-      return Colors.red;
-    } else {
-      return Colors.grey;
+    switch (status) {
+      case 'started':
+        return Colors.green;
+      case 'scheduled':
+        return Colors.orange;
+      case 'ended':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -428,7 +429,10 @@ class _EventCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        eventDetails.userRole,
+                        eventDetails.userRole.isNotEmpty
+                            ? 'roles.${eventDetails.userRole.toLowerCase()}'
+                                .tr()
+                            : 'roles.staff'.tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -450,7 +454,7 @@ class _EventCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        status,
+                        'event_status.$status'.tr(),
                         style: TextStyle(
                           color: statusColor,
                           fontSize: 12,

@@ -84,7 +84,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
     if (_currentStaff.staffUserId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'settings.error_prefix'.tr()} ID staff mancante')),
+          SnackBar(
+            content: Text('${'settings.error_prefix'.tr()} ID staff mancante'),
+          ),
         );
       }
       return;
@@ -138,9 +140,13 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('${'settings.error_prefix'.tr()} rimozione staff: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${'settings.error_prefix'.tr()} rimozione staff: $e',
+              ),
+            ),
+          );
           setState(() => _isLoading = false);
         }
       }
@@ -206,9 +212,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       });
 
       // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('staff.image_updated'.tr())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('staff.image_updated'.tr())));
     } catch (e, stackTrace) {
       debugPrint('[ERROR] _uploadProfileImage: $e');
       debugPrint('[ERROR] Stack trace: $stackTrace');
@@ -315,7 +321,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
           (context) => StatefulBuilder(
             builder:
                 (context, setDialogState) => AlertDialog(
-                  title: const Text('Modifica Ruolo'),
+                  title: Text('staff_profile.edit_role'.tr()),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children:
@@ -324,7 +330,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                             .entries
                             .map(
                               (entry) => RadioListTile<int>(
-                                title: Text(entry.value.toUpperCase()),
+                                title: Text('roles.${entry.value}'.tr()),
                                 value: entry.key,
                                 groupValue: selectedRoleIndex,
                                 onChanged: (value) {
@@ -341,12 +347,12 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Annulla'),
+                      child: Text('common.cancel'.tr()),
                     ),
                     TextButton(
                       onPressed:
                           () => Navigator.pop(context, selectedRoleIndex),
-                      child: const Text('Conferma'),
+                      child: Text('common.confirm'.tr()),
                     ),
                   ],
                 ),
@@ -397,9 +403,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Ruolo aggiornato!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('staff_profile.role_updated'.tr())),
+        );
       }
     } catch (e, stackTrace) {
       debugPrint('[ERROR] _editRole: $e');
@@ -407,9 +413,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
       // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Errore aggiornamento ruolo: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${'staff_profile.error_update_role'.tr()} $e')),
+      );
     }
   }
 
@@ -451,7 +457,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Modifica Profilo',
+                          'staff_profile.edit_profile'.tr(),
                           style: GoogleFonts.outfit(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -460,24 +466,24 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                         const SizedBox(height: 24),
                         TextField(
                           controller: firstNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nome',
+                          decoration: InputDecoration(
+                            labelText: 'staff_profile.first_name'.tr(),
                             border: OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: lastNameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Cognome',
+                          decoration: InputDecoration(
+                            labelText: 'staff_profile.last_name'.tr(),
                             border: OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
+                          decoration: InputDecoration(
+                            labelText: 'staff_profile.email'.tr(),
                             border: OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.emailAddress,
@@ -485,8 +491,8 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                         const SizedBox(height: 16),
                         TextField(
                           controller: phoneController,
-                          decoration: const InputDecoration(
-                            labelText: 'Telefono',
+                          decoration: InputDecoration(
+                            labelText: 'staff_profile.phone'.tr(),
                             border: OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.phone,
@@ -509,15 +515,15 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                             }
                           },
                           child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'Data di Nascita',
+                            decoration: InputDecoration(
+                              labelText: 'staff_profile.date_of_birth'.tr(),
                               border: OutlineInputBorder(),
                               suffixIcon: Icon(Icons.calendar_today),
                             ),
                             child: Text(
                               selectedDate != null
                                   ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
-                                  : 'Seleziona data',
+                                  : 'staff_profile.select_date'.tr(),
                             ),
                           ),
                         ),
@@ -560,9 +566,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
                                 // ignore: use_build_context_synchronously
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Profilo aggiornato con successo!',
+                                      'staff_profile.profile_updated'.tr(),
                                     ),
                                   ),
                                 );
@@ -573,7 +579,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                 // ignore: use_build_context_synchronously
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Errore aggiornamento: $e'),
+                                    content: Text(
+                                      '${'common.error_update'.tr()}: $e',
+                                    ),
                                   ),
                                 );
                                 setState(() => _isLoading = false);
@@ -582,7 +590,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
-                            child: const Text('SALVA'),
+                            child: Text('common.save'.tr()),
                           ),
                         ),
                         if (_isMe) ...[
@@ -598,7 +606,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                 Icons.delete_forever,
                                 color: Colors.red,
                               ),
-                              label: const Text('ELIMINA ACCOUNT'),
+                              label: Text('staff_profile.delete_account'.tr()),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
                                 side: const BorderSide(color: Colors.red),
@@ -836,7 +844,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            roleName.toUpperCase(),
+                                            'roles.${roleName.toLowerCase()}'
+                                                .tr()
+                                                .toUpperCase(),
                                             style: GoogleFonts.outfit(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -917,7 +927,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                     child: ElevatedButton.icon(
                                       onPressed: _editProfile,
                                       icon: const Icon(Icons.edit),
-                                      label: Text('staff_profile.edit_profile'.tr()),
+                                      label: Text(
+                                        'staff_profile.edit_profile'.tr(),
+                                      ),
                                       style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16,
@@ -1029,7 +1041,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    roleName.toUpperCase(),
+                                    'roles.${roleName.toLowerCase()}'
+                                        .tr()
+                                        .toUpperCase(),
                                     style: GoogleFonts.outfit(
                                       fontWeight: FontWeight.bold,
                                       color: theme.colorScheme.primary,
@@ -1084,7 +1098,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                               child: OutlinedButton.icon(
                                 onPressed: _deleteAccount,
                                 icon: const Icon(Icons.delete_forever),
-                                label: Text('staff_profile.delete_account'.tr()),
+                                label: Text(
+                                  'staff_profile.delete_account'.tr(),
+                                ),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: Colors.red,
                                   side: const BorderSide(color: Colors.red),

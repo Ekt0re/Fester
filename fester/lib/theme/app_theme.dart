@@ -11,8 +11,12 @@ class AppTheme {
   static const Color textLight = Color(0xFF1A1C1E);
 
   // Colors - Dark Mode
-  static const Color primaryDark = Color(0xFFA78BFA); // Lighter purple for dark mode
-  static const Color secondaryDark = Color(0xFF34D399); // Lighter emerald for dark mode
+  static const Color primaryDark = Color(
+    0xFFA78BFA,
+  ); // Lighter purple for dark mode
+  static const Color secondaryDark = Color(
+    0xFF34D399,
+  ); // Lighter emerald for dark mode
   static const Color backgroundDark = Color(0xFF121212);
   static const Color surfaceDark = Color(0xFF1E1E1E);
   static const Color errorDark = Color(0xFFFFB4AB);
@@ -45,10 +49,9 @@ class AppTheme {
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: backgroundLight,
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme).apply(
-        bodyColor: textLight,
-        displayColor: textLight,
-      ),
+      textTheme: GoogleFonts.outfitTextTheme(
+        ThemeData.light().textTheme,
+      ).apply(bodyColor: textLight, displayColor: textLight),
       appBarTheme: AppBarTheme(
         backgroundColor: backgroundLight,
         foregroundColor: textLight,
@@ -74,7 +77,9 @@ class AppTheme {
             fontWeight: FontWeight.w600,
             letterSpacing: 1.2,
           ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
@@ -93,7 +98,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: primaryLight, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
     );
   }
@@ -113,10 +121,9 @@ class AppTheme {
         onError: Colors.black,
       ),
       scaffoldBackgroundColor: backgroundDark,
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).apply(
-        bodyColor: textDark,
-        displayColor: textDark,
-      ),
+      textTheme: GoogleFonts.outfitTextTheme(
+        ThemeData.dark().textTheme,
+      ).apply(bodyColor: textDark, displayColor: textDark),
       appBarTheme: AppBarTheme(
         backgroundColor: backgroundDark,
         foregroundColor: textDark,
@@ -142,7 +149,9 @@ class AppTheme {
             fontWeight: FontWeight.w600,
             letterSpacing: 1.2,
           ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
@@ -161,10 +170,14 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: primaryDark, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
     );
   }
+
   // Icon Maps
   static const Map<String, IconData> roleIcons = {
     'admin': Icons.admin_panel_settings,
@@ -178,29 +191,72 @@ class AppTheme {
     'drink': Icons.local_bar,
     'food': Icons.local_pizza,
     'ticket': Icons.confirmation_number,
+    'fine': Icons.money_off,
+    'sanction': Icons.gavel,
+    'report': Icons.warning,
+    'refund': Icons.replay_circle_filled,
+    'fee': Icons.monetization_on,
+    'note': Icons.notes,
     'entry': Icons.door_front_door,
     'cloakroom': Icons.checkroom,
     'other': Icons.attach_money,
-    'report': Icons.warning_amber_rounded,
-    'fine': Icons.money_off,
-    'sanction': Icons.gavel,
   };
 
   static const Map<String, IconData> statusIcons = {
-    'confirmed': Icons.check_circle_outline,
-    'confermato': Icons.check_circle_outline,
-    'checked_in': Icons.how_to_reg,
-    'registrato': Icons.how_to_reg,
-    'inside': Icons.login,
-    'dentro': Icons.login,
-    'arrivato': Icons.login,
-    'outside': Icons.logout,
-    'fuori': Icons.logout,
-    'left': Icons.exit_to_app,
-    'uscito': Icons.exit_to_app,
-    'partito': Icons.exit_to_app,
-    'invited': Icons.mail_outline,
-    'invitato': Icons.mail_outline,
-    'in arrivo': Icons.mail_outline,
+    "invited": Icons.person_add,
+    "confirmed": Icons.check_circle,
+    "checked_in": Icons.check,
+    "inside": Icons.home,
+    "outside": Icons.exit_to_app,
+    "left": Icons.exit_to_app,
+    "cancelled": Icons.cancel,
+    "banned": Icons.block,
   };
+
+  /// Global method to get status icon based on status string
+  static IconData getStatusIcon(String status) {
+    return statusIcons[status.toLowerCase()] ?? Icons.help_outline;
+  }
+
+  /// Global method to get transaction type icon based on transaction type name
+  static IconData getTransactionTypeIcon(String transactionTypeName) {
+    final lowerCaseName = transactionTypeName.toLowerCase();
+
+    // Check for exact matches first
+    if (transactionIcons.containsKey(lowerCaseName)) {
+      return transactionIcons[lowerCaseName]!;
+    }
+
+    // Dynamic partial matching - check if any key in transactionIcons is contained in the name
+    for (final entry in transactionIcons.entries) {
+      if (lowerCaseName.contains(entry.key)) {
+        return entry.value;
+      }
+    }
+    // Default icon
+    return transactionIcons['other'] ?? Icons.attach_money;
+  }
+
+  static Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return AppTheme.statusConfirmed;
+      case 'checked_in':
+        return AppTheme.statusCheckedIn;
+      case 'inside':
+        return AppTheme.statusConfirmed;
+      case 'outside':
+        return AppTheme.statusOutside;
+      case 'left':
+        return AppTheme.statusLeft;
+      case 'cancelled':
+        return AppTheme.statusLeft;
+      case 'banned':
+        return AppTheme.statusLeft;
+      case 'invited':
+        return AppTheme.statusInvited;
+      default:
+        return AppTheme.statusInvited;
+    }
+  }
 }

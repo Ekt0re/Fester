@@ -172,7 +172,7 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
           }
         }
       } catch (e) {
-        debugPrint('Errore creazione menu: $e');
+        debugPrint('create_event.menu_creation_error'.tr().replaceAll('{}', e.toString()));
       }
 
       // 5. Creazione Staff x Evento
@@ -512,16 +512,16 @@ class _Step2DateTime extends StatelessWidget {
           const SizedBox(height: 16),
 
           _InputField(
-            label: 'Location (opzionale)',
-            hint: 'Dove si svolge l\'evento?',
+            label: 'create_event.location_optional'.tr(),
+            hint: 'create_event.location_hint'.tr(),
             initialValue: location,
             onChanged: onLocationChanged,
           ),
           const SizedBox(height: 16),
 
           _InputField(
-            label: 'Numero massimo persone (opzionale)',
-            hint: 'Es: 100',
+            label: 'create_event.max_people_optional'.tr(),
+            hint: 'create_event.max_people_hint'.tr(),
             initialValue: maxParticipants?.toString(),
             keyboardType: TextInputType.number,
             onChanged: (val) {
@@ -614,7 +614,7 @@ class _Step3StaffState extends State<_Step3Staff> {
       await Clipboard.setData(ClipboardData(text: _inviteLink!));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Link copiato negli appunti!')),
+          SnackBar(content: Text('create_event.link_copied'.tr())),
         );
       }
     }
@@ -872,7 +872,7 @@ class _Step4Settings extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  menuCreated ? 'Modifica Menù ✓' : 'Crea menù e preziario',
+                  menuCreated ? '${'create_event.edit_menu'.tr()} ✓' : 'create_event.create_menu_pricing'.tr(),
                   style: TextStyle(
                     color:
                         menuCreated
@@ -887,8 +887,8 @@ class _Step4Settings extends StatelessWidget {
           const SizedBox(height: 16),
 
           _InputField(
-            label: 'Età minima (opzionale)',
-            hint: 'Es: 18',
+            label: 'create_event.min_age_optional'.tr(),
+            hint: 'create_event.min_age_hint'.tr(),
             initialValue: ageRestriction?.toString(),
             keyboardType: TextInputType.number,
             onChanged: (val) {
@@ -899,8 +899,8 @@ class _Step4Settings extends StatelessWidget {
           const SizedBox(height: 16),
 
           _InputField(
-            label: 'Numero massimo di drink (opzionale)',
-            hint: 'Es: 5',
+            label: 'create_event.max_drinks_optional'.tr(),
+            hint: 'create_event.max_drinks_hint'.tr(),
             initialValue: maxDrinksPerPerson?.toString(),
             keyboardType: TextInputType.number,
             onChanged: (val) {

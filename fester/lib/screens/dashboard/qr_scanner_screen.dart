@@ -560,7 +560,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  'Ingresso: ${scan.updatedAt?.hour.toString().padLeft(2, '0')}:${scan.updatedAt?.minute.toString().padLeft(2, '0')}',
+                                  '${'qr.access'.tr()}: ${scan.updatedAt?.hour.toString().padLeft(2, '0')}:${scan.updatedAt?.minute.toString().padLeft(2, '0')}',
                                   style: GoogleFonts.outfit(color: Colors.grey),
                                 ),
                                 trailing: const Icon(

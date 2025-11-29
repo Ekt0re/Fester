@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../theme/app_theme.dart';
 
 class MenuManagementScreen extends StatefulWidget {
   final String eventId;
@@ -658,26 +659,9 @@ class _MenuItemHeader extends StatelessWidget {
       (t) => t['id'] == transactionTypeId,
       orElse: () => {},
     );
-    final name = (type['name'] as String?)?.toLowerCase() ?? '';
-
-    if (name.contains('drink') || name.contains('bevanda')) {
-      return Icons.local_bar;
-    }
-    if (name.contains('food') || name.contains('cibo')) return Icons.restaurant;
-    if (name.contains('ticket') || name.contains('biglietto')) {
-      return Icons.confirmation_number;
-    }
-    if (name.contains('sanction')) return Icons.block;
-    if (name.contains('report')) return Icons.warning;
-    if (name.contains('refund') || name.contains('rimborso')) {
-      return Icons.replay_circle_filled;
-    }
-    if (name.contains('fee') || name.contains('tassa')) {
-      return Icons.monetization_on;
-    }
-    if (name.contains('fine') || name.contains('multa')) return Icons.gavel;
-
-    return Icons.attach_money;
+    final name = (type['name'] as String?) ?? '';
+    
+    return AppTheme.getTransactionTypeIcon(name);
   }
 
   @override

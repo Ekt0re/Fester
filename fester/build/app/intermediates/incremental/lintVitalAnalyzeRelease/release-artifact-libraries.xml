@@ -190,6 +190,20 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
+      name=":@@:printing::release"
+      jars="C:\Users\sarto\.gradle\caches\8.10.2\transforms\4455cc08e90c98a42eeb9dea773e3eeb\transformed\out\jars\classes.jar;C:\Users\sarto\.gradle\caches\8.10.2\transforms\4455cc08e90c98a42eeb9dea773e3eeb\transformed\out\jars\libs\R.jar"
+      resolved="net.nfet.flutter.printing:printing:1.0"
+      partialResultsDir="D:\Progetti\Fester 3.0\fester\build\printing\intermediates\lint_vital_partial_results\release\lintVitalAnalyzeRelease\out"
+      folder="C:\Users\sarto\.gradle\caches\8.10.2\transforms\4455cc08e90c98a42eeb9dea773e3eeb\transformed\out"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
       name=":@@:share_plus::release"
       jars="C:\Users\sarto\.gradle\caches\8.10.2\transforms\e34855c5558dccb8201aa946897a18b3\transformed\out\jars\classes.jar;C:\Users\sarto\.gradle\caches\8.10.2\transforms\e34855c5558dccb8201aa946897a18b3\transformed\out\jars\libs\R.jar"
       resolved="dev.fluttercommunity.plus.share:share_plus:1.0-SNAPSHOT"

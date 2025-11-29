@@ -47,6 +47,9 @@
       name=":@@:permission_handler_android::release"
       project=":permission_handler_android"/>
   <library
+      name=":@@:printing::release"
+      project=":printing"/>
+  <library
       name=":@@:share_plus::release"
       project=":share_plus"/>
   <library

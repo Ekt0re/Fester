@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 
 class CreateMenuScreen extends StatefulWidget {
   final String? eventId; // Opzionale per caricare menu esistente
@@ -83,14 +85,19 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
         _transactionTypes = List<Map<String, dynamic>>.from(response);
       });
     } catch (e) {
-      debugPrint('Error loading transaction types: $e');
+      debugPrint('create_menu.load_transaction_types_error'.tr() + e.toString());
       // Fallback to hardcoded values
       setState(() {
         _transactionTypes = [
-          {'id': 1, 'name': 'Bevanda'},
-          {'id': 2, 'name': 'Cibo'},
-          {'id': 3, 'name': 'Biglietto'},
-          {'id': 4, 'name': 'Extra'},
+          {'id': 1, 'name': 'transaction_type.drink'.tr()},
+          {'id': 2, 'name': 'transaction_type.food'.tr()},
+          {'id': 3, 'name': 'transaction_type.ticket'.tr()},
+          {'id': 4, 'name': 'transaction_type.fine'.tr()},
+          {'id': 5, 'name': 'transaction_type.sanction'.tr()},
+          {'id': 6, 'name': 'transaction_type.report'.tr()},
+          {'id': 7, 'name': 'transaction_type.refund'.tr()},
+          {'id': 8, 'name': 'transaction_type.fee'.tr()},
+          {'id': 9, 'name': 'transaction_type.note'.tr()},
         ];
       });
     }
@@ -151,7 +158,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Errore caricamento menu: $e');
+      debugPrint('${'create_menu.load_existing_menu_error'.tr()} $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -171,7 +178,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
     final item = _menuItems.firstWhere((i) => i.tempId == itemId);
     if (!item.isValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa tutti i campi obbligatori')),
+        SnackBar(content: Text('create_menu.fill_all_fields'.tr())),
       );
       return;
     }
@@ -201,7 +208,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
 
     if (_menuItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aggiungi almeno un item al menù')),
+        SnackBar(content: Text('create_menu.add_at_least_one_item'.tr())),
       );
       return;
     }
@@ -210,8 +217,8 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
     for (var item in _menuItems) {
       if (!item.isValid()) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Completa tutti i campi degli item del menù'),
+          SnackBar(
+            content: Text('create_menu.fill_all_fields'.tr()),
           ),
         );
         return;
@@ -262,7 +269,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Crea Menù',
+          'create_menu.title'.tr(),
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.onSurface,
@@ -279,7 +286,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                   padding: const EdgeInsets.all(24.0),
                   children: [
                     Text(
-                      'CREA MENÙ E PREZIARIO',
+                      'create_menu.title'.tr(),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -292,11 +299,11 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                     _buildTextField(
                       context: context,
                       controller: _menuNameController,
-                      label: 'Nome Menù',
-                      hint: 'Es: Menù Principale',
+                      label: 'create_menu.name_label'.tr(),
+                      hint: 'create_menu.name_menu_hint'.tr(),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Inserisci il nome del menù';
+                          return 'create_menu.name_error'.tr();
                         }
                         return null;
                       },
@@ -307,8 +314,8 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                     _buildTextField(
                       context: context,
                       controller: _menuDescriptionController,
-                      label: 'Descrizione (opzionale)',
-                      hint: 'Descrivi il menù...',
+                      label: 'create_menu.description_label'.tr(),
+                      hint: 'create_menu.description_hint'.tr(),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 32),
@@ -318,7 +325,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Item del Menù',
+                          'create_menu.item'.tr(),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -356,7 +363,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Nessun item aggiunto',
+                              'create_menu.no_item'.tr(),
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: theme.colorScheme.onSurface.withOpacity(
                                   0.6,
@@ -365,7 +372,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Premi + per aggiungere',
+                              'create_menu.new_item'.tr(),
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurface.withOpacity(
                                   0.5,
@@ -401,7 +408,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                     // Pulsante salva
                     ElevatedButton(
                       onPressed: _saveMenu,
-                      child: const Text('Salva Menù'),
+                      child: Text('create_menu.save'.tr()),
                     ),
                     const SizedBox(height: 16),
 
@@ -409,7 +416,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: Text(
-                        'Salta per ora',
+                        'create_menu.skip'.tr(),
                         style: TextStyle(
                           color: theme.colorScheme.onSurface.withOpacity(0.6),
                           fontSize: 16,
@@ -567,7 +574,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                       children: [
                         Text(
                           widget.item.name?.isEmpty ?? true
-                              ? 'Nuovo Item #${widget.index + 1}'
+                              ? '${'create_menu.new_item'.tr()} #${widget.index + 1}'
                               : widget.item.name!,
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.onSurface,
@@ -597,7 +604,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Qty: ${widget.item.availableQuantity}',
+                          '${'create_menu.quantity_label'.tr()}: ${widget.item.availableQuantity}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.secondary,
                             fontWeight: FontWeight.w600,
@@ -625,7 +632,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              'Alcolico',
+                              'create_menu.alcoholic_label'.tr(),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: Colors.orange.shade700,
                                 fontWeight: FontWeight.w600,
@@ -665,7 +672,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                   // Tipo transazione
                   _buildDropdown(
                     theme: theme,
-                    label: 'Tipo',
+                    label: 'create_menu.type_label'.tr(),
                     value: widget.item.transactionTypeId,
                     items: widget.transactionTypes,
                     onChanged: (value) {
@@ -692,7 +699,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Contiene Alcol',
+                            'create_menu.alcoholic'.tr(),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -711,8 +718,8 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                   // Nome
                   _buildItemTextField(
                     theme: theme,
-                    label: 'Nome',
-                    hint: 'Es: Birra Media',
+                    label: 'create_menu.name_label'.tr(),
+                    hint: 'create_menu.name_hint'.tr(),
                     value: widget.item.name,
                     onChanged: (value) {
                       widget.item.name = value;
@@ -724,8 +731,8 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                   // Descrizione
                   _buildItemTextField(
                     theme: theme,
-                    label: 'Descrizione (opzionale)',
-                    hint: 'Dettagli...',
+                    label: 'create_menu.description_label'.tr(),
+                    hint: 'create_menu.description_hint'.tr(),
                     value: widget.item.description,
                     onChanged: (value) {
                       widget.item.description = value;
@@ -740,8 +747,8 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                       Expanded(
                         child: _buildPriceTextField(
                           theme: theme,
-                          label: 'Prezzo (€)',
-                          hint: '0,00',
+                          label: 'create_menu.price_label'.tr(),
+                          hint: 'create_menu.price_hint'.tr(),
                           initialValue: widget.item.price,
                           onChanged: (value) {
                             widget.item.price = value;
@@ -753,8 +760,8 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                       Expanded(
                         child: _buildItemTextField(
                           theme: theme,
-                          label: 'Quantità (opz.)',
-                          hint: 'Illimitata',
+                          label: 'create_menu.quantity'.tr(),
+                          hint: 'create_menu.unlimited'.tr(),
                           value: widget.item.availableQuantity?.toString(),
                           keyboardType: TextInputType.number,
                           onChanged: (value) {
@@ -771,7 +778,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
                   ElevatedButton.icon(
                     onPressed: widget.onConfirm,
                     icon: const Icon(Icons.check),
-                    label: const Text('Conferma Item'),
+                    label: Text('create_menu.confirm_item'.tr()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: Colors.white,
@@ -820,7 +827,7 @@ class _MenuItemCardState extends State<_MenuItemCard> {
             child: DropdownButton<int>(
               value: value,
               isExpanded: true,
-              hint: Text('Seleziona tipo', style: theme.textTheme.bodyMedium),
+              hint: Text('create_menu.select_type'.tr(), style: theme.textTheme.bodyMedium),
               dropdownColor: theme.colorScheme.surface,
               style: theme.textTheme.bodyLarge,
               items:

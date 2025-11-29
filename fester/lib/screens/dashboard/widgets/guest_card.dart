@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../theme/app_theme.dart';
 
 class GuestCard extends StatelessWidget {
@@ -28,65 +29,9 @@ class GuestCard extends StatelessWidget {
     required this.onDrink,
   });
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-      case 'confermato':
-        return AppTheme.statusConfirmed;
-      case 'checked_in':
-      case 'registrato':
-        return Colors.blue;
-      case 'inside':
-      case 'dentro':
-      case 'arrivato': // From wireframe
-        return AppTheme.statusConfirmed; // Green
-      case 'outside':
-      case 'fuori':
-        return Colors.orange;
-      case 'left':
-      case 'uscito':
-      case 'partito': // From wireframe
-        return AppTheme.statusLeft;
-      case 'invited':
-      case 'invitato':
-      case 'in arrivo': // From wireframe
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-      case 'confermato':
-        return Icons.check_circle_outline;
-      case 'checked_in':
-      case 'registrato':
-        return Icons.how_to_reg;
-      case 'inside':
-      case 'dentro':
-      case 'arrivato':
-        return Icons.login;
-      case 'outside':
-      case 'fuori':
-        return Icons.logout;
-      case 'left':
-      case 'uscito':
-      case 'partito':
-        return Icons.exit_to_app;
-      case 'invited':
-      case 'invitato':
-      case 'in arrivo':
-        return Icons.mail_outline;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor(statusName);
+    final statusColor = AppTheme.getStatusColor(statusName);
 
     return GestureDetector(
       onTap: onTap,
@@ -103,9 +48,8 @@ class GuestCard extends StatelessWidget {
               offset: const Offset(0, 4),
             ),
           ],
-          border: isVip
-              ? Border.all(color: AppTheme.statusVip, width: 2)
-              : null,
+          border:
+              isVip ? Border.all(color: AppTheme.statusVip, width: 2) : null,
         ),
         child: Stack(
           children: [
@@ -122,7 +66,11 @@ class GuestCard extends StatelessWidget {
                       bottomLeft: Radius.circular(20),
                     ),
                   ),
-                  child: const Icon(Icons.star, color: AppTheme.statusVip, size: 20),
+                  child: const Icon(
+                    Icons.star,
+                    color: AppTheme.statusVip,
+                    size: 20,
+                  ),
                 ),
               ),
             Padding(
@@ -159,19 +107,30 @@ class GuestCard extends StatelessWidget {
                       GestureDetector(
                         onLongPress: onLongPress,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: statusColor.withOpacity(0.8),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withOpacity(0.3)),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(_getStatusIcon(statusName), color: Colors.white, size: 16),
+                              Icon(
+                                AppTheme.getStatusIcon(statusName),
+                                color: Colors.white,
+                                size: 16,
+                              ),
                               const SizedBox(width: 4),
                               Text(
-                                statusName.toUpperCase(),
+                                'status.${statusName.toLowerCase()}'
+                                    .tr()
+                                    .toUpperCase(),
                                 style: GoogleFonts.outfit(
                                   color: Colors.white,
                                   fontSize: 12,
