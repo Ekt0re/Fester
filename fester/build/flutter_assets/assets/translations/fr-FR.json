@@ -257,6 +257,12 @@
         "danger_zone": "Zone de Danger",
         "archive_subtitle": "Archiver cet événement (action irréversible)"
     },
+    "import_guests": {
+        "title": "Importer les Invités",
+        "mapping": "Mapping",
+        "importing": "Importation",
+        "results": "Résultats"
+    },
     "export": {
         "title": "Exporter les Données de l'Événement",
         "subtitle": "Sélectionnez le format et les données à exporter",

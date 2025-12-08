@@ -28,7 +28,7 @@ class EventService {
       final response = await query.order('created_at', ascending: false);
 
       debugPrint('[EventService] Found ${(response as List).length} events');
-      return (response as List).map((json) => Event.fromJson(json)).toList();
+      return (response).map((json) => Event.fromJson(json)).toList();
     } catch (e) {
       debugPrint('[EventService] ERROR: $e');
       rethrow;
@@ -268,9 +268,7 @@ class EventService {
       );
 
       final staffList =
-          (response as List)
-              .map((json) => EventStaff.fromJson(json as Map<String, dynamic>))
-              .toList();
+          (response).map((json) => EventStaff.fromJson(json)).toList();
 
       // Debug debugPrint first staff member to verify data
       if (staffList.isNotEmpty) {

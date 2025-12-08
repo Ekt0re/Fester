@@ -11,6 +11,7 @@ import '../../services/notification_service.dart';
 import '../settings/settings_screen.dart';
 import 'event_settings_screen.dart';
 import 'event_export_screen.dart';
+import 'guests_import_screen.dart';
 import '../profile/staff_profile_screen.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 
@@ -35,6 +36,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   Timer? _syncTimer;
   DateTime _lastSync = DateTime.now();
   int _selectedIndex = 0; // For NavigationRail/BottomNavBar
+  String? _eventLocation;
 
   @override
   void initState() {
@@ -89,6 +91,20 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         // Menu might not exist yet
       }
 
+      // Fetch location from event_settings
+      String? location;
+      try {
+        final settingsResult =
+            await supabase
+                .from('event_settings')
+                .select('location')
+                .eq('event_id', widget.eventId)
+                .maybeSingle();
+        if (settingsResult != null) {
+          location = settingsResult['location'] as String?;
+        }
+      } catch (_) {}
+
       // Find current user role and staff object
       final userId = Supabase.instance.client.auth.currentUser?.id;
       String? role;
@@ -112,6 +128,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           _menuItemCount = menuItemCount;
           _userRole = role;
           _currentUserStaff = currentUserStaff;
+          _eventLocation = location;
           _lastSync = DateTime.now();
           _isLoading = false;
         });
@@ -408,6 +425,22 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                   ],
                                 ),
                               ),
+                              PopupMenuItem(
+                                value: 'import',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.upload_file,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'dashboard.import_guests'.tr(),
+                                      style: GoogleFonts.outfit(),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               const PopupMenuItem(
                                 value: 'divider',
                                 enabled: false,
@@ -449,6 +482,16 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                     (context) => EventExportScreen(
                                       eventId: widget.eventId,
                                       eventName: _event?.name ?? 'Evento',
+                                    ),
+                              ),
+                            );
+                          } else if (value == 'import') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => GuestsImportScreen(
+                                      eventId: widget.eventId,
                                     ),
                               ),
                             );
@@ -664,6 +707,24 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                         fontSize: isDesktop ? 16 : 14,
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          color: Colors.white70,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _getLocationName(_eventLocation),
+                          style: GoogleFonts.outfit(
+                            color: Colors.white70,
+                            fontSize: isDesktop ? 16 : 14,
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 24),
                     Row(
                       children: [
@@ -836,6 +897,22 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         ),
       ),
     );
+  }
+
+  String _getLocationName(String? location) {
+    if (location == null || location.isEmpty) {
+      return 'dashboard.no_location'.tr();
+    }
+    final nameRegex = RegExp(r'\[NAME\](.*?)\[/NAME\]');
+    final match = nameRegex.firstMatch(location);
+    if (match != null) {
+      return match.group(1) ?? 'dashboard.no_location'.tr();
+    }
+    final posRegex = RegExp(r'\[POS\].*?\[/POS\]');
+    final cleanLocation = location.replaceAll(posRegex, '').trim();
+    return cleanLocation.isNotEmpty
+        ? cleanLocation
+        : 'dashboard.no_location'.tr();
   }
 }
 

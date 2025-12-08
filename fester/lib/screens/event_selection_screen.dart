@@ -256,38 +256,78 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                           '/event/${eventDetails.event.id}',
                                         );
                                       },
-                                      onRestore: () async {
-                                        try {
-                                          await _eventService.restoreEvent(
-                                            eventDetails.event.id,
-                                          );
-                                          _loadEvents();
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'event_selection.event_restored'
-                                                      .tr(),
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  '${'event_selection.error'.tr()}$e',
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        }
-                                      },
+                                      onRestore:
+                                          eventDetails.event.deletedAt != null
+                                              ? () async {
+                                                try {
+                                                  await _eventService
+                                                      .restoreEvent(
+                                                        eventDetails.event.id,
+                                                      );
+                                                  _loadEvents();
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'event_selection.event_restored'
+                                                              .tr(),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                } catch (e) {
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          '${'event_selection.error'.tr()}$e',
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                              }
+                                              : null,
+                                      onArchive:
+                                          eventDetails.event.deletedAt == null
+                                              ? () async {
+                                                try {
+                                                  await _eventService
+                                                      .deleteEvent(
+                                                        eventDetails.event.id,
+                                                      );
+                                                  _loadEvents();
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          'event_selection.event_archived'
+                                                              .tr(),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                } catch (e) {
+                                                  if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          '${'event_selection.error'.tr()}$e',
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                              }
+                                              : null,
                                     );
                                   },
                                 ),
@@ -391,6 +431,7 @@ class _EventCard extends StatelessWidget {
   final Color statusColor;
   final VoidCallback onTap;
   final VoidCallback? onRestore;
+  final VoidCallback? onArchive;
 
   const _EventCard({
     required this.eventDetails,
@@ -398,6 +439,7 @@ class _EventCard extends StatelessWidget {
     required this.statusColor,
     required this.onTap,
     this.onRestore,
+    this.onArchive,
   });
 
   @override
@@ -466,6 +508,16 @@ class _EventCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (eventDetails.event.deletedAt == null &&
+                    onArchive != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.archive),
+                    tooltip: 'event_selection.archive_tooltip'.tr(),
+                    onPressed: onArchive,
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ],
                 if (eventDetails.event.deletedAt != null &&
                     onRestore != null) ...[
                   const SizedBox(width: 8),
