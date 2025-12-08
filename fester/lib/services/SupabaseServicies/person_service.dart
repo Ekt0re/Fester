@@ -136,6 +136,7 @@ class PersonService {
     DateTime? dateOfBirth,
     String? codiceFiscale,
     String? indirizzo,
+    String? notes,
     int? gruppoId,
     int? sottogruppoId,
     required String idEvent,
@@ -152,6 +153,7 @@ class PersonService {
                 'date_of_birth': dateOfBirth?.toIso8601String(),
                 'codice_fiscale': codiceFiscale,
                 'indirizzo': indirizzo,
+                'notes': notes,
                 'gruppo_id': gruppoId,
                 'sottogruppo_id': sottogruppoId,
                 'id_event': idEvent,
@@ -175,6 +177,7 @@ class PersonService {
     DateTime? dateOfBirth,
     String? codiceFiscale,
     String? indirizzo,
+    String? notes,
     int? gruppoId,
     int? sottogruppoId,
   }) async {
@@ -189,6 +192,7 @@ class PersonService {
             'date_of_birth': dateOfBirth?.toIso8601String(),
             'codice_fiscale': codiceFiscale,
             'indirizzo': indirizzo,
+            'notes': notes,
             'gruppo_id': gruppoId,
             'sottogruppo_id': sottogruppoId,
           })

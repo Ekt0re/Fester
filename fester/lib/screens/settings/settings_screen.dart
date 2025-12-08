@@ -90,9 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder:
           (context) => AlertDialog(
             title: Text('settings.reset_dialog.title'.tr()),
-            content: Text(
-              'settings.reset_dialog.content'.tr(),
-            ),
+            content: Text('settings.reset_dialog.content'.tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -360,21 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               String? eventId = widget.eventId;
 
               try {
-                if (eventId == null) {
-                  final response =
-                      await Supabase.instance.client
-                          .from('event_staff')
-                          .select('event_id')
-                          .eq('staff_user_id', currentUserId)
-                          .limit(1)
-                          .maybeSingle();
-
-                  if (response != null) {
-                    eventId = response['event_id'] as String;
-                  }
-                }
-
-                if (eventId != null && mounted) {
+                if (mounted) {
                   Navigator.pushNamed(
                     context,
                     '/staff-profile',

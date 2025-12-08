@@ -8,6 +8,8 @@ import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 import 'create_menu_screen.dart';
 import '../event_selection_screen.dart';
+import 'location_selection_screen.dart';
+import 'package:latlong2/latlong.dart';
 
 class CreateEventFlow extends StatefulWidget {
   const CreateEventFlow({super.key});
@@ -129,8 +131,14 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
             menuDescription = _menuDescription;
           } else {
             // Menu vuoto di default
-            menuName = 'create_event.menu_title'.tr().replaceAll('{}', _eventName!);
-            menuDescription = 'create_event.menu_description'.tr().replaceAll('{}', _eventName!);
+            menuName = 'create_event.menu_title'.tr().replaceAll(
+              '{}',
+              _eventName!,
+            );
+            menuDescription = 'create_event.menu_description'.tr().replaceAll(
+              '{}',
+              _eventName!,
+            );
           }
 
           // Crea il menu associato all'evento
@@ -172,7 +180,12 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
           }
         }
       } catch (e) {
-        debugPrint('create_event.menu_creation_error'.tr().replaceAll('{}', e.toString()));
+        debugPrint(
+          'create_event.menu_creation_error'.tr().replaceAll(
+            '{}',
+            e.toString(),
+          ),
+        );
       }
 
       // 5. Creazione Staff x Evento
@@ -202,7 +215,9 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
                   .maybeSingle();
 
           if (roleResponse == null) {
-            debugPrint('create_event.role_not_found'.tr().replaceAll('{}', dbRoleName));
+            debugPrint(
+              'create_event.role_not_found'.tr().replaceAll('{}', dbRoleName),
+            );
             continue;
           }
 
@@ -214,7 +229,12 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
             'assigned_by': Supabase.instance.client.auth.currentUser?.id,
           });
         } catch (e) {
-          debugPrint('create_event.staff_assign_error'.tr().replaceAll('{}', member.mail.toString()).replaceAll('{}', e.toString()));
+          debugPrint(
+            'create_event.staff_assign_error'
+                .tr()
+                .replaceAll('{}', member.mail.toString())
+                .replaceAll('{}', e.toString()),
+          );
         }
       }
 
@@ -232,7 +252,11 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('create_event.error'.tr().replaceAll('{}', e.toString()))),
+          SnackBar(
+            content: Text(
+              'create_event.error'.tr().replaceAll('{}', e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -511,11 +535,9 @@ class _Step2DateTime extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          _InputField(
-            label: 'create_event.location_optional'.tr(),
-            hint: 'create_event.location_hint'.tr(),
-            initialValue: location,
-            onChanged: onLocationChanged,
+          _LocationInput(
+            location: location,
+            onLocationChanged: onLocationChanged,
           ),
           const SizedBox(height: 16),
 
@@ -601,9 +623,7 @@ class _Step3StaffState extends State<_Step3Staff> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('create_event.invite_link_load_error'.tr()),
-          ),
+          SnackBar(content: Text('create_event.invite_link_load_error'.tr())),
         );
       }
     }
@@ -685,7 +705,8 @@ class _Step3StaffState extends State<_Step3Staff> {
                             ),
                           ),
                           child: SelectableText(
-                            _inviteLink ?? 'create_event.no_link_available'.tr(),
+                            _inviteLink ??
+                                'create_event.no_link_available'.tr(),
                             style: theme.textTheme.bodyMedium,
                           ),
                         ),
@@ -748,7 +769,10 @@ class _Step3StaffState extends State<_Step3Staff> {
           ),
           const SizedBox(height: 32),
 
-          ElevatedButton(onPressed: widget.onNext, child: Text('create_event.next'.tr())),
+          ElevatedButton(
+            onPressed: widget.onNext,
+            child: Text('create_event.next'.tr()),
+          ),
           const SizedBox(height: 16),
 
           TextButton(
@@ -872,7 +896,9 @@ class _Step4Settings extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  menuCreated ? '${'create_event.edit_menu'.tr()} ✓' : 'create_event.create_menu_pricing'.tr(),
+                  menuCreated
+                      ? '${'create_event.edit_menu'.tr()} ✓'
+                      : 'create_event.create_menu_pricing'.tr(),
                   style: TextStyle(
                     color:
                         menuCreated
@@ -920,7 +946,10 @@ class _Step4Settings extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: Text('create_event.create_event'.tr(), style: TextStyle(fontSize: 16)),
+            child: Text(
+              'create_event.create_event'.tr(),
+              style: TextStyle(fontSize: 16),
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -1163,3 +1192,168 @@ class _DateTimeField extends StatelessWidget {
     );
   }
 }
+
+class _LocationInput extends StatefulWidget {
+  final String? location;
+  final ValueChanged<String> onLocationChanged;
+
+  const _LocationInput({
+    required this.location,
+    required this.onLocationChanged,
+  });
+
+  @override
+  State<_LocationInput> createState() => _LocationInputState();
+}
+
+class _LocationInputState extends State<_LocationInput> {
+  late TextEditingController _controller;
+  String? _coordsPart;
+
+  @override
+  void initState() {
+    super.initState();
+    _parseLocation(widget.location);
+    _controller = TextEditingController(text: _getNamePart(widget.location));
+  }
+
+  @override
+  void didUpdateWidget(covariant _LocationInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.location != oldWidget.location) {
+      _parseLocation(widget.location);
+      final newName = _getNamePart(widget.location);
+      if (_controller.text != newName) {
+        _controller.text = newName;
+      }
+    }
+  }
+
+  void _parseLocation(String? location) {
+    if (location == null || location.isEmpty) {
+      _coordsPart = null;
+      return;
+    }
+    final posRegex = RegExp(r'\[POS\](.*?)\[/POS\]');
+    final match = posRegex.firstMatch(location);
+    if (match != null) {
+      _coordsPart = match.group(0);
+    } else {
+      _coordsPart = null;
+    }
+  }
+
+  String _getNamePart(String? location) {
+    if (location == null) return '';
+    final nameRegex = RegExp(r'\[NAME\](.*?)\[/NAME\]');
+    final match = nameRegex.firstMatch(location);
+    if (match != null) {
+      return match.group(1) ?? '';
+    }
+    // Fallback for legacy plain text locations or if no tags found but text exists
+    final posRegex = RegExp(r'\[POS\].*?\[/POS\]');
+    return location.replaceAll(posRegex, '').trim();
+  }
+
+  void _updateLocation() {
+    String name = _controller.text.trim();
+    String finalLocation;
+    
+    if (_coordsPart != null) {
+      finalLocation = '[NAME][/NAME]';
+    } else {
+      finalLocation = name;
+    }
+    
+    debugPrint('Debug Location String: ');
+    widget.onLocationChanged(finalLocation);
+  }
+
+  Future<void> _selectOnMap() async {
+    LatLng? initialPoint;
+    if (_coordsPart != null) {
+      try {
+        final coordsStr = _coordsPart!.replaceAll('[POS]', '').replaceAll('[/POS]', '');
+        final parts = coordsStr.split(',');
+        if (parts.length == 2) {
+          initialPoint = LatLng(double.parse(parts[0]), double.parse(parts[1]));
+        }
+      } catch (e) {
+        debugPrint('Error parsing coords: ');
+      }
+    }
+
+    final result = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationSelectionScreen(initialLocation: initialPoint),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _coordsPart = '[POS],[/POS]';
+        _updateLocation();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  labelText: 'create_event.location_optional'.tr(),
+                  hintText: 'create_event.location_hint'.tr(),
+                  filled: true,
+                  fillColor: theme.cardTheme.color,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon: const Icon(Icons.location_on),
+                ),
+                onChanged: (_) => _updateLocation(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: _selectOnMap,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.map,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (_coordsPart != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 12),
+            child: Text(
+              'create_event.location_selected_on_map'.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+

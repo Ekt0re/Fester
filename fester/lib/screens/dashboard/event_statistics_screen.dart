@@ -77,7 +77,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
 
       _totalStaff = (staff as List).length;
       _activeStaff =
-          (staff as List).where((s) {
+          (staff).where((s) {
             final staffUser = s['staff'];
             return staffUser != null && staffUser['is_active'] == true;
           }).length;

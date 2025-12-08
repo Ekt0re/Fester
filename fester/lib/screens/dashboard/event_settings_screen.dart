@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/event_service.dart';
+import '../create_event/location_selection_screen.dart';
+import 'package:latlong2/latlong.dart';
 
 class EventSettingsScreen extends StatefulWidget {
   final String eventId;
@@ -23,6 +25,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
   // Controllers
   final _maxParticipantsController = TextEditingController();
   final _locationController = TextEditingController();
+  String? _locationCoordsPart;
   final _ageRestrictionController = TextEditingController();
   final _maxDrinksController = TextEditingController();
   final _maxWarningsController = TextEditingController();
@@ -66,7 +69,9 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
         _settingsId = response['id'];
         _maxParticipantsController.text =
             response['max_participants']?.toString() ?? '';
-        _locationController.text = response['location'] ?? '';
+        final rawLocation = response['location'] ?? '';
+        _parseLocation(rawLocation);
+        _locationController.text = _getNamePart(rawLocation);
         _ageRestrictionController.text =
             response['age_restriction']?.toString() ?? '';
         _maxDrinksController.text =
@@ -106,8 +111,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
             _maxParticipantsController.text.isEmpty
                 ? null
                 : int.parse(_maxParticipantsController.text),
-        'location':
-            _locationController.text.isEmpty ? null : _locationController.text,
+        'location': _buildFinalLocationString(),
         'age_restriction':
             _ageRestrictionController.text.isEmpty
                 ? null
@@ -239,12 +243,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             _buildSectionTitle(theme, 'event_settings.general_info'.tr()),
-            _buildTextField(
-              controller: _locationController,
-              label: 'event_settings.location'.tr(),
-              hint: 'event_settings.location_hint'.tr(),
-              icon: Icons.location_on,
-            ),
+            _buildLocationField(theme),
             const SizedBox(height: 16),
 
             _buildDateTimeField(
@@ -474,6 +473,127 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
         onChanged: onChanged,
         activeColor: theme.colorScheme.primary,
       ),
+    );
+  }
+
+  void _parseLocation(String? location) {
+    if (location == null || location.isEmpty) {
+      _locationCoordsPart = null;
+      return;
+    }
+    final posRegex = RegExp(r'\[POS\](.*?)\[/POS\]');
+    final match = posRegex.firstMatch(location);
+    if (match != null) {
+      _locationCoordsPart = match.group(0);
+    } else {
+      _locationCoordsPart = null;
+    }
+  }
+
+  String _getNamePart(String? location) {
+    if (location == null) return '';
+    final nameRegex = RegExp(r'\[NAME\](.*?)\[/NAME\]');
+    final match = nameRegex.firstMatch(location);
+    if (match != null) {
+      return match.group(1) ?? '';
+    }
+    final posRegex = RegExp(r'\[POS\].*?\[/POS\]');
+    return location.replaceAll(posRegex, '').trim();
+  }
+
+  String? _buildFinalLocationString() {
+    final name = _locationController.text.trim();
+    if (name.isEmpty && _locationCoordsPart == null) return null;
+
+    if (_locationCoordsPart != null) {
+      return '[NAME][/NAME]';
+    }
+    return name;
+  }
+
+  Future<void> _selectOnMap() async {
+    LatLng? initialPoint;
+    if (_locationCoordsPart != null) {
+      try {
+        final coordsStr = _locationCoordsPart!
+            .replaceAll('[POS]', '')
+            .replaceAll('[/POS]', '');
+        final parts = coordsStr.split(',');
+        if (parts.length == 2) {
+          initialPoint = LatLng(double.parse(parts[0]), double.parse(parts[1]));
+        }
+      } catch (e) {
+        debugPrint('Error parsing coords: ');
+      }
+    }
+
+    final result = await Navigator.push<LatLng>(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => LocationSelectionScreen(initialLocation: initialPoint),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _locationCoordsPart = '[POS],[/POS]';
+      });
+    }
+  }
+
+  Widget _buildLocationField(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  labelText: 'event_settings.location'.tr(),
+                  hintText: 'event_settings.location_hint'.tr(),
+                  prefixIcon: const Icon(Icons.location_on),
+                  filled: true,
+                  fillColor: theme.cardTheme.color,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: _selectOnMap,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.map,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (_locationCoordsPart != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 12),
+            child: Text(
+              'create_event.location_selected_on_map'.tr(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

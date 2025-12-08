@@ -257,6 +257,12 @@
         "danger_zone": "Zona Peligrosa",
         "archive_subtitle": "Archivar este evento (acción irreversible)"
     },
+    "import_guests": {
+        "title": "Importar Invitados",
+        "mapping": "Mapping",
+        "importing": "Importando",
+        "results": "Resultados"
+    },
     "export": {
         "title": "Exportar Datos del Evento",
         "subtitle": "Selecciona formato y datos a exportar",

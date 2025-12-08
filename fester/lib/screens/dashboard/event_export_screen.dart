@@ -1,6 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io'
+    show
+        File; // Restricted import to avoid conflict if any, though dart:io is core
 import '../../../theme/app_theme.dart';
 import '../../../services/export_service.dart';
 
@@ -88,7 +94,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
 
     try {
       final service = ExportService();
-      await service.exportData(
+      final xFile = await service.exportData(
         eventId: widget.eventId,
         eventName: widget.eventName,
         format: _selectedFormat.name,
@@ -127,15 +133,64 @@ class _EventExportScreenState extends State<EventExportScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'export.success'.tr(args: [_selectedFormat.name.toUpperCase()]),
-            style: GoogleFonts.outfit(),
-          ),
-          backgroundColor: AppTheme.statusConfirmed,
-        ),
-      );
+      if (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.windows ||
+              defaultTargetPlatform == TargetPlatform.macOS ||
+              defaultTargetPlatform == TargetPlatform.linux)) {
+        // Desktop: Save File Modal
+        final outputPath = await FilePicker.platform.saveFile(
+          dialogTitle: 'Salva file come...',
+          fileName: xFile.name,
+          lockParentWindow: true,
+        );
+
+        if (outputPath != null) {
+          final file = File(outputPath);
+          await file.writeAsBytes(await xFile.readAsBytes());
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'export.success'.tr(
+                    args: [_selectedFormat.name.toUpperCase()],
+                  ),
+                  style: GoogleFonts.outfit(),
+                ),
+                backgroundColor: AppTheme.statusConfirmed,
+              ),
+            );
+          }
+        }
+      } else {
+        // Mobile / Web
+        if (kIsWeb) {
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('File Pronto'),
+                    content: const Text(
+                      'Il file è stato generato. Scegli se scaricarlo o condividerlo.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Share.shareXFiles([
+                            xFile,
+                          ], text: 'Export ${widget.eventName}');
+                        },
+                        child: const Text('Scarica o Condividi'),
+                      ),
+                    ],
+                  ),
+            );
+          }
+        } else {
+          await Share.shareXFiles([xFile], text: 'Export ${widget.eventName}');
+        }
+      }
     } catch (e) {
       if (!mounted) return;
 

@@ -257,6 +257,12 @@
         "danger_zone": "危险区域",
         "archive_subtitle": "归档此活动（不可逆操作）"
     },
+    "import_guests": {
+        "title": "导入宾客",
+        "mapping": "映射",
+        "importing": "导入",
+        "results": "结果"
+    },
     "export": {
         "title": "导出活动数据",
         "subtitle": "选择格式和要导出的数据",
