@@ -256,7 +256,8 @@
         "allow_guests_subtitle": "Consenti ai partecipanti di aggiungere ospiti",
         "late_entry": "Ingresso tardivo",
         "danger_zone": "Zona Pericolosa",
-        "archive_subtitle": "Archivia questo evento (azione irreversibile)"
+        "archive_subtitle": "Archivia questo evento (azione irreversibile)",
+        "not_set": "Non impostato"
     },
     "import_guests": {
         "title": "Importa Ospiti",
@@ -620,7 +621,14 @@
         "max_drinks_hint": "Es: 5",
         "create_event": "Crea Evento",
         "select_date": "Seleziona data",
-        "select_time": "Seleziona ora"
+        "select_time": "Seleziona ora",
+        "select_location": "Seleziona Luogo",
+        "confirm_location": "Conferma Luogo",
+        "location_selected_on_map": "Luogo selezionato sulla mappa",
+        "search_bar": "Bar",
+        "search_club": "Discoteca",
+        "search_restaurant": "Ristorante",
+        "search_pub": "Pub"
     },
     "history": {
         "title": "Cronologia Stati",

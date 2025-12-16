@@ -202,7 +202,8 @@
         "time": {
             "now": "Adesso",
             "minutes_ago": " min fa"
-        }
+        },
+        "import_guests": "Importa Ospiti"
     },
     "event_settings": {
         "title": "Impostazioni Evento",
@@ -255,7 +256,14 @@
         "allow_guests_subtitle": "Consenti ai partecipanti di aggiungere ospiti",
         "late_entry": "Ingresso tardivo",
         "danger_zone": "Zona Pericolosa",
-        "archive_subtitle": "Archivia questo evento (azione irreversibile)"
+        "archive_subtitle": "Archivia questo evento (azione irreversibile)",
+        "not_set": "Non impostato"
+    },
+    "import_guests": {
+        "title": "Importa Ospiti",
+        "mapping": "Mappatura",
+        "importing": "Importazione",
+        "results": "Risultati"
     },
     "export": {
         "title": "Esporta Dati Evento",
@@ -351,7 +359,20 @@
         "export_button": "Esporta {}",
         "exporting": "Esportazione...",
         "success": "Esportazione {} completata con successo!",
-        "error": "Errore durante l'esportazione: "
+        "error": "Errore durante l'esportazione: ",
+        "button_exporting": "Esportazione in corso..."
+    },
+    "event_selection": {
+        "subtitle": "Scegli l'evento da gestire",
+        "select_event": "Seleziona Evento",
+        "show_archived": "Mostra archiviati",
+        "create_event_button": "Crea Nuovo Evento",
+        "archive_tooltip": "Archiviato"
+    },
+    "event_status": {
+        "scheduled": "Pianificato",
+        "started": "In Corso",
+        "ended": "Terminato"
     },
     "statistics": {
         "load_error": "Errore caricamento statistiche: ",
@@ -600,7 +621,14 @@
         "max_drinks_hint": "Es: 5",
         "create_event": "Crea Evento",
         "select_date": "Seleziona data",
-        "select_time": "Seleziona ora"
+        "select_time": "Seleziona ora",
+        "select_location": "Seleziona Luogo",
+        "confirm_location": "Conferma Luogo",
+        "location_selected_on_map": "Luogo selezionato sulla mappa",
+        "search_bar": "Bar",
+        "search_club": "Discoteca",
+        "search_restaurant": "Ristorante",
+        "search_pub": "Pub"
     },
     "history": {
         "title": "Cronologia Stati",
@@ -631,36 +659,6 @@
         "title": "Transazioni",
         "show_all": "Mostra tutto",
         "empty": "Nessuna transazione trovata.",
-        "total": "TOTALE",
-        "delete_title": "Elimina Transazione",
-        "delete_confirm": "Sei sicuro di voler eliminare questa transazione?",
-        "cancel": "Annulla",
-        "delete": "Elimina",
-        "deleted": "Transazione eliminata",
-        "edit_title": "Modifica Transazione",
-        "amount_label": "Importo",
-        "description_label": "Descrizione",
-        "save": "Salva"
-    },
-    "event_selection": {
-        "subtitle": "Seleziona Evento",
-        "select_event": "Seleziona un evento",
-        "show_archived": "Mostra archiviati",
-        "create_event_button": "Crea Nuovo Evento",
-        "show_active": "Mostra attivi"
-    },
-    "event_status": {
-        "scheduled": "Programmato",
-        "started": "In corso",
-        "ended": "Concluso"
-    },
-    "person_profile": {
-        "title": "Profilo Persona",
-        "qr_code_title": "QR Code Ospite",
-        "show_qr_code": "Mostra QR Code",
-        "consumptions_title": "CONSUMAZIONI",
-        "alcohol_label": "ALCOL",
-        "non_alcohol_label": "ANALCOL",
         "food_label": "CIBO",
         "total_label": "Totale: ",
         "view_transactions": "Visualizza elenco transazioni",
@@ -748,6 +746,26 @@
         "error_update": "Errore di aggiornamento",
         "confirm": "Conferma",
         "cancel": "Annulla"
+    },
+    "person_profile": {
+        "show_qr_code": "Mostra QR Code",
+        "details_title": "Dettagli Personali",
+        "name_label": "Nome",
+        "surname_label": "Cognome",
+        "age_label": "Età",
+        "contact_title": "Contatti",
+        "contact_button": "Contatta",
+        "participation_status": "Stato Partecipazione",
+        "view_status_history": "Vedi Cronologia Stati",
+        "consumptions_title": "Consumazioni & Ordini",
+        "alcohol_label": "Alcolici",
+        "non_alcohol_label": "Analcolici",
+        "food_label": "Cibo",
+        "total_label": "Totale Speso",
+        "view_transactions": "Vedi Transazioni",
+        "reports_area": "Area Reportistica",
+        "add_report": "Aggiungi Segnalazione",
+        "no_reports": "Nessuna segnalazione presente"
     },
     "roles": {
         "admin": "Admin",

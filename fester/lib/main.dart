@@ -25,7 +25,6 @@ import 'screens/dashboard/event_statistics_screen.dart';
 import 'screens/dashboard/qr_scanner_screen.dart';
 import 'package:logger/logger.dart';
 
-import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 
 // Helper function to load staff profile data
@@ -74,8 +73,8 @@ class MyApp extends StatelessWidget {
       builder: (context, themeProvider, child) {
         return MaterialApp(
           title: 'Fester 3.0',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
           themeMode: themeProvider.themeMode,
           localizationsDelegates: context.localizationDelegates,
           supportedLocales: context.supportedLocales,

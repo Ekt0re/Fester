@@ -35,12 +35,14 @@ class AppSettings {
   ThemeMode themeMode;
   NotificationLevel notificationLevel;
   bool vibrationEnabled;
+  String? customThemeId;
 
   AppSettings({
     this.language = 'it',
     this.themeMode = ThemeMode.system,
     this.notificationLevel = NotificationLevel.all,
     this.vibrationEnabled = true,
+    this.customThemeId,
   });
 
   /// Converte le impostazioni in JSON
@@ -50,6 +52,7 @@ class AppSettings {
       'themeMode': themeMode.name,
       'notificationLevel': notificationLevel.name,
       'vibrationEnabled': vibrationEnabled,
+      'customThemeId': customThemeId,
     };
   }
 
@@ -66,6 +69,7 @@ class AppSettings {
         orElse: () => NotificationLevel.all,
       ),
       vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
+      customThemeId: json['customThemeId'] as String?,
     );
   }
 
@@ -75,12 +79,14 @@ class AppSettings {
     ThemeMode? themeMode,
     NotificationLevel? notificationLevel,
     bool? vibrationEnabled,
+    String? customThemeId,
   }) {
     return AppSettings(
       language: language ?? this.language,
       themeMode: themeMode ?? this.themeMode,
       notificationLevel: notificationLevel ?? this.notificationLevel,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      customThemeId: customThemeId ?? this.customThemeId,
     );
   }
 

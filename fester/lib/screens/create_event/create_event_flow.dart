@@ -10,6 +10,7 @@ import 'create_menu_screen.dart';
 import '../event_selection_screen.dart';
 import 'location_selection_screen.dart';
 import 'package:latlong2/latlong.dart';
+import '../../utils/location_helper.dart';
 
 class CreateEventFlow extends StatefulWidget {
   const CreateEventFlow({super.key});
@@ -1234,67 +1235,67 @@ class _LocationInputState extends State<_LocationInput> {
       _coordsPart = null;
       return;
     }
-    final posRegex = RegExp(r'\[POS\](.*?)\[/POS\]');
-    final match = posRegex.firstMatch(location);
-    if (match != null) {
-      _coordsPart = match.group(0);
+    final coords = LocationHelper.getCoordinates(location);
+    if (coords != null) {
+      _coordsPart =
+          '${LocationHelper.posTagStart}${coords.latitude},${coords.longitude}${LocationHelper.posTagEnd}';
     } else {
       _coordsPart = null;
     }
   }
 
   String _getNamePart(String? location) {
-    if (location == null) return '';
-    final nameRegex = RegExp(r'\[NAME\](.*?)\[/NAME\]');
-    final match = nameRegex.firstMatch(location);
-    if (match != null) {
-      return match.group(1) ?? '';
-    }
-    // Fallback for legacy plain text locations or if no tags found but text exists
-    final posRegex = RegExp(r'\[POS\].*?\[/POS\]');
-    return location.replaceAll(posRegex, '').trim();
+    return LocationHelper.getName(location);
   }
 
   void _updateLocation() {
     String name = _controller.text.trim();
-    String finalLocation;
-    
+    LatLng? coords;
     if (_coordsPart != null) {
-      finalLocation = '[NAME][/NAME]';
-    } else {
-      finalLocation = name;
+      coords = LocationHelper.getCoordinates(_coordsPart);
     }
-    
-    debugPrint('Debug Location String: ');
+
+    final finalLocation = LocationHelper.formatLocation(name, coords);
+
+    debugPrint('Debug Location String: $finalLocation');
     widget.onLocationChanged(finalLocation);
   }
 
   Future<void> _selectOnMap() async {
     LatLng? initialPoint;
     if (_coordsPart != null) {
-      try {
-        final coordsStr = _coordsPart!.replaceAll('[POS]', '').replaceAll('[/POS]', '');
-        final parts = coordsStr.split(',');
-        if (parts.length == 2) {
-          initialPoint = LatLng(double.parse(parts[0]), double.parse(parts[1]));
-        }
-      } catch (e) {
-        debugPrint('Error parsing coords: ');
-      }
+      initialPoint = LocationHelper.getCoordinates(_coordsPart);
     }
 
-    final result = await Navigator.push<LatLng>(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => LocationSelectionScreen(initialLocation: initialPoint),
+        builder:
+            (context) => LocationSelectionScreen(initialLocation: initialPoint),
       ),
     );
 
     if (result != null) {
-      setState(() {
-        _coordsPart = '[POS],[/POS]';
-        _updateLocation();
-      });
+      LatLng? coords;
+      String? name;
+
+      if (result is Map) {
+        coords = result['coords'] as LatLng;
+        name = result['name'] as String;
+      } else if (result is LatLng) {
+        coords = result;
+      }
+
+      if (coords != null) {
+        setState(() {
+          _coordsPart =
+              '${LocationHelper.posTagStart}${coords!.latitude},${coords.longitude}${LocationHelper.posTagEnd}';
+          if (name != null && name.isNotEmpty && name != 'Selected Location') {
+            _controller.text = name;
+          }
+          _updateLocation();
+        });
+      }
     }
   }
 
@@ -1356,4 +1357,3 @@ class _LocationInputState extends State<_LocationInput> {
     );
   }
 }
-

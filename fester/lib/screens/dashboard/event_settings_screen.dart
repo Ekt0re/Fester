@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../create_event/location_selection_screen.dart';
 import 'package:latlong2/latlong.dart';
+import '../../utils/location_helper.dart';
 
 class EventSettingsScreen extends StatefulWidget {
   final String eventId;
@@ -481,53 +482,46 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
       _locationCoordsPart = null;
       return;
     }
-    final posRegex = RegExp(r'\[POS\](.*?)\[/POS\]');
-    final match = posRegex.firstMatch(location);
-    if (match != null) {
-      _locationCoordsPart = match.group(0);
+    final coords = LocationHelper.getCoordinates(location);
+    if (coords != null) {
+      _locationCoordsPart = LocationHelper.formatLocation('', coords)
+          .replaceAll(LocationHelper.nameTagStart, '')
+          .replaceAll(
+            LocationHelper.nameTagEnd,
+            '',
+          ); // Keep just the POS part for internal tracking if needed, or better yet, store the coords object?
+      // Actually, let's just keep _locationCoordsPart as the string representation of coordinates for simplicity with existing code structure
+      // or ideally, refactor to store LatLng? _currentCoords;
+      // Let's stick to minimal changes: store the [POS]...[/POS] string
+      _locationCoordsPart =
+          '${LocationHelper.posTagStart}${coords.latitude},${coords.longitude}${LocationHelper.posTagEnd}';
     } else {
       _locationCoordsPart = null;
     }
   }
 
   String _getNamePart(String? location) {
-    if (location == null) return '';
-    final nameRegex = RegExp(r'\[NAME\](.*?)\[/NAME\]');
-    final match = nameRegex.firstMatch(location);
-    if (match != null) {
-      return match.group(1) ?? '';
-    }
-    final posRegex = RegExp(r'\[POS\].*?\[/POS\]');
-    return location.replaceAll(posRegex, '').trim();
+    return LocationHelper.getName(location);
   }
 
   String? _buildFinalLocationString() {
     final name = _locationController.text.trim();
-    if (name.isEmpty && _locationCoordsPart == null) return null;
-
+    LatLng? coords;
     if (_locationCoordsPart != null) {
-      return '[NAME][/NAME]';
+      coords = LocationHelper.getCoordinates(_locationCoordsPart);
     }
-    return name;
+
+    if (name.isEmpty && coords == null) return null;
+    return LocationHelper.formatLocation(name, coords);
   }
 
   Future<void> _selectOnMap() async {
     LatLng? initialPoint;
     if (_locationCoordsPart != null) {
-      try {
-        final coordsStr = _locationCoordsPart!
-            .replaceAll('[POS]', '')
-            .replaceAll('[/POS]', '');
-        final parts = coordsStr.split(',');
-        if (parts.length == 2) {
-          initialPoint = LatLng(double.parse(parts[0]), double.parse(parts[1]));
-        }
-      } catch (e) {
-        debugPrint('Error parsing coords: ');
-      }
+      initialPoint = LocationHelper.getCoordinates(_locationCoordsPart);
     }
 
-    final result = await Navigator.push<LatLng>(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder:
@@ -535,9 +529,22 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
       ),
     );
 
-    if (result != null) {
+    if (result != null && result is Map) {
+      final coords = result['coords'] as LatLng;
+      final name = result['name'] as String;
+
       setState(() {
-        _locationCoordsPart = '[POS],[/POS]';
+        _locationCoordsPart =
+            '${LocationHelper.posTagStart}${coords.latitude},${coords.longitude}${LocationHelper.posTagEnd}';
+        if (name.isNotEmpty && name != 'Selected Location') {
+          _locationController.text = name;
+        }
+      });
+    } else if (result != null && result is LatLng) {
+      // Fallback for legacy return if any
+      setState(() {
+        _locationCoordsPart =
+            '${LocationHelper.posTagStart}${result.latitude},${result.longitude}${LocationHelper.posTagEnd}';
       });
     }
   }

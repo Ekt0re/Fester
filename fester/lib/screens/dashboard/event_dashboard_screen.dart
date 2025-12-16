@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,6 +15,8 @@ import 'event_export_screen.dart';
 import 'guests_import_screen.dart';
 import '../profile/staff_profile_screen.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
+import 'people_counter_screen.dart';
+import '../../utils/location_helper.dart';
 
 class EventDashboardScreen extends StatefulWidget {
   final String eventId;
@@ -179,7 +182,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: _buildAppBar(theme: theme),
-      body:
+      body: Stack(
+        children: [
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : RefreshIndicator(
@@ -190,6 +194,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   theme: theme,
                 ),
               ),
+          _buildMobileBottomSheetMenu(theme),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: AppTheme.primaryLight,
@@ -217,6 +224,203 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
             _buildBottomNavItem(Icons.settings, Colors.white, 3),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMobileBottomSheetMenu(ThemeData theme) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.1,
+      minChildSize: 0.1,
+      maxChildSize: 0.6,
+      builder: (context, scrollController) {
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(
+              sigmaX: 10,
+              sigmaY: 10,
+            ), // Glassmorphism
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.cardColor.withOpacity(0.8),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: CustomScrollView(
+                controller: scrollController,
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        // Handle bar area
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: theme.dividerColor,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "Menu Rapido",
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    sliver: SliverGrid.count(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      children: [
+                        _buildMenuGridItem(
+                          icon: Icons.settings,
+                          label: 'dashboard.event_settings'.tr(),
+                          color: Colors.blue,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EventSettingsScreen(
+                                      eventId: widget.eventId,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuGridItem(
+                          icon: Icons.download,
+                          label: 'dashboard.export_data'.tr(),
+                          color: Colors.green,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EventExportScreen(
+                                      eventId: widget.eventId,
+                                      eventName: _event?.name ?? 'Evento',
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildMenuGridItem(
+                          icon: Icons.upload_file,
+                          label: 'dashboard.import_guests'.tr(),
+                          color: Colors.orange,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => GuestsImportScreen(
+                                      eventId: widget.eventId,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                        if (_userRole != null &&
+                            (_userRole!.toLowerCase() == 'admin' ||
+                                _userRole!.toLowerCase() == 'staff3'))
+                          _buildMenuGridItem(
+                            icon: Icons.people_outline,
+                            label: 'Conta Persone',
+                            color: Colors.purple,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => PeopleCounterScreen(
+                                        eventId: widget.eventId,
+                                      ),
+                                ),
+                              );
+                            },
+                          ),
+                        _buildMenuGridItem(
+                          icon: Icons.analytics_outlined,
+                          label: 'dashboard.advanced_stats'.tr(),
+                          color: Colors.red,
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/event/${widget.eventId}/statistics',
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMenuGridItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start, // Align to top
+        children: [
+          const SizedBox(height: 12), // Fixed top padding
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -441,6 +645,25 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                   ],
                                 ),
                               ),
+                              if (_userRole != null &&
+                                  (_userRole!.toLowerCase() == 'admin' ||
+                                      _userRole!.toLowerCase() == 'staff3'))
+                                PopupMenuItem(
+                                  value: 'people_counter',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.people_outline,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Conta Persone',
+                                        style: GoogleFonts.outfit(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               const PopupMenuItem(
                                 value: 'divider',
                                 enabled: false,
@@ -499,6 +722,16 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                             Navigator.pushNamed(
                               context,
                               '/event/${widget.eventId}/statistics',
+                            );
+                          } else if (value == 'people_counter') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => PeopleCounterScreen(
+                                      eventId: widget.eventId,
+                                    ),
+                              ),
                             );
                           }
                         },
@@ -903,16 +1136,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     if (location == null || location.isEmpty) {
       return 'dashboard.no_location'.tr();
     }
-    final nameRegex = RegExp(r'\[NAME\](.*?)\[/NAME\]');
-    final match = nameRegex.firstMatch(location);
-    if (match != null) {
-      return match.group(1) ?? 'dashboard.no_location'.tr();
-    }
-    final posRegex = RegExp(r'\[POS\].*?\[/POS\]');
-    final cleanLocation = location.replaceAll(posRegex, '').trim();
-    return cleanLocation.isNotEmpty
-        ? cleanLocation
-        : 'dashboard.no_location'.tr();
+    final name = LocationHelper.getName(location);
+    return name.isNotEmpty ? name : 'dashboard.no_location'.tr();
   }
 }
 

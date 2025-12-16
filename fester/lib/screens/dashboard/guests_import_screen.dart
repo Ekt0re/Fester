@@ -189,8 +189,9 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
                         value: _firstDataRowIndex,
                         items:
                             List.generate(20, (index) {
-                              if (index <= _headerRowIndex)
+                              if (index <= _headerRowIndex) {
                                 return null; // Skip invalid
+                              }
                               return DropdownMenuItem(
                                 value: index,
                                 child: Text('Riga ${index + 1}'),
