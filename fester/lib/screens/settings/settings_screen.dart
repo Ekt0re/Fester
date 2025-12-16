@@ -11,6 +11,7 @@ import '../../providers/theme_provider.dart';
 import 'widgets/settings_tile.dart';
 import 'language_settings_screen.dart';
 import 'notification_settings_screen.dart';
+import 'theme_editor_screen.dart';
 import 'faq_screen.dart';
 import 'support_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -452,23 +453,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         const SizedBox(height: 8),
         SettingsTile(
-          icon:
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.dark_mode
-                  : Icons.light_mode,
-          title: 'settings.dark_mode'.tr(),
-          trailing: Switch(
-            value: Theme.of(context).brightness == Brightness.dark,
-            onChanged: (value) {
-              final newMode = value ? ThemeMode.dark : ThemeMode.light;
-              _updateSettings(_settings.copyWith(themeMode: newMode));
-              // Aggiorna il tema immediatamente
-              Provider.of<ThemeProvider>(
-                context,
-                listen: false,
-              ).setThemeMode(newMode);
-            },
-          ),
+          icon: Icons.palette,
+          title: 'Theme',
+          subtitle: _getThemeName(context),
+          onTap: () => _showThemePicker(context),
         ),
         const SizedBox(height: 8),
         SettingsTile(
@@ -542,6 +530,175 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onTap: _resetSettings,
         ),
       ],
+    );
+  }
+
+  String _getThemeName(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    if (themeProvider.selectedCustomThemeId != null) {
+      final customTheme = themeProvider.customThemes.firstWhere(
+        (t) => t.id == themeProvider.selectedCustomThemeId,
+        orElse: () => themeProvider.customThemes.first,
+      );
+      // Validate existance
+      if (themeProvider.customThemes.any(
+        (t) => t.id == themeProvider.selectedCustomThemeId,
+      )) {
+        return customTheme.name;
+      }
+    }
+
+    switch (themeProvider.preferredThemeMode) {
+      case ThemeMode.system:
+        return 'System';
+      case ThemeMode.light:
+        return 'Light';
+      case ThemeMode.dark:
+        return 'Dark';
+    }
+  }
+
+  void _showThemePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppBar(
+                  title: const Text('Select Theme'),
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        Navigator.pop(context); // Close sheet
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ThemeEditorScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _buildThemeRadio(
+                        context,
+                        'System Default',
+                        ThemeMode.system,
+                        themeProvider,
+                      ),
+                      _buildThemeRadio(
+                        context,
+                        'Light Mode',
+                        ThemeMode.light,
+                        themeProvider,
+                      ),
+                      _buildThemeRadio(
+                        context,
+                        'Dark Mode',
+                        ThemeMode.dark,
+                        themeProvider,
+                      ),
+                      const Divider(),
+                      if (themeProvider.customThemes.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            'No custom themes yet. Create one!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ...themeProvider.customThemes.map((theme) {
+                        final isSelected =
+                            themeProvider.selectedCustomThemeId == theme.id;
+                        return ListTile(
+                          title: Text(theme.name),
+                          leading: CircleAvatar(
+                            backgroundColor: Color(theme.primaryColor),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isSelected)
+                                const Icon(Icons.check, color: Colors.blue),
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => ThemeEditorScreen(
+                                            initialTheme: theme,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  size: 20,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () {
+                                  themeProvider.deleteCustomTheme(theme.id);
+                                },
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            themeProvider.selectCustomTheme(theme.id);
+                            // Do not close to allow seeing selection or switching back
+                          },
+                        );
+                      }),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeRadio(
+    BuildContext context,
+    String label,
+    ThemeMode mode,
+    ThemeProvider provider,
+  ) {
+    bool isSelected =
+        provider.selectedCustomThemeId == null &&
+        provider.preferredThemeMode == mode;
+    return ListTile(
+      title: Text(label),
+      leading: Icon(
+        mode == ThemeMode.light
+            ? Icons.light_mode
+            : mode == ThemeMode.dark
+            ? Icons.dark_mode
+            : Icons.brightness_auto,
+      ),
+      trailing: isSelected ? const Icon(Icons.check, color: Colors.blue) : null,
+      onTap: () {
+        provider.setThemeMode(mode);
+      },
     );
   }
 

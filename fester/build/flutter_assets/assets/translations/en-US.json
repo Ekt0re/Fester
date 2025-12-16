@@ -255,7 +255,8 @@
         "allow_guests_subtitle": "Allow participants to add guests",
         "late_entry": "Late entry",
         "danger_zone": "Danger Zone",
-        "archive_subtitle": "Archive this event (irreversible action)"
+        "archive_subtitle": "Archive this event (irreversible action)",
+        "not_set": "Not set"
     },
     "import_guests": {
         "title": "Import Guests",

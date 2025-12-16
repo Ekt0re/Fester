@@ -34,45 +34,58 @@ class AppTheme {
   // Layout Constants
   static const double desktopBreakpoint = 900.0;
 
-  static ThemeData get lightTheme {
+  static ThemeData createTheme({
+    required bool isDark,
+    required Color primary,
+    required Color secondary,
+    required Color background,
+    required Color surface,
+    required Color error,
+    required Color text,
+  }) {
+    final brightness = isDark ? Brightness.dark : Brightness.light;
+    final baseTextTheme =
+        isDark ? ThemeData.dark().textTheme : ThemeData.light().textTheme;
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: const ColorScheme.light(
-        primary: primaryLight,
-        secondary: secondaryLight,
-        surface: surfaceLight,
-        error: errorLight,
-        onPrimary: Colors.white,
-        onSecondary: Colors.black,
-        onSurface: textLight,
-        onError: Colors.white,
+      brightness: brightness,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: primary,
+        secondary: secondary,
+        surface: surface,
+        error: error,
+        onPrimary: isDark ? Colors.black : Colors.white,
+        onSecondary: isDark ? Colors.white : Colors.black,
+        onSurface: text,
+        onError: isDark ? Colors.black : Colors.white,
       ),
-      scaffoldBackgroundColor: backgroundLight,
+      scaffoldBackgroundColor: background,
       textTheme: GoogleFonts.outfitTextTheme(
-        ThemeData.light().textTheme,
-      ).apply(bodyColor: textLight, displayColor: textLight),
+        baseTextTheme,
+      ).apply(bodyColor: text, displayColor: text),
       appBarTheme: AppBarTheme(
-        backgroundColor: backgroundLight,
-        foregroundColor: textLight,
+        backgroundColor: background,
+        foregroundColor: text,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: GoogleFonts.outfit(
-          color: textLight,
+          color: text,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
       cardTheme: CardTheme(
-        color: surfaceLight,
+        color: surface,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryLight,
-          foregroundColor: Colors.white,
+          backgroundColor: primary,
+          foregroundColor: isDark ? Colors.black : Colors.white,
           textStyle: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             letterSpacing: 1.2,
@@ -85,7 +98,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceLight,
+        fillColor: surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -96,7 +109,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryLight, width: 2),
+          borderSide: BorderSide(color: primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -106,75 +119,27 @@ class AppTheme {
     );
   }
 
+  static ThemeData get lightTheme {
+    return createTheme(
+      isDark: false,
+      primary: primaryLight,
+      secondary: secondaryLight,
+      background: backgroundLight,
+      surface: surfaceLight,
+      error: errorLight,
+      text: textLight,
+    );
+  }
+
   static ThemeData get darkTheme {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
-        primary: primaryDark,
-        secondary: secondaryDark,
-        surface: surfaceDark,
-        error: errorDark,
-        onPrimary: Colors.black,
-        onSecondary: Colors.white,
-        onSurface: textDark,
-        onError: Colors.black,
-      ),
-      scaffoldBackgroundColor: backgroundDark,
-      textTheme: GoogleFonts.outfitTextTheme(
-        ThemeData.dark().textTheme,
-      ).apply(bodyColor: textDark, displayColor: textDark),
-      appBarTheme: AppBarTheme(
-        backgroundColor: backgroundDark,
-        foregroundColor: textDark,
-        elevation: 0,
-        centerTitle: true,
-        titleTextStyle: GoogleFonts.outfit(
-          color: textDark,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      cardTheme: CardTheme(
-        color: surfaceDark,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        shadowColor: Colors.black.withOpacity(0.3),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryDark,
-          foregroundColor: Colors.black,
-          textStyle: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: surfaceDark,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryDark, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
+    return createTheme(
+      isDark: true,
+      primary: primaryDark,
+      secondary: secondaryDark,
+      background: backgroundDark,
+      surface: surfaceDark,
+      error: errorDark,
+      text: textDark,
     );
   }
 
