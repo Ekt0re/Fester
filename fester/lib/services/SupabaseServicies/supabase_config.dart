@@ -2,9 +2,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class SupabaseConfig {
-  static const String supabaseUrl = 'https://tzrjlnvdeqmmlnivoszq.supabase.co';
-  static const String supabaseAnonKey = 'sb_publishable_eFPKG8kUCxXFvrx_x7bBLQ_7TaKcVSY';
+  static String get supabaseUrl => dotenv.env['SUPABASE_URL'] ?? '';
+  static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
   // Redirect URLs for authentication
   static const String redirectUrl = 'http://localhost:3000';

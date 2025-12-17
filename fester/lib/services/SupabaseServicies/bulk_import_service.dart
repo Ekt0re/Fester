@@ -82,6 +82,5 @@ class BulkImportService {
     'birth_date': 'Data Nascita',
     'codice_fiscale': 'Codice Fiscale',
     'indirizzo': 'Indirizzo',
-    'notes': 'Note',
   };
 }

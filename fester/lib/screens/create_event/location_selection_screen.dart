@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 
 class LocationSelectionScreen extends StatefulWidget {
   final LatLng? initialLocation;
@@ -24,13 +25,129 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
   String _selectedName = '';
+  bool _isLoadingLocation = true;
 
   @override
   void initState() {
     super.initState();
-    // Default to Rome if no location provided
+    // Default to Rome if no location provided, then try GPS
     _selectedLocation =
         widget.initialLocation ?? const LatLng(41.9028, 12.4964);
+    _initCurrentLocation();
+  }
+
+  /// Gets current GPS location and centers the map on it
+  Future<void> _initCurrentLocation() async {
+    // If we already have an initial location, use that
+    if (widget.initialLocation != null) {
+      setState(() => _isLoadingLocation = false);
+      return;
+    }
+
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      // Check permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() => _isLoadingLocation = false);
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      // Get current position
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+      );
+
+      final currentLocation = LatLng(position.latitude, position.longitude);
+
+      if (mounted) {
+        setState(() {
+          _selectedLocation = currentLocation;
+          _isLoadingLocation = false;
+        });
+
+        // Move map to current location
+        _mapController.move(currentLocation, 13.0);
+      }
+    } catch (e) {
+      debugPrint('Error getting current location: $e');
+      if (mounted) {
+        setState(() => _isLoadingLocation = false);
+      }
+    }
+  }
+
+  /// Button to recenter on current GPS location
+  Future<void> _goToCurrentLocation() async {
+    setState(() => _isLoadingLocation = true);
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('create_event.location_disabled'.tr())),
+          );
+        }
+        setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('create_event.location_permission_denied'.tr()),
+            ),
+          );
+        }
+        setState(() => _isLoadingLocation = false);
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final currentLocation = LatLng(position.latitude, position.longitude);
+
+      if (mounted) {
+        setState(() {
+          _selectedLocation = currentLocation;
+          _selectedName = '';
+          _isLoadingLocation = false;
+        });
+        _mapController.move(currentLocation, 15.0);
+      }
+    } catch (e) {
+      debugPrint('Error getting location: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('create_event.location_error'.tr())),
+        );
+        setState(() => _isLoadingLocation = false);
+      }
+    }
   }
 
   void _onTap(TapPosition tapPosition, LatLng point) {
@@ -303,6 +420,28 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                     ),
                   ),
               ],
+            ),
+          ),
+
+          // GPS Button
+          Positioned(
+            bottom: 90,
+            right: 24,
+            child: FloatingActionButton(
+              mini: true,
+              onPressed: _isLoadingLocation ? null : _goToCurrentLocation,
+              backgroundColor: theme.cardColor,
+              child:
+                  _isLoadingLocation
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                      : Icon(
+                        Icons.my_location,
+                        color: theme.colorScheme.primary,
+                      ),
             ),
           ),
 

@@ -47,7 +47,7 @@ dependencies:
   # STATE MANAGEMENT
   riverpod: ^2.5.1
 
-  go_router: ^14.2.0             # Routing dichiarativo
+  go_router: ^17.0.0             # Routing dichiarativo
   url_strategy: ^0.2.0           # URL strategy for web apps
   url_launcher: ^6.2.5           # Launch URLs
 
@@ -76,7 +76,7 @@ dependencies:
   provider: ^6.1.1               # State management
   pdf: ^3.10.8                   # Export PDF report
   csv: ^6.0.0                    # Export CSV
-  share_plus: ^9.0.0             # Condivisione file
+  share_plus: ^12.0.1            # Condivisione file
   excel: ^4.0.6                  # Export Excel
 
 
@@ -96,12 +96,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   universal_platform: ^1.1.0
   google_fonts: ^6.3.2
-  printing: ^5.13.1
+  printing: ^5.14.2
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   file_picker: ^8.0.7
   http: ^1.2.0
   flutter_colorpicker: ^1.1.0
+  flutter_dotenv: ^6.0.0
   
 
   
@@ -137,6 +138,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/translations/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

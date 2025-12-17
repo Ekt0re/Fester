@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/settings_service.dart';
 import '../models/custom_theme.dart';
-import '../models/app_settings.dart';
 import '../theme/app_theme.dart';
 
 class ThemeProvider extends ChangeNotifier {

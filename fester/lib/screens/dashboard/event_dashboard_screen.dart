@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,8 +35,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   int _menuItemCount = 0;
   String? _userRole;
   EventStaff? _currentUserStaff;
+  RealtimeChannel? _subscription;
   Timer? _syncTimer;
-  DateTime _lastSync = DateTime.now();
+  //DateTime _lastSync = DateTime.now(); // Unused
   int _selectedIndex = 0; // For NavigationRail/BottomNavBar
   String? _eventLocation;
 
@@ -45,7 +45,64 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   void initState() {
     super.initState();
     _loadEventData();
-    // Auto-sync every minute
+    _setupRealtimeSubscription();
+  }
+
+  void _setupRealtimeSubscription() {
+    final supabase = Supabase.instance.client;
+    // Subscribe to multiple tables changes
+    _subscription =
+        supabase
+            .channel('event_dashboard:${widget.eventId}')
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: 'participation',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'event_id',
+                value: widget.eventId,
+              ),
+              callback: (payload) {
+                _loadEventData(silent: true);
+              },
+            )
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: 'event_staff',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'event_id',
+                value: widget.eventId,
+              ),
+              callback: (payload) {
+                _loadEventData(silent: true);
+              },
+            )
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: 'menu',
+              // Menu item changes are harder to track directly if we filter by event_id on menu table,
+              // but let's try to catch menu table changes for now.
+              // Ideally we'd need to filter menu_id which we might not have yet.
+              // For simplicity, we'll reload on any menu change for this event.
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'event_id',
+                value: widget.eventId,
+              ),
+              callback: (payload) {
+                _loadEventData(silent: true);
+              },
+            )
+            .subscribe();
+
+    // Separate subscription for menu items might be needed if we knew the menu IDs,
+    // but simpler to rely on polling for deep nested changes or broader subscription if needed.
+    // For now, let's keep the timer as a fallback but increase duration or rely on this.
+    // We will keep the 1 minute timer as a safe fallback.
     _syncTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _loadEventData(silent: true);
     });
@@ -54,6 +111,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   @override
   void dispose() {
     _syncTimer?.cancel();
+    _subscription?.unsubscribe();
     super.dispose();
   }
 
@@ -132,7 +190,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           _userRole = role;
           _currentUserStaff = currentUserStaff;
           _eventLocation = location;
-          _lastSync = DateTime.now();
+          //_lastSync = DateTime.now();
           _isLoading = false;
         });
 
@@ -152,12 +210,6 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         );
       }
     }
-  }
-
-  String _getTimeSinceSync() {
-    final diff = DateTime.now().difference(_lastSync);
-    if (diff.inMinutes < 1) return 'dashboard.time.now'.tr();
-    return '${diff.inMinutes}${'dashboard.time.minutes_ago'.tr()}';
   }
 
   @override
@@ -230,158 +282,153 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
 
   Widget _buildMobileBottomSheetMenu(ThemeData theme) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.1,
-      minChildSize: 0.1,
-      maxChildSize: 0.6,
+      initialChildSize: 0.06, // Much smaller when hidden - just the handle
+      minChildSize: 0.06,
+      maxChildSize: 0.55,
+      snap: true,
+      snapSizes: const [0.06, 0.35, 0.55], // Snap points for smooth UX
       builder: (context, scrollController) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(
-              sigmaX: 10,
-              sigmaY: 10,
-            ), // Glassmorphism
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.cardColor.withOpacity(0.8),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
+        return Container(
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 12,
+                offset: const Offset(0, -2),
               ),
-              child: CustomScrollView(
-                controller: scrollController,
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        // Handle bar area
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: theme.dividerColor,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Menu Rapido",
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: theme.colorScheme.onSurface
-                                      .withOpacity(0.7),
-                                ),
-                              ),
-                            ],
+            ],
+          ),
+          child: CustomScrollView(
+            controller: scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    // Handle bar - minimal when collapsed
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Center(
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: theme.dividerColor.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    sliver: SliverGrid.count(
-                      crossAxisCount: 3,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      children: [
-                        _buildMenuGridItem(
-                          icon: Icons.settings,
-                          label: 'dashboard.event_settings'.tr(),
-                          color: Colors.blue,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => EventSettingsScreen(
-                                      eventId: widget.eventId,
-                                    ),
-                              ),
-                            );
-                          },
+                    // Title only visible when expanded
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        "Menu Rapido",
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: theme.colorScheme.onSurface.withOpacity(0.6),
                         ),
-                        _buildMenuGridItem(
-                          icon: Icons.download,
-                          label: 'dashboard.export_data'.tr(),
-                          color: Colors.green,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => EventExportScreen(
-                                      eventId: widget.eventId,
-                                      eventName: _event?.name ?? 'Evento',
-                                    ),
-                              ),
-                            );
-                          },
-                        ),
-                        _buildMenuGridItem(
-                          icon: Icons.upload_file,
-                          label: 'dashboard.import_guests'.tr(),
-                          color: Colors.orange,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => GuestsImportScreen(
-                                      eventId: widget.eventId,
-                                    ),
-                              ),
-                            );
-                          },
-                        ),
-                        if (_userRole != null &&
-                            (_userRole!.toLowerCase() == 'admin' ||
-                                _userRole!.toLowerCase() == 'staff3'))
-                          _buildMenuGridItem(
-                            icon: Icons.people_outline,
-                            label: 'Conta Persone',
-                            color: Colors.purple,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => PeopleCounterScreen(
-                                        eventId: widget.eventId,
-                                      ),
-                                ),
-                              );
-                            },
-                          ),
-                        _buildMenuGridItem(
-                          icon: Icons.analytics_outlined,
-                          label: 'dashboard.advanced_stats'.tr(),
-                          color: Colors.red,
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/event/${widget.eventId}/statistics',
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                sliver: SliverGrid.count(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 0.95, // Better proportions
+                  children: [
+                    _buildMenuGridItem(
+                      icon: Icons.settings,
+                      label: 'dashboard.event_settings'.tr(),
+                      color: Colors.blue,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => EventSettingsScreen(
+                                  eventId: widget.eventId,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildMenuGridItem(
+                      icon: Icons.download,
+                      label: 'dashboard.export_data'.tr(),
+                      color: Colors.green,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => EventExportScreen(
+                                  eventId: widget.eventId,
+                                  eventName: _event?.name ?? 'Evento',
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildMenuGridItem(
+                      icon: Icons.upload_file,
+                      label: 'dashboard.import_guests'.tr(),
+                      color: Colors.orange,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    GuestsImportScreen(eventId: widget.eventId),
+                          ),
+                        );
+                      },
+                    ),
+                    if (_userRole != null &&
+                        (_userRole!.toLowerCase() == 'admin' ||
+                            _userRole!.toLowerCase() == 'staff3'))
+                      _buildMenuGridItem(
+                        icon: Icons.people_outline,
+                        label: 'Conta Persone',
+                        color: Colors.purple,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => PeopleCounterScreen(
+                                    eventId: widget.eventId,
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                    _buildMenuGridItem(
+                      icon: Icons.analytics_outlined,
+                      label: 'dashboard.advanced_stats'.tr(),
+                      color: Colors.red,
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/event/${widget.eventId}/statistics',
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -880,20 +927,21 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
             children: [
               // Welcome Card
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
+                      blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min, // Compact vertical size
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -903,7 +951,8 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                             'dashboard.welcome'.tr(args: [userName]),
                             style: GoogleFonts.outfit(
                               color: Colors.white,
-                              fontSize: isDesktop ? 28 : 22,
+                              fontSize:
+                                  isDesktop ? 24 : 18, // Reduced font size
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -911,12 +960,12 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                         if (_userRole != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
+                              horizontal: 10,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.5),
                               ),
@@ -925,76 +974,76 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                               _userRole!.toUpperCase(),
                               style: GoogleFonts.outfit(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4), // Reduced spacing
                     Text(
                       'dashboard.manage_ease'.tr(),
                       style: GoogleFonts.outfit(
                         color: Colors.white70,
-                        fontSize: isDesktop ? 16 : 14,
+                        fontSize: isDesktop ? 14 : 12,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4), // Reduced spacing
                     Row(
                       children: [
                         const Icon(
                           Icons.location_on,
                           color: Colors.white70,
-                          size: 16,
+                          size: 14,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           _getLocationName(_eventLocation),
                           style: GoogleFonts.outfit(
                             color: Colors.white70,
-                            fontSize: isDesktop ? 16 : 14,
+                            fontSize: isDesktop ? 14 : 12,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12), // Reduced spacing
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(Icons.sync, color: Colors.orange, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          'dashboard.last_sync'.tr(args: [_getTimeSinceSync()]),
-                          style: GoogleFonts.outfit(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                        Row(
+                          children: [
+                            // Realtime indicator
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.greenAccent,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'LIVE',
+                              style: GoogleFonts.outfit(
+                                color: Colors.greenAccent,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
                         ),
                         if (isDesktop) ...[
                           const Spacer(),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // Action for desktop
-                            },
-                            icon: const Icon(Icons.desktop_windows, size: 16),
-                            label: const Text("Desktop Action"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.surface,
-                              foregroundColor: theme.colorScheme.primary,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                            ),
-                          ),
+                          // Removed the placeholder button
                         ],
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-
+              const SizedBox(height: 16), // Reduced spacing below card
               // Grid Actions
               GridView.count(
                 shrinkWrap: true,

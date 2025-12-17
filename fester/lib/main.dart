@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app_links/app_links.dart';
@@ -47,6 +48,7 @@ Future<Map<String, dynamic>> _loadStaffProfile(
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy(); // Rimuove il # dagli URL
+  await dotenv.load(fileName: ".env");
   await SupabaseConfig.initialize();
   await EasyLocalization.ensureInitialized();
 

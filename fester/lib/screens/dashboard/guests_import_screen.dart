@@ -70,7 +70,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
         controlsBuilder: _controlsBuilder,
         steps: [
           Step(
-            title: const Text('File'),
+            title: Text('import_guests.file_step_title'.tr()),
             content: _buildFileSelectionStep(theme),
             isActive: _currentStep >= 0,
             state: _currentStep > 0 ? StepState.complete : StepState.editing,
@@ -107,7 +107,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
         Icon(Icons.upload_file, size: 64, color: theme.colorScheme.primary),
         const SizedBox(height: 20),
         Text(
-          'Seleziona un file CSV o Excel (.xlsx) per importare gli ospiti.',
+          'import_guests.select_file_description'.tr(),
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyLarge,
         ),
@@ -116,7 +116,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
           ElevatedButton.icon(
             onPressed: _pickFile,
             icon: const Icon(Icons.folder_open),
-            label: const Text('Scegli File'),
+            label: Text('import_guests.choose_file'.tr()),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             ),
@@ -151,14 +151,18 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        decoration: const InputDecoration(
-                          labelText: 'Riga Intestazione',
+                        decoration: InputDecoration(
+                          labelText: 'import_guests.header_row'.tr(),
                         ),
                         value: _headerRowIndex,
                         items: List.generate(10, (index) {
                           return DropdownMenuItem(
                             value: index,
-                            child: Text('Riga ${index + 1}'),
+                            child: Text(
+                              'import_guests.row_prefix'.tr(
+                                args: [(index + 1).toString()],
+                              ),
+                            ),
                           );
                         }),
                         onChanged: (val) {
@@ -183,8 +187,8 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        decoration: const InputDecoration(
-                          labelText: 'Inizia Dati da Riga',
+                        decoration: InputDecoration(
+                          labelText: 'import_guests.start_row'.tr(),
                         ),
                         value: _firstDataRowIndex,
                         items:
@@ -194,7 +198,11 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
                               }
                               return DropdownMenuItem(
                                 value: index,
-                                child: Text('Riga ${index + 1}'),
+                                child: Text(
+                                  'import_guests.row_prefix'.tr(
+                                    args: [(index + 1).toString()],
+                                  ),
+                                ),
                               );
                             }).whereType<DropdownMenuItem<int>>().toList(),
                         onChanged: (val) {
@@ -246,9 +254,13 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore lettura file: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'import_guests.file_read_error'.tr(args: [e.toString()]),
+            ),
+          ),
+        );
       }
     } finally {
       setState(() => _isLoading = false);
@@ -278,7 +290,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
 
   Widget _buildMappingStep(ThemeData theme) {
     if (_fileHeaders.isEmpty) {
-      return const Text('Nessun dato trovato nel file.');
+      return Text('import_guests.no_data_found'.tr());
     }
 
     final fields = BulkImportService.availableFields;
@@ -286,9 +298,9 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Collega le colonne del tuo file ai campi dell\'app.',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        Text(
+          'import_guests.map_columns_description'.tr(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         ListView.separated(
@@ -316,13 +328,13 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
                   child: DropdownButton<int>(
                     isExpanded: true,
                     value: selectedColIndex,
-                    hint: const Text('Ignora'),
+                    hint: Text('import_guests.ignore'.tr()),
                     items: [
-                      const DropdownMenuItem<int>(
+                      DropdownMenuItem<int>(
                         value: null,
                         child: Text(
-                          'Ignora',
-                          style: TextStyle(color: Colors.grey),
+                          'import_guests.ignore'.tr(),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ),
                       ...List.generate(_fileHeaders.length, (i) {
@@ -365,19 +377,30 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
             CircularProgressIndicator(value: _progress),
             const SizedBox(height: 20),
             Text(
-              'Importazione in corso... ${(_progress * 100).toInt()}%',
+              'import_guests.importing_progress'.tr(
+                args: [(_progress * 100).toInt().toString()],
+              ),
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
-            Text('Successo: $_successCount | Errori: $_failCount'),
+            Text(
+              'import_guests.success_errors'.tr(
+                args: [_successCount.toString(), _failCount.toString()],
+              ),
+            ),
           ] else ...[
             const Icon(Icons.check_circle, size: 64, color: Colors.green),
             const SizedBox(height: 20),
-            Text('Importazione completata!', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 10),
-            Text('Ospiti aggiunti: $_successCount'),
             Text(
-              'Ospiti non riusciti: $_failCount',
+              'import_guests.import_completed'.tr(),
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'import_guests.guests_added'.tr(args: [_successCount.toString()]),
+            ),
+            Text(
+              'import_guests.guests_failed'.tr(args: [_failCount.toString()]),
               style: TextStyle(
                 color: _failCount > 0 ? Colors.red : Colors.grey,
               ),
@@ -397,11 +420,11 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
           children: [
             const Icon(Icons.celebration, size: 64, color: Colors.orange),
             const SizedBox(height: 20),
-            const Text('Tutti gli ospiti sono stati importati con successo!'),
+            Text('import_guests.all_success'.tr()),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Torna alla Dashboard'),
+              child: Text('import_guests.back_to_dashboard'.tr()),
             ),
           ],
         ),
@@ -414,7 +437,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
     return Column(
       children: [
         Text(
-          'Alcuni ospiti non sono stati importati. Puoi modificarli e riprovare.',
+          'import_guests.some_failed'.tr(),
           style: TextStyle(color: theme.colorScheme.error),
         ),
         const SizedBox(height: 10),
@@ -432,7 +455,9 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
                 title: Text(
                   '${data['first_name'] ?? '?'} ${data['last_name'] ?? '?'}',
                 ),
-                subtitle: Text(failure.error ?? 'Errore sconosciuto'),
+                subtitle: Text(
+                  failure.error ?? 'import_guests.unknown_error'.tr(),
+                ),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit),
                   onPressed: () => _editAndRetry(failure, index),
@@ -459,7 +484,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: const Text('Correggi Dati'),
+            title: Text('import_guests.fix_data'.tr()),
             content: Form(
               key: formKey,
               child: Column(
@@ -467,19 +492,28 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
                 children: [
                   TextFormField(
                     controller: nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Nome'),
                     validator:
-                        (v) => (v == null || v.isEmpty) ? 'Obbligatorio' : null,
+                        (v) =>
+                            (v == null || v.isEmpty)
+                                ? 'add_guest.name_required'.tr()
+                                : null,
                   ),
                   TextFormField(
                     controller: surnameCtrl,
-                    decoration: const InputDecoration(labelText: 'Cognome'),
+                    decoration: InputDecoration(
+                      labelText: 'add_guest.surname'.tr(),
+                    ),
                     validator:
-                        (v) => (v == null || v.isEmpty) ? 'Obbligatorio' : null,
+                        (v) =>
+                            (v == null || v.isEmpty)
+                                ? 'add_guest.surname_required'.tr()
+                                : null,
                   ),
                   TextFormField(
                     controller: emailCtrl,
-                    decoration: const InputDecoration(labelText: 'Email'),
+                    decoration: InputDecoration(
+                      labelText: 'staff.email_label'.tr(),
+                    ),
                   ),
                 ],
               ),
@@ -487,7 +521,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Annulla'),
+                child: Text('common.cancel'.tr()),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -533,19 +567,23 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
 
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Ospite aggiunto!')),
+                          SnackBar(content: Text('add_guest.guest_added'.tr())),
                         );
                       }
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Errore ancora: $e')),
+                          SnackBar(
+                            content: Text(
+                              '${'import_guests.unknown_error'.tr()}: $e',
+                            ),
+                          ),
                         );
                       }
                     }
                   }
                 },
-                child: const Text('Salva e Riprova'),
+                child: Text('import_guests.save_retry'.tr()),
               ),
             ],
           ),
@@ -588,7 +626,11 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
           item['last_name'] == null ||
           item['last_name'].toString().isEmpty) {
         _results.add(
-          ImportResult(item, false, error: 'Nome o Cognome mancante'),
+          ImportResult(
+            item,
+            false,
+            error: 'import_guests.name_missing_error'.tr(),
+          ),
         );
         _failCount++;
         continue;
@@ -610,7 +652,6 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
           codiceFiscale: item['codice_fiscale']?.toString(),
           indirizzo: item['indirizzo']?.toString(),
           dateOfBirth: birthDate,
-          notes: item['notes']?.toString(),
           idEvent: currentIdEventStr,
         );
 
@@ -670,9 +711,9 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
   void _onStepContinue() {
     if (_currentStep == 0) {
       if (_selectedFile == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Seleziona un file')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('import_guests.select_file_error'.tr())),
+        );
         return;
       }
       setState(() => _currentStep++);
@@ -681,7 +722,7 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
       if (!_columnMapping.containsKey('first_name') ||
           !_columnMapping.containsKey('last_name')) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Devi mappare almeno Nome e Cognome')),
+          SnackBar(content: Text('import_guests.mapping_required_error'.tr())),
         );
         return;
       }
@@ -722,12 +763,20 @@ class _GuestsImportScreenState extends State<GuestsImportScreen> {
         children: [
           ElevatedButton(
             onPressed: details.onStepContinue,
-            child: Text(_currentStep == 1 ? 'Importa' : 'Avanti'),
+            child: Text(
+              _currentStep == 1
+                  ? 'import_guests.import_button'.tr()
+                  : 'import_guests.next_button'.tr(),
+            ),
           ),
           const SizedBox(width: 12),
           TextButton(
             onPressed: details.onStepCancel,
-            child: Text(_currentStep == 0 ? 'Annulla' : 'Indietro'),
+            child: Text(
+              _currentStep == 0
+                  ? 'common.cancel'.tr()
+                  : 'import_guests.back_button'.tr(),
+            ),
           ),
         ],
       ),
