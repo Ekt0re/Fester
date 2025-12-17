@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../services/SupabaseServicies/event_service.dart';
-import '../../services/SupabaseServicies/staff_user_service.dart';
-import '../../services/SupabaseServicies/models/event_staff.dart';
+import '../../services/supabase/event_service.dart';
+import '../../services/supabase/staff_user_service.dart';
+import '../../services/supabase/models/event_staff.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../theme/app_theme.dart';
 

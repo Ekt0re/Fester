@@ -2,8 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/SupabaseServicies/models/event_area.dart';
-import '../../services/SupabaseServicies/people_counter_service.dart';
+import '../../services/supabase/models/event_area.dart';
+import '../../services/supabase/people_counter_service.dart';
 import '../../theme/app_theme.dart';
 
 class PeopleCounterScreen extends StatefulWidget {

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/SupabaseServicies/bulk_import_service.dart';
-import '../../services/SupabaseServicies/person_service.dart';
-import '../../services/SupabaseServicies/participation_service.dart';
+import '../../services/supabase/bulk_import_service.dart';
+import '../../services/supabase/person_service.dart';
+import '../../services/supabase/participation_service.dart';
 
 class GuestsImportScreen extends StatefulWidget {
   final String eventId;

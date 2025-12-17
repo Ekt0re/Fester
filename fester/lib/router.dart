@@ -1,6 +1,7 @@
 // lib/router.dart - Centralized GoRouter configuration
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'Login/login_page.dart';
@@ -17,7 +18,7 @@ import 'screens/dashboard/notifications_screen.dart';
 import 'screens/dashboard/event_statistics_screen.dart';
 import 'screens/dashboard/qr_scanner_screen.dart';
 import 'screens/invite_bridge_screen.dart';
-import 'services/SupabaseServicies/deep_link_handler.dart';
+import 'services/supabase/deep_link_handler.dart';
 
 /// Global key to access navigator from anywhere
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -43,11 +44,6 @@ final GoRouter router = GoRouter(
     // If not logged in and not on a public route, redirect to login
     if (!isLoggedIn && !isPublicRoute && location != '/') {
       return '/login';
-    }
-
-    // If logged in and on splash, go to event selection
-    if (isLoggedIn && location == '/') {
-      return '/event-selection';
     }
 
     return null;
@@ -238,12 +234,30 @@ class _SplashRedirectState extends State<_SplashRedirect> {
   }
 
   Future<void> _checkAuthAndRedirect() async {
+    // Artificial delay for splash effect
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
 
     final session = Supabase.instance.client.auth.currentSession;
     if (session != null) {
-      context.go('/event-selection');
+      // Check for last visited event
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final lastEventId = prefs.getString('last_event_id');
+
+        if (lastEventId != null && lastEventId.isNotEmpty) {
+          // Verify if the event still exists/user has access (optional but good practice)
+          // For now, we trust the ID and let the dashboard handle 404/permissions if needed
+          if (mounted) {
+            context.go('/event/$lastEventId');
+            return;
+          }
+        }
+      } catch (e) {
+        // Ignore errors reading prefs
+      }
+
+      if (mounted) context.go('/event-selection');
     } else {
       context.go('/login');
     }

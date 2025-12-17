@@ -2,8 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../services/SupabaseServicies/deep_link_handler.dart';
-import 'login_page.dart';
+import '../services/supabase/deep_link_handler.dart';
 
 class SetNewPasswordPage extends StatefulWidget {
   const SetNewPasswordPage({super.key});

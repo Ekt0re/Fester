@@ -4,17 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../services/SupabaseServicies/event_service.dart';
-import '../../services/SupabaseServicies/models/event.dart';
+import '../../services/supabase/event_service.dart';
+import '../../services/supabase/models/event.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_settings_icon.dart';
 import '../../services/notification_service.dart';
+import '../../services/notification_scheduler.dart';
+// Ensure this exists for navigation
 import '../settings/settings_screen.dart';
 import 'event_settings_screen.dart';
 import 'event_export_screen.dart';
 import 'guests_import_screen.dart';
 import '../profile/staff_profile_screen.dart';
-import '../../services/SupabaseServicies/models/event_staff.dart';
+import '../../services/supabase/models/event_staff.dart';
 import 'people_counter_screen.dart';
 import '../../utils/location_helper.dart';
 
@@ -29,6 +31,7 @@ class EventDashboardScreen extends StatefulWidget {
 
 class _EventDashboardScreenState extends State<EventDashboardScreen> {
   final EventService _eventService = EventService();
+  final _scheduler = NotificationScheduler();
   Event? _event;
   bool _isLoading = true;
   int _staffCount = 0;
@@ -47,6 +50,14 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     super.initState();
     _loadEventData();
     _setupRealtimeSubscription();
+  }
+
+  @override
+  void dispose() {
+    _scheduler.dispose();
+    _syncTimer?.cancel();
+    _subscription?.unsubscribe();
+    super.dispose();
   }
 
   void _setupRealtimeSubscription() {
@@ -109,19 +120,13 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _syncTimer?.cancel();
-    _subscription?.unsubscribe();
-    super.dispose();
-  }
-
   Future<void> _loadEventData({bool silent = false}) async {
     if (!silent) {
       setState(() => _isLoading = true);
     }
     try {
       final event = await _eventService.getEventById(widget.eventId);
+
       final staff = await _eventService.getEventStaff(widget.eventId);
 
       // Count guests (participations)
@@ -153,17 +158,25 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         // Menu might not exist yet
       }
 
-      // Fetch location from event_settings
+      // Fetch settings (location, start/end time)
       String? location;
+      DateTime? startAt;
+      DateTime? endAt;
       try {
         final settingsResult =
             await supabase
                 .from('event_settings')
-                .select('location')
+                .select('location, start_at, end_at')
                 .eq('event_id', widget.eventId)
                 .maybeSingle();
         if (settingsResult != null) {
           location = settingsResult['location'] as String?;
+          if (settingsResult['start_at'] != null) {
+            startAt = DateTime.parse(settingsResult['start_at']);
+          }
+          if (settingsResult['end_at'] != null) {
+            endAt = DateTime.parse(settingsResult['end_at']);
+          }
         }
       } catch (_) {}
 
@@ -184,9 +197,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       if (mounted) {
         setState(() {
           _event = event;
+          _isLoading = false;
           _staffCount = staff.length;
           _guestCount = guestCount;
-          _menuItemCount = menuItemCount;
           _menuItemCount = menuItemCount;
           _userRole = role;
           _currentUserStaff = currentUserStaff;
@@ -201,6 +214,16 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
             eventId: widget.eventId,
             updatedItems: _guestCount + _menuItemCount + _staffCount,
           );
+
+          // Schedule notifications
+          if (_event != null && startAt != null) {
+            _scheduler.schedule(
+              eventId: widget.eventId,
+              eventName: _event!.name,
+              start: startAt,
+              end: endAt,
+            );
+          }
         }
       }
     } catch (e) {
@@ -353,13 +376,15 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                       label: 'dashboard.event_settings'.tr(),
                       color: Colors.blue,
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => EventSettingsScreen(
-                                  eventId: widget.eventId,
-                                ),
+                        _handleNavigationWithReload(
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => EventSettingsScreen(
+                                    eventId: widget.eventId,
+                                  ),
+                            ),
                           ),
                         );
                       },
@@ -470,6 +495,14 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     );
   }
 
+  // Reload handler when returning from pages that might edit event
+  Future<void> _handleNavigationWithReload(
+    Future<dynamic> navigationFuture,
+  ) async {
+    await navigationFuture;
+    _loadEventData(silent: true);
+  }
+
   Widget _buildBottomNavItem(IconData icon, Color color, int index) {
     return IconButton(
       icon: Icon(icon, color: color),
@@ -482,14 +515,18 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           context.push('/event/${widget.eventId}/notifications');
         } else if (index == 2) {
           // Navigate to Menu Management
-          context.push('/event/${widget.eventId}/menu');
+          _handleNavigationWithReload(
+            context.push('/event/${widget.eventId}/menu'),
+          );
         } else if (index == 3) {
           // Navigate to Event Settings
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => EventSettingsScreen(eventId: widget.eventId),
+          _handleNavigationWithReload(
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => EventSettingsScreen(eventId: widget.eventId),
+              ),
             ),
           );
         }
@@ -727,13 +764,15 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                             ],
                         onSelected: (value) {
                           if (value == 'settings') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => EventSettingsScreen(
-                                      eventId: widget.eventId,
-                                    ),
+                            _handleNavigationWithReload(
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => EventSettingsScreen(
+                                        eventId: widget.eventId,
+                                      ),
+                                ),
                               ),
                             );
                           } else if (value == 'export') {
@@ -853,13 +892,15 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       elevation: 0,
       leading:
           isDesktop
-              ? null
+              ? IconButton(
+                icon: const Icon(Icons.exit_to_app),
+                tooltip: 'dashboard.exit_to_selection'.tr(),
+                onPressed: () => context.go('/event-selection'),
+              )
               : IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios,
-                  color: theme.colorScheme.onSurface,
-                ),
-                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.exit_to_app),
+                tooltip: 'dashboard.exit_to_selection'.tr(),
+                onPressed: () => context.go('/event-selection'),
               ),
       title: Column(
         children: [
@@ -887,10 +928,13 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
           AnimatedSettingsIcon(
             color: theme.colorScheme.secondary,
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SettingsScreen(eventId: widget.eventId),
+              _handleNavigationWithReload(
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => SettingsScreen(eventId: widget.eventId),
+                  ),
                 ),
               );
             },

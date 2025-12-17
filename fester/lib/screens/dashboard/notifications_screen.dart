@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,13 +20,33 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   final _notificationService = NotificationService();
   List<Map<String, dynamic>> _notifications = [];
   bool _isLoading = true;
+  StreamSubscription? _subscription;
 
   @override
   void initState() {
     super.initState();
     _loadNotifications();
+    _setupRealtimeListener();
     // Configure timeago for Italian
     timeago.setLocaleMessages('it', timeago.ItMessages());
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupRealtimeListener() {
+    _subscription = _notificationService.onNotificationReceived.listen((
+      notification,
+    ) {
+      if (notification['event_id'] == widget.eventId) {
+        setState(() {
+          _notifications.insert(0, notification);
+        });
+      }
+    });
   }
 
   Future<void> _loadNotifications() async {
@@ -107,7 +128,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const NotificationSettingsScreen(),
+                  builder:
+                      (context) =>
+                          NotificationSettingsScreen(eventId: widget.eventId),
                 ),
               );
             },

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:vibration/vibration.dart';
-import '../../services/SupabaseServicies/participation_service.dart';
-import '../../services/SupabaseServicies/models/participation.dart';
+import '../../services/supabase/participation_service.dart';
+import '../../services/supabase/models/participation.dart';
 import '../../theme/app_theme.dart';
 import '../profile/person_profile_screen.dart';
 
