@@ -1,6 +1,7 @@
 import 'package:fester/services/SupabaseServicies/supabase_auth.dart'
     show AuthService;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'register_step1_page.dart';
 import 'forgot_password_page.dart';
@@ -40,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.session != null && mounted) {
-        Navigator.of(context).pushReplacementNamed('/event-selection');
+        context.go('/event-selection');
       } else if (mounted) {
         throw Exception('Login fallito: Nessuna sessione ricevuta');
       }

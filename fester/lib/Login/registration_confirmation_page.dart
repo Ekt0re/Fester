@@ -1,5 +1,6 @@
 import 'package:fester/services/SupabaseServicies/supabase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'login_page.dart';
 
@@ -102,13 +103,7 @@ class _RegistrationConfirmationPageState
                         height: 50,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const LoginPage(),
-                              ),
-                              (route) => false,
-                            );
+                            context.go('/login');
                           },
                           child: Text('confirmation.login_button'.tr()),
                         ),

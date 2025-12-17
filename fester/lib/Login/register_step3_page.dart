@@ -104,12 +104,11 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
 
       if (mounted) {
         _logger.i('🔄 Navigating to confirmation page');
-        Navigator.pushAndRemoveUntil(
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => RegistrationConfirmationPage(email: widget.email),
           ),
-          (route) => false,
         );
       }
     } catch (e, stackTrace) {

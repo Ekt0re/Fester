@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/event_service.dart';
@@ -419,10 +420,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                       label: 'dashboard.advanced_stats'.tr(),
                       color: Colors.red,
                       onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/event/${widget.eventId}/statistics',
-                        );
+                        context.push('/event/${widget.eventId}/statistics');
                       },
                     ),
                   ],
@@ -478,16 +476,13 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
       onPressed: () {
         if (index == 0) {
           // Navigate to Global Search Screen
-          Navigator.pushNamed(context, '/event/${widget.eventId}/search');
+          context.push('/event/${widget.eventId}/search');
         } else if (index == 1) {
           // Navigate to Notifications Screen
-          Navigator.pushNamed(
-            context,
-            '/event/${widget.eventId}/notifications',
-          );
+          context.push('/event/${widget.eventId}/notifications');
         } else if (index == 2) {
           // Navigate to Menu Management
-          Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
+          context.push('/event/${widget.eventId}/menu');
         } else if (index == 3) {
           // Navigate to Event Settings
           Navigator.push(
@@ -517,16 +512,13 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
             onDestinationSelected: (int index) {
               if (index == 1) {
                 // Navigate to Global Search Screen
-                Navigator.pushNamed(context, '/event/${widget.eventId}/search');
+                context.push('/event/${widget.eventId}/search');
               } else if (index == 2) {
                 // Navigate to Notifications Screen
-                Navigator.pushNamed(
-                  context,
-                  '/event/${widget.eventId}/notifications',
-                );
+                context.push('/event/${widget.eventId}/notifications');
               } else if (index == 3) {
                 // Navigate to Menu Management Screen
-                Navigator.pushNamed(context, '/event/${widget.eventId}/menu');
+                context.push('/event/${widget.eventId}/menu');
               } else {
                 setState(() {
                   _selectedIndex = index;
@@ -766,10 +758,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                               ),
                             );
                           } else if (value == 'statistics') {
-                            Navigator.pushNamed(
-                              context,
-                              '/event/${widget.eventId}/statistics',
-                            );
+                            context.push('/event/${widget.eventId}/statistics');
                           } else if (value == 'people_counter') {
                             Navigator.push(
                               context,
@@ -1059,10 +1048,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     label: 'dashboard.guest_list'.tr(),
                     value: '$_guestCount',
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/event/${widget.eventId}/guests',
-                      );
+                      context.push('/event/${widget.eventId}/guests');
                     },
                   ),
                   _DashboardCard(
@@ -1071,10 +1057,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     label: 'dashboard.menu_management'.tr(),
                     value: '$_menuItemCount',
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/event/${widget.eventId}/menu',
-                      );
+                      context.push('/event/${widget.eventId}/menu');
                     },
                   ),
                   _DashboardCard(
@@ -1083,10 +1066,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     label: 'dashboard.manage_staff'.tr(),
                     value: '$_staffCount',
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/event/${widget.eventId}/staff',
-                      );
+                      context.push('/event/${widget.eventId}/staff');
                     },
                   ),
                   _DashboardCard(
@@ -1095,10 +1075,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     label: 'dashboard.view_stats'.tr(),
                     value: '',
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/event/${widget.eventId}/statistics',
-                      );
+                      context.push('/event/${widget.eventId}/statistics');
                     },
                   ),
                 ],
@@ -1124,10 +1101,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/event/${widget.eventId}/qr-scanner',
-                        );
+                        context.push('/event/${widget.eventId}/qr-scanner');
                       },
                       borderRadius: BorderRadius.circular(24),
                       child: Center(
