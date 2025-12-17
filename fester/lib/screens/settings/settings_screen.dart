@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -6,7 +7,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../models/app_settings.dart';
 import '../../services/settings_service.dart';
 import '../../services/SupabaseServicies/staff_user_service.dart';
+import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/models/staff_user.dart';
+import '../profile/staff_profile_screen.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/settings_tile.dart';
 import 'language_settings_screen.dart';
@@ -141,9 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (confirmed == true) {
       await Supabase.instance.client.auth.signOut();
       if (mounted) {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/login', (route) => false);
+        context.go('/login');
       }
     }
   }
@@ -359,18 +360,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
               String? eventId = widget.eventId;
 
               try {
+                if (eventId == null) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('settings.no_event'.tr())),
+                    );
+                  }
+                  return;
+                }
+
+                // Load staff data before navigating
+                final eventService = EventService();
+                final staffList = await eventService.getEventStaff(eventId);
+                final eventStaff = staffList.firstWhere(
+                  (s) => s.staffUserId == currentUserId,
+                  orElse: () => throw Exception('Staff member not found'),
+                );
+
                 if (mounted) {
-                  Navigator.pushNamed(
+                  Navigator.push(
                     context,
-                    '/staff-profile',
-                    arguments: {
-                      'eventId': eventId,
-                      'staffUserId': currentUserId,
-                    },
-                  );
-                } else if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('settings.no_event'.tr())),
+                    MaterialPageRoute(
+                      builder: (context) => StaffProfileScreen(
+                        eventStaff: eventStaff,
+                        eventId: eventId,
+                      ),
+                    ),
                   );
                 }
               } catch (e) {
@@ -412,7 +427,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: 'settings.manage_event_settings'.tr(),
           onTap: () {
             if (widget.eventId != null) {
-              Navigator.pushNamed(context, '/event/${widget.eventId}/settings');
+              context.push('/event/${widget.eventId}/settings');
             }
           },
         ),

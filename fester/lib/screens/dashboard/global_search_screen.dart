@@ -9,6 +9,7 @@ import '../../services/SupabaseServicies/participation_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 import '../../theme/app_theme.dart';
 import '../profile/person_profile_screen.dart';
+import '../profile/staff_profile_screen.dart';
 import 'widgets/guest_card.dart';
 import '../profile/widgets/transaction_creation_sheet.dart';
 
@@ -199,13 +200,15 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
 
   void _openProfile(SearchResult result) {
     if (result.type == SearchResultType.staff) {
-      Navigator.pushNamed(
+      final eventStaff = result.originalData as EventStaff;
+      Navigator.push(
         context,
-        '/staff-profile',
-        arguments: {
-          'eventId': widget.eventId,
-          'staffUserId': (result.originalData as EventStaff).staffUserId,
-        },
+        MaterialPageRoute(
+          builder: (context) => StaffProfileScreen(
+            eventStaff: eventStaff,
+            eventId: widget.eventId,
+          ),
+        ),
       );
     } else {
       final participation = result.originalData as Map<String, dynamic>;

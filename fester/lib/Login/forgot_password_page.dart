@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../services/SupabaseServicies/supabase_auth.dart';
 import 'login_page.dart';
@@ -233,11 +234,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           height: 50,
           child: ElevatedButton(
             onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-                (route) => false,
-              );
+              context.go('/login');
             },
             child: Text('forgot_password.back_to_login'.tr()),
           ),

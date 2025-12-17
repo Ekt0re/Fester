@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/SupabaseServicies/event_service.dart';
@@ -188,9 +189,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
 
         if (mounted) {
           // Navigate back to event selection and clear stack
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil('/event-selection', (route) => false);
+          context.go('/event-selection');
         }
       } catch (e) {
         if (mounted) {

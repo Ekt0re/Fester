@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../services/SupabaseServicies/event_service.dart';
 import '../services/SupabaseServicies/staff_user_service.dart';
 import '../services/SupabaseServicies/models/event.dart';
@@ -251,10 +252,7 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                             null) {
                                           return; // Prevent navigation for archived events
                                         }
-                                        Navigator.pushNamed(
-                                          context,
-                                          '/event/${eventDetails.event.id}',
-                                        );
+                                        context.push('/event/${eventDetails.event.id}');
                                       },
                                       onRestore:
                                           eventDetails.event.deletedAt != null

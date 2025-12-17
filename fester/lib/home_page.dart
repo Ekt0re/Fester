@@ -1,7 +1,7 @@
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'Login/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
     final queryParams = Uri.base.queryParameters;
     if (UniversalPlatform.isWeb && queryParams['type'] == 'recovery') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacementNamed('/set-new-password');
+        context.go('/set-new-password');
       });
       return;
     }
@@ -36,9 +36,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await _supabase.auth.signOut();
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-        );
+        context.go('/login');
       }
     } catch (e) {
       if (mounted) {
@@ -54,9 +52,7 @@ class _HomePageState extends State<HomePage> {
     if (_user == null) {
       // If user is not logged in, redirect to login page
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-        );
+        context.go('/login');
       });
       return const Scaffold(
         body: Center(

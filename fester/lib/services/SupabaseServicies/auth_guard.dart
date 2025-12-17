@@ -1,5 +1,6 @@
 // lib/utils/auth_guard.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 
@@ -28,7 +29,7 @@ class AuthMiddleware {
     final user = Supabase.instance.client.auth.currentUser;
 
     if (user == null) {
-      Navigator.of(context).pushReplacementNamed('/login');
+      context.go('/login');
       return false;
     }
 
@@ -39,7 +40,7 @@ class AuthMiddleware {
     final user = Supabase.instance.client.auth.currentUser;
 
     if (user == null) {
-      Navigator.of(context).pushReplacementNamed('/login');
+      context.go('/login');
       return false;
     }
 

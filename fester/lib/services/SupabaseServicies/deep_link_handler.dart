@@ -1,5 +1,6 @@
 // lib/utils/deep_link_handler.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 import 'package:logger/logger.dart';
@@ -101,7 +102,7 @@ class DeepLinkHandler {
 
     // Navigate to event selection screen
     if (!_isContextMounted(context)) return;
-    Navigator.of(context).pushReplacementNamed('/event-selection');
+    context.go('/event-selection');
 
     _showSuccessSnackBar(context, 'Successfully signed in!');
   }
@@ -110,7 +111,7 @@ class DeepLinkHandler {
   void _handleSignedOut(BuildContext context) {
     _logger.i('User signed out');
     if (!_isContextMounted(context)) return;
-    Navigator.of(context).pushReplacementNamed('/login');
+    context.go('/login');
   }
 
   /// Handle password recovery flow
@@ -124,7 +125,7 @@ class DeepLinkHandler {
     }
     // Evita signOut: solo redirect
     if (!_isContextMounted(context)) return;
-    Navigator.of(context).pushReplacementNamed('/set-new-password');
+    context.go('/set-new-password');
     _showInfoSnackBar(context, 'Imposta la nuova password');
   }
 
@@ -158,7 +159,7 @@ class DeepLinkHandler {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!_isContextMounted(context)) return;
         _showSuccessSnackBar(context, 'Email verified successfully!');
-        Navigator.of(context).pushReplacementNamed('/event-selection');
+        context.go('/event-selection');
       });
     } catch (e) {
       _logger.e('Auth callback error: $e');
@@ -178,7 +179,7 @@ class DeepLinkHandler {
       // Solo redirect (NO signOut)
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!_isContextMounted(context)) return;
-        Navigator.of(context).pushReplacementNamed('/set-new-password');
+        context.go('/set-new-password');
         _showInfoSnackBar(context, 'Imposta la nuova password');
       });
     } catch (e) {
@@ -210,7 +211,7 @@ class DeepLinkHandler {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!_isContextMounted(context)) return;
         _showSuccessSnackBar(context, 'Email verified! You can now sign in.');
-        Navigator.of(context).pushReplacementNamed('/login');
+        context.go('/login');
       });
     } catch (e) {
       _logger.e('Email verification error: $e');

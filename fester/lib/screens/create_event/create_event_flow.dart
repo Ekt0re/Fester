@@ -1,13 +1,13 @@
 // lib/screens/create_event/create_event_flow.dart
 import 'package:fester/screens/create_event/staff_management_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../services/SupabaseServicies/event_service.dart';
 import '../../services/SupabaseServicies/models/event_staff.dart';
 import 'create_menu_screen.dart';
-import '../event_selection_screen.dart';
 import 'location_selection_screen.dart';
 import 'package:latlong2/latlong.dart';
 import '../../utils/location_helper.dart';
@@ -240,15 +240,62 @@ class _CreateEventFlowState extends State<CreateEventFlow> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('create_event.event_created_success'.tr())),
-        );
-        // Torna alla schermata di selezione eventi e ricarica
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const EventSelectionScreen()),
-          (route) => false,
-        );
+        // Genera il link di invito staff completo
+        final supabase = Supabase.instance.client;
+        final userId = supabase.auth.currentUser?.id;
+        final inviteLink = userId != null
+            ? 'https://fester.netlify.app/invite/staff/${event.id}/$userId'
+            : null;
+
+        // Mostra il link di invito in un dialog prima di reindirizzare
+        if (inviteLink != null) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('create_event.event_created_success'.tr()),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('create_event.staff_invite_link'.tr()),
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    inviteLink,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: inviteLink));
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('create_event.link_copied'.tr())),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.copy, size: 18),
+                    label: Text('create_event.copy_link'.tr()),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.go('/event-selection');
+                  },
+                  child: Text('create_event.close'.tr()),
+                ),
+              ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('create_event.event_created_success'.tr())),
+          );
+          // Torna alla schermata di selezione eventi e ricarica
+          context.go('/event-selection');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -616,8 +663,17 @@ class _Step3StaffState extends State<_Step3Staff> {
         throw Exception('create_event.user_not_authenticated'.tr());
       }
 
+      // Se l'evento non è ancora stato creato, non generare il link
+      if (widget.eventId.isEmpty) {
+        setState(() {
+          _inviteLink = null; // Link non disponibile finché l'evento non è creato
+          _isLoading = false;
+        });
+        return;
+      }
+
       setState(() {
-        _inviteLink = 'http://localhost:3000/JoinEvent/$userId';
+        _inviteLink = 'https://fester.netlify.app/invite/staff/${widget.eventId}/$userId';
         _isLoading = false;
       });
     } catch (e) {
@@ -707,8 +763,13 @@ class _Step3StaffState extends State<_Step3Staff> {
                           ),
                           child: SelectableText(
                             _inviteLink ??
-                                'create_event.no_link_available'.tr(),
-                            style: theme.textTheme.bodyMedium,
+                                'create_event.link_available_after_creation'.tr(),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontStyle: _inviteLink == null ? FontStyle.italic : null,
+                              color: _inviteLink == null 
+                                  ? theme.colorScheme.onSurface.withOpacity(0.6)
+                                  : null,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
