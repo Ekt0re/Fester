@@ -797,7 +797,13 @@
         "view_transactions": "Vedi Transazioni",
         "reports_area": "Area Reportistica",
         "add_report": "Aggiungi Segnalazione",
-        "no_reports": "Nessuna segnalazione presente"
+        "no_reports": "Nessuna segnalazione presente",
+        "additional_info": "INFORMAZIONI AGGIUNTIVE",
+        "fiscal_code": "CODICE FISCALE",
+        "group": "Gruppo:",
+        "address": "Indirizzo:",
+        "invited_by": "Invitato da:",
+        "subgroup": "Sottogruppo:"
     },
     "roles": {
         "admin": "Admin",

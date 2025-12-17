@@ -6035,6 +6035,7 @@ SUCH DAMAGE.
 cross_file
 file_selector_platform_interface
 flutter_plugin_android_lifecycle
+go_router
 google_fonts
 google_maps_flutter
 google_maps_flutter_android
@@ -8923,7 +8924,6 @@ file_selector_linux
 file_selector_macos
 file_selector_windows
 flutter_lints
-go_router
 google_maps_flutter_ios
 google_maps_flutter_platform_interface
 image_picker_for_web
