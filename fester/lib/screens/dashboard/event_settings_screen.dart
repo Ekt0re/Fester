@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../services/SupabaseServicies/event_service.dart';
+import '../../services/supabase/event_service.dart';
 import '../create_event/location_selection_screen.dart';
 import 'package:latlong2/latlong.dart';
 import '../../utils/location_helper.dart';

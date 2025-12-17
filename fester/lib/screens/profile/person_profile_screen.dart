@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../theme/app_theme.dart';
-import '../../services/SupabaseServicies/person_service.dart';
-import '../../services/SupabaseServicies/event_service.dart';
-import '../../services/SupabaseServicies/participation_service.dart';
+import '../../services/supabase/person_service.dart';
+import '../../services/supabase/event_service.dart';
+import '../../services/supabase/participation_service.dart';
 import 'widgets/consumption_graph.dart';
 import 'widgets/transaction_creation_sheet.dart';
 import 'widgets/transaction_list_sheet.dart';

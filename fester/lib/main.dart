@@ -1,19 +1,33 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart'; // Add this
 import 'package:url_strategy/url_strategy.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import 'config/localization_config.dart';
 import 'providers/theme_provider.dart';
-import 'services/SupabaseServicies/supabase_config.dart';
+import 'services/supabase/supabase_config.dart';
 import 'router.dart';
+import 'firebase_options.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy(); // Rimuove il # dagli URL
   await dotenv.load(fileName: ".env");
+
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint("Firebase initialization failed: $e");
+  }
+
   await SupabaseConfig.initialize();
+  await NotificationService().init();
   await EasyLocalization.ensureInitialized();
 
   runApp(

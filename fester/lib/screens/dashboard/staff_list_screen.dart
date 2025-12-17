@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../services/SupabaseServicies/event_service.dart';
-import '../../services/SupabaseServicies/models/event_staff.dart';
+import '../../services/supabase/event_service.dart';
+import '../../services/supabase/models/event_staff.dart';
 import 'widgets/staff_card.dart';
 import '../profile/staff_profile_screen.dart';
 

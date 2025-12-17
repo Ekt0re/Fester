@@ -1,4 +1,4 @@
-import 'package:fester/services/SupabaseServicies/models/event_staff.dart';
+import 'package:fester/services/supabase/models/event_staff.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 

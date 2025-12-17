@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/notification_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
-  const NotificationSettingsScreen({super.key});
+  final String? eventId;
+
+  const NotificationSettingsScreen({super.key, this.eventId});
 
   @override
-  State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
+  State<NotificationSettingsScreen> createState() =>
+      _NotificationSettingsScreenState();
 }
 
-class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
+class _NotificationSettingsScreenState
+    extends State<NotificationSettingsScreen> {
+  // ... (existing state variables)
   bool _warningNotifications = true;
   bool _drinkLimitNotifications = true;
   bool _eventStartNotifications = true;
@@ -24,14 +30,24 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     _loadSettings();
   }
 
+  // ... (existing _loadSettings and _saveSetting methods)
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _warningNotifications = prefs.getBool('notification_${NotificationService.typeWarning}') ?? true;
-      _drinkLimitNotifications = prefs.getBool('notification_${NotificationService.typeDrinkLimit}') ?? true;
-      _eventStartNotifications = prefs.getBool('notification_${NotificationService.typeEventStart}') ?? true;
-      _eventEndNotifications = prefs.getBool('notification_${NotificationService.typeEventEnd}') ?? true;
-      _syncNotifications = prefs.getBool('notification_${NotificationService.typeSync}') ?? true;
+      _warningNotifications =
+          prefs.getBool('notification_${NotificationService.typeWarning}') ??
+          true;
+      _drinkLimitNotifications =
+          prefs.getBool('notification_${NotificationService.typeDrinkLimit}') ??
+          true;
+      _eventStartNotifications =
+          prefs.getBool('notification_${NotificationService.typeEventStart}') ??
+          true;
+      _eventEndNotifications =
+          prefs.getBool('notification_${NotificationService.typeEventEnd}') ??
+          true;
+      _syncNotifications =
+          prefs.getBool('notification_${NotificationService.typeSync}') ?? true;
     });
   }
 
@@ -46,12 +62,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text('notification_settings.title'.tr()),
-      ),
+      appBar: AppBar(title: Text('notification_settings.title'.tr())),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // ... (existing UI code until button)
           Text(
             'notification_settings.subtitle'.tr(),
             style: theme.textTheme.bodyLarge?.copyWith(
@@ -60,7 +75,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
           const SizedBox(height: 24),
 
-          _buildSectionTitle(theme, 'notification_settings.section_guests'.tr()),
+          _buildSectionTitle(
+            theme,
+            'notification_settings.section_guests'.tr(),
+          ),
           _buildNotificationTile(
             theme: theme,
             icon: Icons.warning_amber,
@@ -74,7 +92,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             },
           ),
           const SizedBox(height: 8),
-          
+
           _buildNotificationTile(
             theme: theme,
             icon: Icons.local_bar,
@@ -103,7 +121,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             },
           ),
           const SizedBox(height: 8),
-          
+
           _buildNotificationTile(
             theme: theme,
             icon: Icons.stop_circle_outlined,
@@ -118,7 +136,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
           const SizedBox(height: 24),
 
-          _buildSectionTitle(theme, 'notification_settings.section_system'.tr()),
+          _buildSectionTitle(
+            theme,
+            'notification_settings.section_system'.tr(),
+          ),
           _buildNotificationTile(
             theme: theme,
             icon: Icons.sync,
@@ -139,10 +160,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: theme.colorScheme.primary,
-                  ),
+                  Icon(Icons.info_outline, color: theme.colorScheme.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -153,6 +171,84 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final userId = Supabase.instance.client.auth.currentUser?.id;
+                if (userId != null) {
+                  try {
+                    String? targetEventId = widget.eventId;
+
+                    // If no eventId provided, fetch the most recent one
+                    if (targetEventId == null) {
+                      final response =
+                          await Supabase.instance.client
+                              .from('event_staff')
+                              .select('event_id')
+                              .eq('staff_user_id', userId)
+                              .order('created_at', ascending: false)
+                              .limit(1)
+                              .maybeSingle();
+
+                      if (response != null) {
+                        targetEventId = response['event_id'] as String;
+                      }
+                    }
+
+                    if (targetEventId == null) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Nessun evento trovato per inviare la notifica di test.',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+
+                    await NotificationService().saveNotification(
+                      eventId: targetEventId,
+                      staffUserId: userId,
+                      type: NotificationService.typeWarning,
+                      title: 'Test Notifica',
+                      message:
+                          'Questa è una notifica di prova inviata dal dispositivo.',
+                      data: {'test': true},
+                    );
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Notifica di prova inviata!'),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Errore: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+              icon: const Icon(Icons.notifications_active),
+              label: const Text('Invia Notifica di Prova'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
           ),

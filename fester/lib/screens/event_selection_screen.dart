@@ -1,11 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../services/SupabaseServicies/event_service.dart';
-import '../services/SupabaseServicies/staff_user_service.dart';
-import '../services/SupabaseServicies/models/event.dart';
-import '../services/SupabaseServicies/models/event_settings.dart';
-import '../services/SupabaseServicies/models/event_staff.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/supabase/event_service.dart';
+import '../services/supabase/staff_user_service.dart';
+import '../services/supabase/models/event.dart';
+import '../services/supabase/models/event_settings.dart';
+import '../services/supabase/models/event_staff.dart';
 import '../widgets/animated_settings_icon.dart';
 import 'create_event/create_event_flow.dart';
 import 'settings/settings_screen.dart';
@@ -247,12 +248,29 @@ class _EventSelectionScreenState extends State<EventSelectionScreen> {
                                       statusColor: _getStatusColor(
                                         _getEventStatus(eventDetails),
                                       ),
-                                      onTap: () {
+                                      onTap: () async {
                                         if (eventDetails.event.deletedAt !=
                                             null) {
                                           return; // Prevent navigation for archived events
                                         }
-                                        context.push('/event/${eventDetails.event.id}');
+
+                                        // Save as last visited event
+                                        try {
+                                          final prefs =
+                                              await SharedPreferences.getInstance();
+                                          await prefs.setString(
+                                            'last_event_id',
+                                            eventDetails.event.id,
+                                          );
+                                        } catch (_) {
+                                          // Ignore errors saving prefs
+                                        }
+
+                                        if (context.mounted) {
+                                          context.push(
+                                            '/event/${eventDetails.event.id}',
+                                          );
+                                        }
                                       },
                                       onRestore:
                                           eventDetails.event.deletedAt != null

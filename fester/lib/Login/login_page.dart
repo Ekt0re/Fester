@@ -1,4 +1,4 @@
-import 'package:fester/services/SupabaseServicies/supabase_auth.dart'
+import 'package:fester/services/supabase/supabase_auth.dart'
     show AuthService;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

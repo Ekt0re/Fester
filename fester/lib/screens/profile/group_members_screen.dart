@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/SupabaseServicies/person_service.dart';
+import '../../services/supabase/person_service.dart';
 import 'person_profile_screen.dart';
 
 class GroupMembersScreen extends StatefulWidget {

@@ -1,8 +1,7 @@
-import 'package:fester/services/SupabaseServicies/supabase_auth.dart';
+import 'package:fester/services/supabase/supabase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'login_page.dart';
 
 class RegistrationConfirmationPage extends StatefulWidget {
   final String email;

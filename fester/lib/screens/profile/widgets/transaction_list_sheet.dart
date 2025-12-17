@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../services/SupabaseServicies/transaction_service.dart';
+import '../../../services/supabase/transaction_service.dart';
 
 class TransactionListSheet extends StatefulWidget {
   final List<Map<String, dynamic>> transactions;

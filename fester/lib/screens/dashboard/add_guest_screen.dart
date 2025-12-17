@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../profile/widgets/transaction_list_sheet.dart';
-import '../../services/SupabaseServicies/person_service.dart';
-import '../../services/SupabaseServicies/participation_service.dart';
-import '../../services/SupabaseServicies/gruppo_service.dart';
-import '../../services/SupabaseServicies/sottogruppo_service.dart';
-import '../../services/SupabaseServicies/models/gruppo.dart';
-import '../../services/SupabaseServicies/models/sottogruppo.dart';
+import '../../services/supabase/person_service.dart';
+import '../../services/supabase/participation_service.dart';
+import '../../services/supabase/gruppo_service.dart';
+import '../../services/supabase/sottogruppo_service.dart';
+import '../../services/supabase/models/gruppo.dart';
+import '../../services/supabase/models/sottogruppo.dart';
 import '../../theme/app_theme.dart';
 
 class AddGuestScreen extends StatefulWidget {

@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
+import '../../services/overpass_service.dart';
 
 class LocationSelectionScreen extends StatefulWidget {
   final LatLng? initialLocation;
@@ -26,6 +27,12 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
   bool _isSearching = false;
   String _selectedName = '';
   bool _isLoadingLocation = true;
+  final OverpassService _overpassService = OverpassService();
+
+  // Overpass markers
+  // using a map to track markers by ID might be better but list is fine for now
+  List<Marker> _poiMarkers = [];
+  String? _activeCategory; // To highlight the active chip
 
   @override
   void initState() {
@@ -195,6 +202,129 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     }
   }
 
+  /// Searches for specific categories (amenities) using Overpass API
+  Future<void> _searchNearbyCategory(String category) async {
+    setState(() {
+      _isLoadingLocation = true; // Show loading indicator
+      _activeCategory = category;
+      _searchResults = []; // Clear text results
+      _poiMarkers = []; // Clear existing map markers
+    });
+
+    try {
+      final bounds = _mapController.camera.visibleBounds;
+
+      final results = await _overpassService.searchInBounds(
+        south: bounds.south,
+        west: bounds.west,
+        north: bounds.north,
+        east: bounds.east,
+        category: category,
+      );
+
+      if (mounted) {
+        setState(() {
+          _poiMarkers =
+              results.map((poi) {
+                final poiLat = poi['lat'];
+                final poiLon = poi['lon'];
+                final poiName = poi['name'];
+
+                return Marker(
+                  point: LatLng(poiLat, poiLon),
+                  width: 40,
+                  height: 40,
+                  child: GestureDetector(
+                    onTap: () {
+                      _selectSearchResult({
+                        'lat': poiLat.toString(),
+                        'lon': poiLon.toString(),
+                        'display_name': poiName,
+                        'name': poiName,
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: Colors.black26, blurRadius: 4),
+                        ],
+                        border: Border.all(
+                          color: _getCategoryColor(category),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(category),
+                        color: _getCategoryColor(category),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList();
+        });
+
+        if (results.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('create_event.no_results_found'.tr())),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Overpass Error: $e');
+      if (mounted) {
+        String errorMessage = 'Error searching area';
+        if (e.toString().contains('Area too large')) {
+          errorMessage = 'Area too large. Please zoom in to find places.';
+        } else {
+          errorMessage = 'Error: $e';
+        }
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoadingLocation = false);
+    }
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'bar':
+        return Colors.orange;
+      case 'nightclub':
+        return Colors.purple;
+      case 'restaurant':
+        return Colors.red;
+      case 'pub':
+        return Colors.amber.shade900;
+      case 'parking':
+        return Colors.blue;
+      default:
+        return Colors.teal;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'bar':
+        return Icons.local_bar;
+      case 'nightclub':
+        return Icons.music_note;
+      case 'restaurant':
+        return Icons.restaurant;
+      case 'pub':
+        return Icons.sports_bar;
+      case 'parking':
+        return Icons.local_parking;
+      default:
+        return Icons.place;
+    }
+  }
+
   void _selectSearchResult(dynamic result) {
     final lat = double.parse(result['lat']);
     final lon = double.parse(result['lon']);
@@ -245,6 +375,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
               ),
               MarkerLayer(
                 markers: [
+                  // Selected location marker
                   Marker(
                     point: _selectedLocation,
                     width: 80,
@@ -255,6 +386,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                       size: 40,
                     ),
                   ),
+                  // POI Markers
+                  ..._poiMarkers,
                 ],
               ),
             ],
@@ -334,6 +467,11 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
                           'create_event.search_pub'.tr(),
                           'pub',
                           Icons.sports_bar,
+                        ),
+                        _buildQuickSearchChip(
+                          'Parcheggi',
+                          'parking',
+                          Icons.local_parking,
                         ),
                       ],
                     ),
@@ -471,15 +609,30 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen> {
     );
   }
 
-  Widget _buildQuickSearchChip(String label, String query, IconData icon) {
+  Widget _buildQuickSearchChip(String label, String category, IconData icon) {
+    final isSelected = _activeCategory == category;
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: ActionChip(
-        avatar: Icon(icon, size: 16),
+      child: FilterChip(
+        avatar: isSelected ? null : Icon(icon, size: 16),
         label: Text(label),
-        onPressed: () {
-          _searchController.text = query;
-          _searchLocations(query);
+        selected: isSelected,
+        showCheckmark: false,
+        selectedColor: theme.colorScheme.primaryContainer,
+        checkmarkColor: theme.colorScheme.primary,
+        onSelected: (bool selected) {
+          if (selected) {
+            FocusManager.instance.primaryFocus
+                ?.unfocus(); // Close keyboard if open
+            _searchNearbyCategory(category);
+          } else {
+            setState(() {
+              _activeCategory = null;
+              _poiMarkers = [];
+            });
+          }
         },
       ),
     );
