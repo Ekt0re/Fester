@@ -6,12 +6,14 @@ import '../../../services/supabase/transaction_service.dart';
 class TransactionListSheet extends StatefulWidget {
   final List<Map<String, dynamic>> transactions;
   final bool canEdit;
+  final bool canDelete;
   final VoidCallback? onTransactionUpdated;
 
   const TransactionListSheet({
     super.key,
     required this.transactions,
     this.canEdit = false,
+    this.canDelete = false,
     this.onTransactionUpdated,
   });
 
@@ -351,13 +353,16 @@ class _TransactionListSheetState extends State<TransactionListSheet> {
                                             'transaction_list.edit_title'.tr(),
                                           ),
                                         ),
-                                        PopupMenuItem(
-                                          value: 'delete',
-                                          child: Text(
-                                            'transaction_list.delete'.tr(),
-                                            style: TextStyle(color: Colors.red),
+                                        if (widget.canDelete)
+                                          PopupMenuItem(
+                                            value: 'delete',
+                                            child: Text(
+                                              'transaction_list.delete'.tr(),
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                              ),
+                                            ),
                                           ),
-                                        ),
                                       ],
                                 ),
                               ],

@@ -18,6 +18,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../utils/qr_code_generator.dart';
 import 'invited_guests_screen.dart';
 import 'group_members_screen.dart';
+import '../../services/permission_service.dart';
 
 class PersonProfileScreen extends StatefulWidget {
   final String personId;
@@ -223,6 +224,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
               participationId: _profileData!['id'],
               initialTransactionType: type,
               initialIsAlcoholic: isAlcoholic,
+              canEdit: PermissionService.canEdit(widget.currentUserRole),
               onSuccess: () {
                 _loadData(); // Refresh data
               },
@@ -232,9 +234,8 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
   }
 
   void _showTransactionList() {
-    final canEdit =
-        widget.currentUserRole?.toLowerCase() == 'staff3' ||
-        widget.currentUserRole?.toLowerCase() == 'admin';
+    final canEdit = PermissionService.canEdit(widget.currentUserRole);
+    final canDelete = PermissionService.canDelete(widget.currentUserRole);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -243,6 +244,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
           (context) => TransactionListSheet(
             transactions: _transactions,
             canEdit: canEdit,
+            canDelete: canDelete,
             onTransactionUpdated: _loadData,
           ),
     );
@@ -333,6 +335,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
 
   Future<void> _updateStatus(int newStatusId) async {
     if (_profileData == null) return;
+    if (!PermissionService.canEdit(widget.currentUserRole)) return;
 
     try {
       await _participationService.updateParticipation(
@@ -420,7 +423,9 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 icon: AppTheme.transactionIcons['drink']!,
                 color: Colors.blueGrey,
                 onLongPress:
-                    () => _showTransactionMenu('drink', isAlcoholic: true),
+                    PermissionService.canEdit(widget.currentUserRole)
+                        ? () => _showTransactionMenu('drink', isAlcoholic: true)
+                        : null,
               ),
               ConsumptionGraph(
                 label: 'person_profile.non_alcohol_label'.tr(),
@@ -429,7 +434,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 icon: Icons.free_breakfast,
                 color: Colors.blueGrey,
                 onLongPress:
-                    () => _showTransactionMenu('drink', isAlcoholic: false),
+                    PermissionService.canEdit(widget.currentUserRole)
+                        ? () =>
+                            _showTransactionMenu('drink', isAlcoholic: false)
+                        : null,
               ),
               ConsumptionGraph(
                 label: 'person_profile.food_label'.tr(),
@@ -437,7 +445,10 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                 maxCount: null,
                 icon: AppTheme.transactionIcons['food']!,
                 color: Colors.blueGrey,
-                onLongPress: () => _showTransactionMenu('food'),
+                onLongPress:
+                    PermissionService.canEdit(widget.currentUserRole)
+                        ? () => _showTransactionMenu('food')
+                        : null,
               ),
             ],
           ),
@@ -843,11 +854,14 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                         ),
                       );
                     }).toList(),
-                onChanged: (val) {
-                  if (val != null && val != statusId) {
-                    _updateStatus(val);
-                  }
-                },
+                onChanged:
+                    PermissionService.canEdit(widget.currentUserRole)
+                        ? (val) {
+                          if (val != null && val != statusId) {
+                            _updateStatus(val);
+                          }
+                        }
+                        : null,
               ),
             ),
           ),
@@ -1050,8 +1064,8 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
       }
     }
 
-    final userRole = widget.currentUserRole?.toLowerCase();
-    final canEdit = userRole == 'staff3' || userRole == 'admin';
+    final userRole = widget.currentUserRole;
+    final canEdit = PermissionService.canEdit(userRole);
     final hasContact = email != null || phone != null;
 
     final reports =

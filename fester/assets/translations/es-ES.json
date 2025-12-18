@@ -185,17 +185,17 @@
         "scan_qr": "Escanear QR",
         "scan_mobile_only": "Usa la app móvil para escanear los códigos QR de los invitados",
         "nav": {
-            "home": "Inicio",
-            "search": "Buscar",
-            "notifications": "Notif.",
-            "menu": "Menú"
+            "home": "Home",
+            "search": "Search",
+            "notifications": "Notifications",
+            "menu": "Menu"
         },
         "settings": "Ajustes",
         "subtitle": "GESTIÓN DE EVENTOS",
-        "manage_event": "Gestionar Evento",
+        "manage_event": "Manage Event",
         "event_settings": "Ajustes del Evento",
         "export_data": "Exportar Datos",
-        "advanced_stats": "Estadísticas Avanzadas",
+        "advanced_stats": "Advanced Stats",
         "desktop_qr_hint": "Usa la app móvil para escanear los códigos QR",
         "organizer_default": "Organizador",
         "load_error": "Error cargando datos: ",
@@ -203,7 +203,11 @@
             "now": "Ahora",
             "minutes_ago": " hace min"
         },
-        "import_guests": "Importar Invitados"
+        "import_guests": "Importar Invitados",
+        "quick_menu": "Quick Menu",
+        "people_counter": "People Counter",
+        "event": "Event",
+        "no_description": "No description"
     },
     "event_settings": {
         "title": "Ajustes del Evento",
@@ -815,7 +819,11 @@
         "error": "Error",
         "error_update": "Error de actualización",
         "confirm": "Confirmar",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "ok": "OK",
+        "app_title": "FESTER 3.0",
+        "error_prefix": "Error: ",
+        "organize_party": "ORGANIZE YOUR PARTY!"
     },
     "roles": {
         "admin": "Admin",
@@ -834,5 +842,26 @@
         "left": "Ha dejado el evento",
         "cancelled": "Cancelado",
         "banned": "Baneado"
+    },
+    "people_counter": {
+        "title": "People Counter",
+        "no_areas": "No areas created",
+        "counters_tab": "Counters",
+        "stats_tab": "Statistics",
+        "success_move": "Person moved successfully",
+        "success_remove": "Person removed from area",
+        "remove_error": "Error during removal: ",
+        "add_area_title": "New Area",
+        "area_name_label": "Area Name (e.g. Ground Floor)",
+        "area_name_hint": "Enter name",
+        "create_button": "Create",
+        "delete_confirm_title": "Delete {}?",
+        "delete_confirm_content": "This action cannot be undone. All data related to this area will be lost.",
+        "delete_button": "Delete",
+        "total_participants": "Total Participants",
+        "current_distribution": "Current Distribution",
+        "no_current_data": "No current data",
+        "history_over_time": "History Over Time",
+        "no_history_available": "No history available"
     }
 }

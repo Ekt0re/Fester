@@ -6,8 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'logger_service.dart';
 
 class ExportService {
+  static const String _tag = 'ExportService';
   final SupabaseClient _supabase = Supabase.instance.client;
 
   Future<XFile> exportData({
@@ -103,10 +105,8 @@ class ExportService {
         name: '$fileName.xlsx',
       );
     } else {
-      // PDF fallback placeholder
-      final pdf = pw.Document();
-      // ... pdf generation logic ...
-      final bytes = await pdf.save();
+      // PDF generation
+      final bytes = await _generatePdf(data, eventName);
       return XFile.fromData(
         bytes,
         mimeType: 'application/pdf',
@@ -141,7 +141,9 @@ class ExportService {
       if (includeParticipants || includeGroups) {
         final participantsData = await _supabase
             .from('participation')
-            .select('*, person:person!participation_person_id_fkey(*)')
+            .select(
+              '*, person:person!participation_person_id_fkey(*), participation_status(*)',
+            )
             .eq('event_id', eventId);
         result['participants'] = participantsData;
       }
@@ -149,7 +151,9 @@ class ExportService {
       if (includeTransactions) {
         final transactionsData = await _supabase
             .from('transaction')
-            .select('*, participation!inner(event_id), staff_user(*)')
+            .select(
+              '*, participation!inner(event_id), staff_user(*), transaction_type:type(*)',
+            )
             .eq('participation.event_id', eventId);
         result['transactions'] = transactionsData;
       }
@@ -184,11 +188,180 @@ class ExportService {
         result['menu'] = menuData;
       }
     } catch (e) {
-      debugPrint('Error fetching export data: $e');
+      LoggerService.error('Error fetching export data', tag: _tag, error: e);
       rethrow;
     }
 
     return result;
+  }
+
+  /// Generate PDF with all data sections
+  Future<Uint8List> _generatePdf(
+    Map<String, dynamic> data,
+    String eventName,
+  ) async {
+    final pdf = pw.Document();
+
+    // Title Page
+    pdf.addPage(
+      pw.Page(
+        build:
+            (pw.Context context) => pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Header(level: 0, text: 'Report: $eventName'),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'Generato il: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
+                ),
+                pw.Divider(),
+              ],
+            ),
+      ),
+    );
+
+    // Event Info Page
+    if (data.containsKey('event')) {
+      final e = data['event'];
+      final s = e['event_settings'] ?? {};
+      pdf.addPage(
+        pw.Page(
+          build:
+              (pw.Context context) => pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Header(level: 1, text: 'Informazioni Evento'),
+                  pw.Text('Nome: ${e['name'] ?? 'N/A'}'),
+                  pw.Text('Descrizione: ${e['description'] ?? 'N/A'}'),
+                  pw.Text('Luogo: ${s['location'] ?? 'N/A'}'),
+                  pw.Text(
+                    'Data inizio: ${s['start_at'] ?? e['created_at'] ?? 'N/A'}',
+                  ),
+                  pw.Text('Data fine: ${s['end_at'] ?? 'N/A'}'),
+                ],
+              ),
+        ),
+      );
+    }
+
+    // Participants Page
+    if (data.containsKey('participants')) {
+      final participants = data['participants'] as List;
+      pdf.addPage(
+        pw.MultiPage(
+          build:
+              (pw.Context context) => [
+                pw.Header(
+                  level: 1,
+                  text: 'Partecipanti (${participants.length})',
+                ),
+                pw.TableHelper.fromTextArray(
+                  headers: ['Nome', 'Cognome', 'Email', 'Stato'],
+                  data:
+                      participants.map((p) {
+                        final person = p['person'] ?? {};
+                        final status =
+                            p['participation_status']?['name'] ??
+                            p['status_id']?.toString() ??
+                            '';
+                        return [
+                          person['first_name']?.toString() ?? '',
+                          person['last_name']?.toString() ?? '',
+                          person['email']?.toString() ?? '',
+                          status,
+                        ];
+                      }).toList(),
+                ),
+              ],
+        ),
+      );
+    }
+
+    // Transactions Page
+    if (data.containsKey('transactions')) {
+      final transactions = data['transactions'] as List;
+      pdf.addPage(
+        pw.MultiPage(
+          build:
+              (pw.Context context) => [
+                pw.Header(
+                  level: 1,
+                  text: 'Transazioni (${transactions.length})',
+                ),
+                pw.TableHelper.fromTextArray(
+                  headers: ['ID', 'Importo', 'Tipo', 'Data'],
+                  data:
+                      transactions
+                          .map(
+                            (t) => [
+                              t['id']?.toString() ?? '',
+                              t['amount']?.toString() ?? '0',
+                              t['name']?.toString() ??
+                                  t['type']?.toString() ??
+                                  '',
+                              t['created_at']?.toString() ?? '',
+                            ],
+                          )
+                          .toList(),
+                ),
+              ],
+        ),
+      );
+    }
+
+    // Staff Page
+    if (data.containsKey('staff')) {
+      final staffList = data['staff'] as List;
+      pdf.addPage(
+        pw.MultiPage(
+          build:
+              (pw.Context context) => [
+                pw.Header(level: 1, text: 'Staff (${staffList.length})'),
+                pw.TableHelper.fromTextArray(
+                  headers: ['Nome', 'Cognome', 'Ruolo', 'Email'],
+                  data:
+                      staffList.map((s) {
+                        final user = s['staff_user'] ?? {};
+                        return [
+                          user['first_name']?.toString() ?? '',
+                          user['last_name']?.toString() ?? '',
+                          s['role_id']?.toString() ?? '',
+                          user['email']?.toString() ?? '',
+                        ];
+                      }).toList(),
+                ),
+              ],
+        ),
+      );
+    }
+
+    // Menu Page
+    if (data.containsKey('menu') && data['menu'] != null) {
+      final menu = data['menu'];
+      final items = menu['menu_item'] as List? ?? [];
+      pdf.addPage(
+        pw.MultiPage(
+          build:
+              (pw.Context context) => [
+                pw.Header(level: 1, text: 'Menu (${items.length} elementi)'),
+                pw.TableHelper.fromTextArray(
+                  headers: ['Nome', 'Prezzo', 'Categoria'],
+                  data:
+                      items.map((i) {
+                        final tType = i['transaction_type'] ?? {};
+                        return [
+                          i['name']?.toString() ?? '',
+                          i['price']?.toString() ?? '0',
+                          tType['name']?.toString() ?? '',
+                        ];
+                      }).toList(),
+                ),
+              ],
+        ),
+      );
+    }
+
+    return pdf.save();
   }
 
   Uint8List _generateCsv(Map<String, dynamic> data) {
@@ -234,10 +407,13 @@ class ExportService {
         'Telefono',
         'Data Nascita',
         'Stato',
+        'Codice Fiscale',
+        'Indirizzo',
         'Ospiti Aggiunti',
         'Referrer',
         'Tavolo',
         'Gruppo',
+        'Sottogruppo',
         'Note',
       ]);
 
@@ -251,11 +427,14 @@ class ExportService {
           person['email'],
           person['phone'],
           person['birth_date'],
-          p['status_id'],
+          p['participation_status']?['name'] ?? p['status_id'],
+          person['codice_fiscale'],
+          person['indirizzo'],
           p['guests_count'],
           p['invited_by'],
           p['table'],
           person['gruppo'],
+          person['sottogruppo'],
           person['notes'],
         ]);
       }
@@ -401,7 +580,10 @@ class ExportService {
         TextCellValue('Telefono'),
         TextCellValue('Data Nascita'),
         TextCellValue('Stato'),
+        TextCellValue('Codice Fiscale'),
+        TextCellValue('Indirizzo'),
         TextCellValue('Gruppo'),
+        TextCellValue('Sottogruppo'),
         TextCellValue('Ospiti'),
         TextCellValue('Referrer'),
         TextCellValue('Tavolo'),
@@ -418,8 +600,15 @@ class ExportService {
           TextCellValue(person['email']?.toString() ?? ''),
           TextCellValue(person['phone']?.toString() ?? ''),
           TextCellValue(person['birth_date']?.toString() ?? ''),
-          IntCellValue(p['status_id'] ?? 0),
+          TextCellValue(
+            p['participation_status']?['name']?.toString() ??
+                p['status_id']?.toString() ??
+                '',
+          ),
+          TextCellValue(person['codice_fiscale']?.toString() ?? ''),
+          TextCellValue(person['indirizzo']?.toString() ?? ''),
           TextCellValue(person['gruppo']?.toString() ?? ''),
+          TextCellValue(person['sottogruppo']?.toString() ?? ''),
           IntCellValue(p['guests_count'] ?? 0),
           TextCellValue(p['invited_by']?.toString() ?? ''),
           TextCellValue(p['table']?.toString() ?? ''),

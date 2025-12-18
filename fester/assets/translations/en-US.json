@@ -195,7 +195,7 @@
         "manage_event": "Manage Event",
         "event_settings": "Event Settings",
         "export_data": "Export Data",
-        "advanced_stats": "Advanced Statistics",
+        "advanced_stats": "Advanced Stats",
         "desktop_qr_hint": "Use the mobile app to scan QR codes",
         "organizer_default": "Organizer",
         "load_error": "Error loading data: ",
@@ -203,7 +203,11 @@
             "now": "Just now",
             "minutes_ago": " min ago"
         },
-        "import_guests": "Import Guests"
+        "import_guests": "Import Guests",
+        "quick_menu": "Quick Menu",
+        "people_counter": "People Counter",
+        "event": "Event",
+        "no_description": "No description"
     },
     "event_settings": {
         "title": "Event Settings",
@@ -816,7 +820,11 @@
         "error": "Error",
         "error_update": "Update error",
         "confirm": "Confirm",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "ok": "OK",
+        "app_title": "FESTER 3.0",
+        "error_prefix": "Error: ",
+        "organize_party": "ORGANIZE YOUR PARTY!"
     },
     "roles": {
         "admin": "Admin",
@@ -835,5 +843,26 @@
         "left": "Left",
         "cancelled": "Cancelled",
         "banned": "Banned"
+    },
+    "people_counter": {
+        "title": "People Counter",
+        "no_areas": "No areas created",
+        "counters_tab": "Counters",
+        "stats_tab": "Statistics",
+        "success_move": "Person moved successfully",
+        "success_remove": "Person removed from area",
+        "remove_error": "Error during removal: ",
+        "add_area_title": "New Area",
+        "area_name_label": "Area Name (e.g. Ground Floor)",
+        "area_name_hint": "Enter name",
+        "create_button": "Create",
+        "delete_confirm_title": "Delete {}?",
+        "delete_confirm_content": "This action cannot be undone. All data related to this area will be lost.",
+        "delete_button": "Delete",
+        "total_participants": "Total Participants",
+        "current_distribution": "Current Distribution",
+        "no_current_data": "No current data",
+        "history_over_time": "History Over Time",
+        "no_history_available": "No history available"
     }
 }

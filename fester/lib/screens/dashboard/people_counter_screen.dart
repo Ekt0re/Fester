@@ -1,17 +1,24 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/supabase/models/event_area.dart';
 import '../../services/supabase/people_counter_service.dart';
+import '../../services/permission_service.dart';
 import '../../theme/app_theme.dart';
 import 'widgets/people_search_sheet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PeopleCounterScreen extends StatefulWidget {
   final String eventId;
+  final String? currentUserRole;
 
-  const PeopleCounterScreen({super.key, required this.eventId});
+  const PeopleCounterScreen({
+    super.key,
+    required this.eventId,
+    this.currentUserRole,
+  });
 
   @override
   State<PeopleCounterScreen> createState() => _PeopleCounterScreenState();
@@ -69,23 +76,28 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "Conta Persone",
+          "people_counter.title".tr(),
           style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddAreaDialog,
-        backgroundColor: theme.colorScheme.primary,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          PermissionService.canAdd(widget.currentUserRole)
+              ? FloatingActionButton(
+                onPressed: _showAddAreaDialog,
+                backgroundColor: theme.colorScheme.primary,
+                child: const Icon(Icons.add),
+              )
+              : null,
       body: StreamBuilder<List<EventArea>>(
         stream: _areasStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Errore: ${snapshot.error}'));
+            return Center(
+              child: Text('${'common.error_prefix'.tr()}${snapshot.error}'),
+            );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -106,7 +118,7 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    "Nessuna area creata",
+                    "people_counter.no_areas".tr(),
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -175,9 +187,9 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                       labelStyle: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
                       ),
-                      tabs: const [
-                        Tab(text: "Contatori"),
-                        Tab(text: "Statistiche"),
+                      tabs: [
+                        Tab(text: "people_counter.counters_tab".tr()),
+                        Tab(text: "people_counter.stats_tab".tr()),
                       ],
                     ),
                     Expanded(
@@ -229,13 +241,14 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: theme.colorScheme.error,
+                    if (PermissionService.canDelete(widget.currentUserRole))
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: theme.colorScheme.error,
+                        ),
+                        onPressed: () => _showDeleteConfirmDialog(area),
                       ),
-                      onPressed: () => _showDeleteConfirmDialog(area),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -245,7 +258,10 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     _buildControlButton(
                       icon: Icons.remove,
                       color: theme.colorScheme.error,
-                      onTap: () => _handleCountChange(area, -1),
+                      onTap:
+                          PermissionService.canEdit(widget.currentUserRole)
+                              ? () => _handleCountChange(area, -1)
+                              : null,
                     ),
                     Expanded(
                       child: Text(
@@ -261,7 +277,10 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     _buildControlButton(
                       icon: Icons.add,
                       color: theme.colorScheme.secondary,
-                      onTap: () => _handleCountChange(area, 1),
+                      onTap:
+                          PermissionService.canEdit(widget.currentUserRole)
+                              ? () => _handleCountChange(area, 1)
+                              : null,
                     ),
                   ],
                 ),
@@ -276,17 +295,20 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
   Widget _buildControlButton({
     required IconData icon,
     required Color color,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
     return Material(
       color: color.withOpacity(0.1),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap();
-        },
+        onTap:
+            onTap != null
+                ? () {
+                  HapticFeedback.lightImpact();
+                  onTap();
+                }
+                : null,
         child: Container(
           width: 60,
           height: 60,
@@ -390,15 +412,15 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Persona spostata con successo')),
+          SnackBar(content: Text('people_counter.success_move'.tr())),
         );
         _refreshStream();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'common.error_prefix'.tr()}$e')),
+        );
       }
     }
   }
@@ -416,14 +438,14 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Persona rimossa dall\'area')),
+          SnackBar(content: Text('people_counter.success_remove'.tr())),
         );
         _refreshStream();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore durante la rimozione: $e')),
+          SnackBar(content: Text('${'people_counter.remove_error'.tr()}$e')),
         );
       }
     }
@@ -434,9 +456,9 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       await _service.updateCount(areaId, delta);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Errore: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${'common.error_prefix'.tr()}$e")),
+        );
       }
     }
   }
@@ -448,21 +470,21 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       builder:
           (dialogContext) => AlertDialog(
             title: Text(
-              "Nuova Area",
+              "people_counter.add_area_title".tr(),
               style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
             ),
             content: TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: "Nome Area (es. Piano Terra)",
-                hintText: "Inserisci nome",
+              decoration: InputDecoration(
+                labelText: "people_counter.area_name_label".tr(),
+                hintText: "people_counter.area_name_hint".tr(),
               ),
               textCapitalization: TextCapitalization.sentences,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text("Annulla"),
+                child: Text("common.cancel".tr()),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -476,13 +498,15 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Errore creazione: $e")),
+                          SnackBar(
+                            content: Text("${'common.error_prefix'.tr()}$e"),
+                          ),
                         );
                       }
                     }
                   }
                 },
-                child: const Text("Crea"),
+                child: Text("people_counter.create_button".tr()),
               ),
             ],
           ),
@@ -495,16 +519,14 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       builder:
           (dialogContext) => AlertDialog(
             title: Text(
-              "Elimina ${area.name}?",
+              "people_counter.delete_confirm_title".tr(args: [area.name]),
               style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
             ),
-            content: const Text(
-              "Questa azione non può essere annullata. Tutti i dati relativi a questa area verranno persi.",
-            ),
+            content: Text("people_counter.delete_confirm_content".tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text("Annulla"),
+                child: Text("common.cancel".tr()),
               ),
               TextButton(
                 onPressed: () async {
@@ -525,7 +547,7 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                 style: TextButton.styleFrom(
                   foregroundColor: AppTheme.errorLight,
                 ),
-                child: const Text("Elimina"),
+                child: Text("people_counter.delete_button".tr()),
               ),
             ],
           ),
@@ -676,7 +698,7 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
 
           // Current Distribution Chart
           Text(
-            "Distribuzione Attuale",
+            "people_counter.current_distribution".tr(),
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -718,7 +740,7 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
               height: 100,
               child: Center(
                 child: Text(
-                  "Nessun dato attuale",
+                  "people_counter.no_current_data".tr(),
                   style: GoogleFonts.outfit(color: theme.hintColor),
                 ),
               ),
@@ -756,7 +778,7 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
 
           // History Line Chart
           Text(
-            "Andamento nel Tempo",
+            "people_counter.history_over_time".tr(),
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -768,12 +790,12 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
             const Center(child: CircularProgressIndicator())
           else if (_error != null)
             Text(
-              "Errore: $_error",
+              "common.error_prefix".tr() + _error!,
               style: TextStyle(color: theme.colorScheme.error),
             )
           else if (_logs.isEmpty)
             Text(
-              "Nessuno storico disponibile",
+              "people_counter.no_history_available".tr(),
               style: GoogleFonts.outfit(color: theme.hintColor),
             )
           else

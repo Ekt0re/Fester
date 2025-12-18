@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../utils/validation_utils.dart';
 import 'register_step3_page.dart';
 
 class RegisterStep2Page extends StatefulWidget {
@@ -74,7 +75,7 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'FESTER 3.0',
+                          'common.app_title'.tr(),
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
@@ -107,15 +108,9 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                             labelText: 'login.email_label'.tr(),
                             prefixIcon: const Icon(Icons.email_outlined),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'login.email_error_empty'.tr();
-                            }
-                            if (!value.contains('@')) {
-                              return 'login.email_error_invalid'.tr();
-                            }
-                            return null;
-                          },
+                          validator:
+                              (value) =>
+                                  FormValidator.validateEmail(value)?.tr(),
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -126,15 +121,9 @@ class _RegisterStep2PageState extends State<RegisterStep2Page> {
                             labelText: 'register.phone_label'.tr(),
                             prefixIcon: const Icon(Icons.phone_outlined),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'register.phone_error_empty'.tr();
-                            }
-                            if (value.length < 10) {
-                              return 'register.phone_error_invalid'.tr();
-                            }
-                            return null;
-                          },
+                          validator:
+                              (value) =>
+                                  FormValidator.validatePhone(value)?.tr(),
                         ),
                         const SizedBox(height: 40),
                         SizedBox(

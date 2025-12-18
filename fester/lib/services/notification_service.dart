@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'logger_service.dart';
 
 class NotificationService {
+  static const String _tag = 'NotificationService';
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
@@ -44,7 +45,10 @@ class NotificationService {
     await _localNotifications.initialize(
       settings,
       onDidReceiveNotificationResponse: (response) {
-        debugPrint('Notification clicked: ${response.payload}');
+        LoggerService.debug(
+          'Notification clicked: ${response.payload}',
+          tag: _tag,
+        );
         // Handle navigation here if needed, e.g. using a global navigator key
       },
     );
@@ -73,8 +77,9 @@ class NotificationService {
             )
             .subscribe();
 
-    debugPrint(
-      'NotificationService: Listening for realtime notifications for user $userId',
+    LoggerService.info(
+      'Listening for realtime notifications for user $userId',
+      tag: _tag,
     );
   }
 
@@ -105,7 +110,11 @@ class NotificationService {
         payload: jsonEncode(data),
       );
     } catch (e) {
-      debugPrint('Error handling new notification: $e');
+      LoggerService.error(
+        'Error handling new notification',
+        tag: _tag,
+        error: e,
+      );
     }
   }
 
@@ -164,7 +173,7 @@ class NotificationService {
         'is_read': false,
       });
     } catch (e) {
-      debugPrint('Error saving notification: $e');
+      LoggerService.error('Error saving notification', tag: _tag, error: e);
     }
   }
 
@@ -183,7 +192,7 @@ class NotificationService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      debugPrint('Error fetching notifications: $e');
+      LoggerService.error('Error fetching notifications', tag: _tag, error: e);
       return [];
     }
   }
@@ -203,7 +212,7 @@ class NotificationService {
 
       return (response as List).length;
     } catch (e) {
-      debugPrint('Error fetching unread count: $e');
+      LoggerService.error('Error fetching unread count', tag: _tag, error: e);
       return 0;
     }
   }
@@ -216,7 +225,11 @@ class NotificationService {
           .update({'is_read': true})
           .eq('id', notificationId);
     } catch (e) {
-      debugPrint('Error marking notification as read: $e');
+      LoggerService.error(
+        'Error marking notification as read',
+        tag: _tag,
+        error: e,
+      );
     }
   }
 
@@ -233,7 +246,7 @@ class NotificationService {
           .eq('staff_user_id', userId)
           .eq('is_read', false);
     } catch (e) {
-      debugPrint('Error marking all as read: $e');
+      LoggerService.error('Error marking all as read', tag: _tag, error: e);
     }
   }
 
@@ -242,7 +255,7 @@ class NotificationService {
     try {
       await _supabase.from('notifications').delete().eq('id', notificationId);
     } catch (e) {
-      debugPrint('Error deleting notification: $e');
+      LoggerService.error('Error deleting notification', tag: _tag, error: e);
     }
   }
 

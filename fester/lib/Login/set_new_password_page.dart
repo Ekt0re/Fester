@@ -37,7 +37,7 @@ class _SetNewPasswordPageState extends State<SetNewPasswordPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${'set_new_password.error'.tr()}${e.toString()}'),
+            content: Text('${'common.error_prefix'.tr()}${e.toString()}'),
           ),
         );
       }

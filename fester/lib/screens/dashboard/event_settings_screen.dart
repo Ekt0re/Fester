@@ -332,8 +332,8 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
             const SizedBox(height: 8),
             _buildSwitchTile(
               theme: theme,
-              title: 'Conteggio Persone Specifico',
-              subtitle: 'Attiva il conteggio nominativo per aree',
+              title: 'event_settings.specific_people_counting'.tr(),
+              subtitle: 'event_settings.specific_people_counting_desc'.tr(),
               value: _specificPeopleCounting,
               onChanged: _onSpecificPeopleCountingChanged,
             ),
@@ -477,18 +477,14 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
       builder:
           (context) => AlertDialog(
             title: Text(
-              "Reset Conteggi?",
+              "event_settings.reset_counts_title".tr(),
               style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
             ),
-            content: const Text(
-              "Vuoi resettare lo stato attuale del conteggio? \n\n"
-              "Se selezioni 'Sì', tutti i contatori verranno azzerati e le persone verranno rimosse dalle aree.\n"
-              "Le aree stesse NON verranno eliminate.",
-            ),
+            content: Text("event_settings.reset_counts_message".tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false), // No reset
-                child: const Text("No, mantieni"),
+                child: Text("common.no_keep".tr()),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true), // Yes reset
@@ -496,7 +492,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
                   backgroundColor: Theme.of(context).colorScheme.error,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text("Sì, resetta tutto"),
+                child: Text("common.yes_reset".tr()),
               ),
             ],
           ),
@@ -512,13 +508,15 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
         await peopleCounterService.resetEventCounts(widget.eventId);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Conteggi resettati con successo")),
+            SnackBar(content: Text('event_settings.reset_counts_success'.tr())),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Errore durante il reset: $e")),
+            SnackBar(
+              content: Text('${'event_settings.reset_counts_error'.tr()}$e'),
+            ),
           );
         }
       }

@@ -8,17 +8,25 @@ import '../../services/supabase/participation_service.dart';
 import '../../services/supabase/models/participation.dart';
 import '../../theme/app_theme.dart';
 import '../profile/person_profile_screen.dart';
+import '../../services/logger_service.dart';
+import '../../services/permission_service.dart';
 
 class QRScannerScreen extends StatefulWidget {
   final String eventId;
+  final String? currentUserRole;
 
-  const QRScannerScreen({super.key, required this.eventId});
+  const QRScannerScreen({
+    super.key,
+    required this.eventId,
+    this.currentUserRole,
+  });
 
   @override
   State<QRScannerScreen> createState() => _QRScannerScreenState();
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
+  static const String _tag = 'QRScannerScreen';
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     returnImage: false,
@@ -62,7 +70,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading statuses: $e');
+      LoggerService.error('Error loading statuses', tag: _tag, error: e);
     }
   }
 
@@ -108,6 +116,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       _lastScanTime = DateTime.now();
       _lastScannedCode = code;
     });
+
+    if (PermissionService.isReadOnly(widget.currentUserRole)) {
+      _showNotification(
+        title: 'qr.readonly_title'.tr(),
+        message: 'qr.readonly_msg'.tr(),
+        isWarning: true,
+      );
+      // We can still fetch participation to show info, but NO check-in.
+    }
 
     // Feedback tattile immediato
     if (await Vibration.hasVibrator() == true) {
@@ -177,7 +194,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         _showNotification(
           title: 'qr.already_entered'.tr(),
           message:
-              '${participation.person?['first_name'] ?? 'Ospite'} ${'qr.is_inside'.tr()}',
+              '${participation.person?['first_name'] ?? 'roles.guest'.tr()} ${'qr.is_inside'.tr()}',
           isWarning: true,
         );
         _addToRecentScans(participation);
@@ -186,18 +203,27 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
       // 5. Update Status to Entered
       if (_enteredStatusId != null) {
-        await _participationService.checkInParticipant(
-          participationId,
-          _enteredStatusId!,
-        );
+        if (PermissionService.isReadOnly(widget.currentUserRole)) {
+          // Just success message or info, but no DB update
+          _showNotification(
+            title: 'qr.guest_info'.tr(),
+            message:
+                '${participation.person?['first_name'] ?? 'roles.guest'.tr()} ${'qr.found'.tr()}',
+          );
+        } else {
+          await _participationService.checkInParticipant(
+            participationId,
+            _enteredStatusId!,
+          );
 
-        // 6. Success
-        _showNotification(
-          title: 'qr.access_granted'.tr(),
-          message:
-              '${'qr.welcome'.tr()} ${participation.person?['first_name'] ?? 'Ospite'}!',
-          isSuccess: true,
-        );
+          // 6. Success
+          _showNotification(
+            title: 'qr.access_granted'.tr(),
+            message:
+                '${'qr.welcome'.tr()} ${participation.person?['first_name'] ?? 'roles.guest'.tr()}!',
+            isSuccess: true,
+          );
+        }
         _addToRecentScans(participation);
       } else {
         _showNotification(

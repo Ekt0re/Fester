@@ -185,17 +185,17 @@
         "scan_qr": "扫描二维码",
         "scan_mobile_only": "使用移动App扫描访客二维码",
         "nav": {
-            "home": "首页",
-            "search": "搜索",
-            "notifications": "通知",
-            "menu": "菜单"
+            "home": "Home",
+            "search": "Search",
+            "notifications": "Notifications",
+            "menu": "Menu"
         },
         "settings": "设置",
         "subtitle": "活动管理",
-        "manage_event": "管理活动",
+        "manage_event": "Manage Event",
         "event_settings": "活动设置",
         "export_data": "导出数据",
-        "advanced_stats": "高级统计",
+        "advanced_stats": "Advanced Stats",
         "desktop_qr_hint": "使用移动App扫描二维码",
         "organizer_default": "组织者",
         "load_error": "加载数据错误：",
@@ -203,7 +203,11 @@
             "now": "刚刚",
             "minutes_ago": " 分钟前"
         },
-        "import_guests": "导入访客"
+        "import_guests": "导入访客",
+        "quick_menu": "Quick Menu",
+        "people_counter": "People Counter",
+        "event": "Event",
+        "no_description": "No description"
     },
     "event_settings": {
         "title": "活动设置",
@@ -815,7 +819,11 @@
         "error": "错误",
         "error_update": "更新错误",
         "confirm": "确认",
-        "cancel": "取消"
+        "cancel": "取消",
+        "ok": "OK",
+        "app_title": "FESTER 3.0",
+        "error_prefix": "Error: ",
+        "organize_party": "ORGANIZE YOUR PARTY!"
     },
     "roles": {
         "admin": "管理员",
@@ -834,5 +842,26 @@
         "left": "已离开",
         "cancelled": "已取消",
         "banned": "已封禁"
+    },
+    "people_counter": {
+        "title": "People Counter",
+        "no_areas": "No areas created",
+        "counters_tab": "Counters",
+        "stats_tab": "Statistics",
+        "success_move": "Person moved successfully",
+        "success_remove": "Person removed from area",
+        "remove_error": "Error during removal: ",
+        "add_area_title": "New Area",
+        "area_name_label": "Area Name (e.g. Ground Floor)",
+        "area_name_hint": "Enter name",
+        "create_button": "Create",
+        "delete_confirm_title": "Delete {}?",
+        "delete_confirm_content": "This action cannot be undone. All data related to this area will be lost.",
+        "delete_button": "Delete",
+        "total_participants": "Total Participants",
+        "current_distribution": "Current Distribution",
+        "no_current_data": "No current data",
+        "history_over_time": "History Over Time",
+        "no_history_available": "No history available"
     }
 }

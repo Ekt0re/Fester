@@ -1,8 +1,10 @@
 // lib/services/participation_service.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../logger_service.dart';
 import 'models/participation.dart';
 
 class ParticipationService {
+  static const String _tag = 'ParticipationService';
   final SupabaseClient _supabase = Supabase.instance.client;
 
   /// Get all participations for an event
@@ -25,6 +27,11 @@ class ParticipationService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
+      LoggerService.error(
+        'Error fetching event participations',
+        tag: _tag,
+        error: e,
+      );
       rethrow;
     }
   }
@@ -47,6 +54,11 @@ class ParticipationService {
       if (response == null) return null;
       return Participation.fromJson(response);
     } catch (e) {
+      LoggerService.error(
+        'Error fetching participation by ID',
+        tag: _tag,
+        error: e,
+      );
       rethrow;
     }
   }
@@ -77,6 +89,7 @@ class ParticipationService {
 
       return Participation.fromJson(response);
     } catch (e) {
+      LoggerService.error('Error creating participation', tag: _tag, error: e);
       rethrow;
     }
   }
@@ -108,6 +121,7 @@ class ParticipationService {
 
       return Participation.fromJson(response);
     } catch (e) {
+      LoggerService.error('Error updating participation', tag: _tag, error: e);
       rethrow;
     }
   }
@@ -140,6 +154,11 @@ class ParticipationService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
+      LoggerService.error(
+        'Error fetching participation status history',
+        tag: _tag,
+        error: e,
+      );
       rethrow;
     }
   }
@@ -153,6 +172,11 @@ class ParticipationService {
           .order('id');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
+      LoggerService.error(
+        'Error fetching participation statuses',
+        tag: _tag,
+        error: e,
+      );
       rethrow;
     }
   }
@@ -163,6 +187,7 @@ class ParticipationService {
       final response = await _supabase.from('role').select().order('id');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
+      LoggerService.error('Error fetching roles', tag: _tag, error: e);
       rethrow;
     }
   }
@@ -181,6 +206,11 @@ class ParticipationService {
 
       return response ?? {};
     } catch (e) {
+      LoggerService.error(
+        'Error fetching participation stats',
+        tag: _tag,
+        error: e,
+      );
       rethrow;
     }
   }

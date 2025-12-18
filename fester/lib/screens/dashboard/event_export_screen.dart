@@ -139,7 +139,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
               defaultTargetPlatform == TargetPlatform.linux)) {
         // Desktop: Save File Modal
         final outputPath = await FilePicker.platform.saveFile(
-          dialogTitle: 'Salva file come...',
+          dialogTitle: 'export.save_as'.tr(),
           fileName: xFile.name,
           lockParentWindow: true,
         );
@@ -169,10 +169,8 @@ class _EventExportScreenState extends State<EventExportScreen> {
               context: context,
               builder:
                   (context) => AlertDialog(
-                    title: const Text('File Pronto'),
-                    content: const Text(
-                      'Il file è stato generato. Scegli se scaricarlo o condividerlo.',
-                    ),
+                    title: Text('export.file_ready'.tr()),
+                    content: Text('export.file_ready_msg'.tr()),
                     actions: [
                       TextButton(
                         onPressed: () {
@@ -181,7 +179,7 @@ class _EventExportScreenState extends State<EventExportScreen> {
                             xFile,
                           ], text: 'Export ${widget.eventName}');
                         },
-                        child: const Text('Scarica o Condividi'),
+                        child: Text('export.download_share'.tr()),
                       ),
                     ],
                   ),

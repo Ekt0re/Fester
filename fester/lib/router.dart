@@ -99,7 +99,11 @@ final GoRouter router = GoRouter(
           name: 'event-menu',
           builder: (context, state) {
             final eventId = state.pathParameters['eventId']!;
-            return MenuManagementScreen(eventId: eventId);
+            final role = state.extra as String?;
+            return MenuManagementScreen(
+              eventId: eventId,
+              currentUserRole: role,
+            );
           },
         ),
         GoRoute(
@@ -107,7 +111,8 @@ final GoRouter router = GoRouter(
           name: 'event-staff',
           builder: (context, state) {
             final eventId = state.pathParameters['eventId']!;
-            return StaffListScreen(eventId: eventId);
+            final role = state.extra as String?;
+            return StaffListScreen(eventId: eventId, currentUserRole: role);
           },
         ),
         GoRoute(
@@ -131,7 +136,8 @@ final GoRouter router = GoRouter(
           name: 'event-search',
           builder: (context, state) {
             final eventId = state.pathParameters['eventId']!;
-            return GlobalSearchScreen(eventId: eventId);
+            final role = state.extra as String?;
+            return GlobalSearchScreen(eventId: eventId, currentUserRole: role);
           },
         ),
         GoRoute(
@@ -155,7 +161,8 @@ final GoRouter router = GoRouter(
           name: 'event-qr-scanner',
           builder: (context, state) {
             final eventId = state.pathParameters['eventId']!;
-            return QRScannerScreen(eventId: eventId);
+            final role = state.extra as String?;
+            return QRScannerScreen(eventId: eventId, currentUserRole: role);
           },
         ),
       ],

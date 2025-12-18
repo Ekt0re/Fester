@@ -3,11 +3,17 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme/app_theme.dart';
+import '../../services/permission_service.dart';
 
 class MenuManagementScreen extends StatefulWidget {
   final String eventId;
+  final String? currentUserRole;
 
-  const MenuManagementScreen({super.key, required this.eventId});
+  const MenuManagementScreen({
+    super.key,
+    required this.eventId,
+    this.currentUserRole,
+  });
 
   @override
   State<MenuManagementScreen> createState() => _MenuManagementScreenState();
@@ -280,7 +286,10 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: _createMenu,
+                    onPressed:
+                        PermissionService.canAdd(widget.currentUserRole)
+                            ? _createMenu
+                            : null,
                     child: Text('menu.create_button'.tr()),
                   ),
                 ],
@@ -299,15 +308,18 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              _addMenuItem();
-              // Auto-select the new item on desktop
-              if (MediaQuery.of(context).size.width > 900) {
-                setState(() {
-                  _selectedItemIndex = _menuItems.length - 1;
-                });
-              }
-            },
+            onPressed:
+                PermissionService.canAdd(widget.currentUserRole)
+                    ? () {
+                      _addMenuItem();
+                      // Auto-select the new item on desktop
+                      if (MediaQuery.of(context).size.width > 900) {
+                        setState(() {
+                          _selectedItemIndex = _menuItems.length - 1;
+                        });
+                      }
+                    }
+                    : null,
           ),
         ],
       ),
@@ -660,7 +672,7 @@ class _MenuItemHeader extends StatelessWidget {
       orElse: () => {},
     );
     final name = (type['name'] as String?) ?? '';
-    
+
     return AppTheme.getTransactionTypeIcon(name);
   }
 
@@ -711,7 +723,9 @@ class _MenuItemHeader extends StatelessWidget {
                   ),
                   if (isConfirmed && item.price != null)
                     Text(
-                      '€${item.price!.toStringAsFixed(2)}',
+                      'common.currency'.tr(
+                        args: [item.price!.toStringAsFixed(2)],
+                      ),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,

@@ -14,6 +14,7 @@ class GuestCard extends StatelessWidget {
   final VoidCallback onLongPress;
   final VoidCallback onReport;
   final VoidCallback onDrink;
+  final bool canEdit;
 
   const GuestCard({
     super.key,
@@ -27,6 +28,7 @@ class GuestCard extends StatelessWidget {
     required this.onLongPress,
     required this.onReport,
     required this.onDrink,
+    this.canEdit = true,
   });
 
   @override
@@ -35,7 +37,7 @@ class GuestCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      onDoubleTap: onDoubleTap,
+      onDoubleTap: canEdit ? onDoubleTap : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -105,7 +107,7 @@ class GuestCard extends StatelessWidget {
                         ),
                       ),
                       GestureDetector(
-                        onLongPress: onLongPress,
+                        onLongPress: canEdit ? onLongPress : null,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -143,38 +145,40 @@ class GuestCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: onDrink,
-                          icon: const Icon(Icons.local_bar, size: 16),
-                          label: const Text('+ Drink'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                  if (canEdit) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: onDrink,
+                            icon: const Icon(Icons.local_bar, size: 16),
+                            label: Text('common.add_drink'.tr()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white.withOpacity(0.2),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: onReport,
-                          icon: const Icon(Icons.report_problem, size: 16),
-                          label: const Text('Segnala'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: onReport,
+                            icon: const Icon(Icons.report_problem, size: 16),
+                            label: Text('common.report'.tr()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white.withOpacity(0.2),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

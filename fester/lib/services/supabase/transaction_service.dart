@@ -1,10 +1,11 @@
 // lib/services/transaction_service.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
+import '../logger_service.dart';
 import 'models/transaction.dart';
 import '../notification_service.dart';
 
 class TransactionService {
+  static const String _tag = 'TransactionService';
   final SupabaseClient _supabase = Supabase.instance.client;
   final NotificationService _notificationService = NotificationService();
 
@@ -145,7 +146,11 @@ class TransactionService {
       }
     } catch (e) {
       // Log silently, don't break transaction creation
-      debugPrint('Error checking notifications: $e');
+      LoggerService.warning(
+        'Error checking notifications',
+        tag: _tag,
+        error: e,
+      );
     }
   }
 

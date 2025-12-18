@@ -38,6 +38,39 @@
         "error": "Errore",
         "error_prefix": "Errore:"
     },
+    "common": {
+        "error_title": "Errore",
+        "technical_details": "Dettagli Tecnici",
+        "close": "Chiudi",
+        "error_prefix": "Errore: ",
+        "wait": "Attendere...",
+        "save": "Salva",
+        "error_update": "Errore di aggiornamento",
+        "confirm": "Conferma",
+        "cancel": "Annulla",
+        "unknown": "Sconosciuto",
+        "not_set": "Non impostato",
+        "no_email": "Nessuna email",
+        "currency": "€{}",
+        "ok": "OK",
+        "app_title": "FESTER 3.0",
+        "not_available": "N/A",
+        "organize_party": "ORGANIZZA LA TUA FESTA!",
+        "no_keep": "No, mantieni",
+        "yes_reset": "Sì, resetta tutto",
+        "add_drink": "+ Drink",
+        "report": "Segnala",
+        "in_area": "In un'area",
+        "pending": "In attesa"
+    },
+    "validation": {
+        "email_required": "L'email è obbligatoria",
+        "invalid_email": "Inserisci un indirizzo email valido",
+        "password_required": "La password è obbligatoria",
+        "password_too_short": "La password deve contenere almeno {} caratteri",
+        "field_required": "Questo campo è obbligatorio",
+        "invalid_phone": "Numero di telefono non valido"
+    },
     "support": {
         "title": "Supporto",
         "need_help": "Hai bisogno di aiuto?",
@@ -192,10 +225,14 @@
         },
         "settings": "Impostazioni",
         "subtitle": "GESTIONE EVENTI",
-        "manage_event": "Gestisci Evento",
         "event_settings": "Impostazioni Evento",
         "export_data": "Esporta Dati",
         "advanced_stats": "Statistiche Avanzate",
+        "quick_menu": "Menu Rapido",
+        "people_counter": "Conta Persone",
+        "manage_event": "Gestisci Evento",
+        "event": "Evento",
+        "no_description": "Nessuna descrizione",
         "desktop_qr_hint": "Usa l'app mobile per scansionare i codici QR",
         "organizer_default": "Organizzatore",
         "load_error": "Errore caricamento dati: ",
@@ -203,7 +240,30 @@
             "now": "Adesso",
             "minutes_ago": " min fa"
         },
-        "import_guests": "Importa Ospiti"
+        "import_guests": "Importa Ospiti",
+        "exit_to_selection": "Torna alla Selezione Evento",
+        "no_location": "Nessuna posizione"
+    },
+    "people_counter": {
+        "title": "Conta Persone",
+        "no_areas": "Nessuna area creata",
+        "counters_tab": "Contatori",
+        "stats_tab": "Statistiche",
+        "success_move": "Persona spostata con successo",
+        "success_remove": "Persona rimossa dall'area",
+        "remove_error": "Errore durante la rimozione: ",
+        "add_area_title": "Nuova Area",
+        "area_name_label": "Nome Area (es. Piano Terra)",
+        "area_name_hint": "Inserisci nome",
+        "create_button": "Crea",
+        "delete_confirm_title": "Elimina {}?",
+        "delete_confirm_content": "Questa azione non può essere annullata. Tutti i dati relativi a questa area verranno persi.",
+        "delete_button": "Elimina",
+        "total_participants": "Totale Partecipanti",
+        "current_distribution": "Distribuzione Attuale",
+        "no_current_data": "Nessun dato attuale",
+        "history_over_time": "Andamento nel Tempo",
+        "no_history_available": "Nessuno storico disponibile"
     },
     "event_settings": {
         "title": "Impostazioni Evento",
@@ -240,6 +300,8 @@
             "success": "Evento archiviato con successo",
             "error": "Errore durante l'archiviazione: "
         },
+        "archive_confirmation": "Sei sicuro di voler archiviare questo evento? Tutti i dati associati verranno eliminati permanentemente.",
+        "cancel": "Annulla",
         "load_error": "Errore caricamento impostazioni: ",
         "save_success": "Impostazioni salvate con successo!",
         "save_error": "Errore salvataggio: ",
@@ -257,6 +319,12 @@
         "late_entry": "Ingresso tardivo",
         "danger_zone": "Zona Pericolosa",
         "archive_subtitle": "Archivia questo evento (azione irreversibile)",
+        "specific_people_counting": "Conteggio Persone Specifico",
+        "specific_people_counting_desc": "Attiva il conteggio nominativo per aree",
+        "reset_counts_title": "Reset Conteggi?",
+        "reset_counts_message": "Vuoi resettare lo stato attuale del conteggio? \n\nSe selezioni 'Sì', tutti i contatori verranno azzerati e le persone verranno rimosse dalle aree.\nLe aree stesse NON verranno eliminate.",
+        "reset_counts_success": "Conteggi resettati con successo",
+        "reset_counts_error": "Errore durante il reset: ",
         "not_set": "Non impostato"
     },
     "import_guests": {
@@ -388,12 +456,18 @@
         "exporting": "Esportazione...",
         "success": "Esportazione {} completata con successo!",
         "error": "Errore durante l'esportazione: ",
-        "button_exporting": "Esportazione in corso..."
+        "button_exporting": "Esportazione in corso...",
+        "save_as": "Salva file come...",
+        "file_ready": "File Pronto",
+        "file_ready_msg": "Il file è stato generato. Scegli se scaricarlo o condividerlo.",
+        "download_share": "Scarica o Condividi"
     },
     "event_selection": {
         "subtitle": "Scegli l'evento da gestire",
         "select_event": "Seleziona Evento",
         "show_archived": "Mostra archiviati",
+        "show_active": "Mostra attivi",
+        "restore_tooltip": "Ripristina",
         "create_event_button": "Crea Nuovo Evento",
         "archive_tooltip": "Archiviato"
     },
@@ -405,6 +479,9 @@
     "statistics": {
         "load_error": "Errore caricamento statistiche: ",
         "title": "Statistiche",
+        "trends": "Andamento temporale",
+        "attendance": "Affluenza",
+        "revenue": "Vendite",
         "live_attendance": "Presenze Live",
         "total_sales": "Vendite Totali",
         "avg_spend": "Spesa Media",
@@ -519,6 +596,7 @@
         "already_entered": "Già Entrato",
         "is_inside": "è già dentro",
         "access": "Ingresso",
+        "access_granted": "Accesso Autorizzato",
         "welcome": "Benvenuto",
         "config_error": "Errore Configurazione",
         "status_not_found": "Stato 'Entrato' non trovato nel sistema",
@@ -534,6 +612,7 @@
         "email_label": "Email",
         "email_hint": "Inserisci email collaboratore",
         "email_required": "Email richiesta",
+        "email_invalid": "Indirizzo email non valido",
         "role_label": "Ruolo",
         "cancel": "Annulla",
         "add": "Aggiungi",
@@ -600,6 +679,8 @@
         "subgroup_name_hint": "Inserisci il nome del sottogruppo",
         "select_group_first": "Seleziona prima un gruppo",
         "search_inviter_title": "Cerca Invitante (Staff o Ospite)",
+        "duplicate_title": "Ospite Duplicato",
+        "duplicate_message": "Un ospite con questa email o numero di telefono esiste già nell'evento: \n\n{}\n\nVuoi procedere comunque?",
         "search_label": "Cerca",
         "search_hint": "Nome, cognome, email, telefono...",
         "no_results": "Nessun risultato trovato",
@@ -612,6 +693,7 @@
     },
     "create_event": {
         "complete_fields": "Compila i campi obbligatori",
+        "no_results_found": "Nessun risultato trovato",
         "menu_title": "Menu di {}",
         "menu_description": "Menu principale per {}",
         "role_not_found": "Role {} not found",
@@ -770,14 +852,6 @@
         "fee": "Commissione/Tassa",
         "note": "Note"
     },
-    "common": {
-        "close": "Chiudi",
-        "save": "Salva",
-        "error": "Errore",
-        "error_update": "Errore di aggiornamento",
-        "confirm": "Conferma",
-        "cancel": "Annulla"
-    },
     "person_profile": {
         "show_qr_code": "Mostra QR Code",
         "details_title": "Dettagli Personali",
@@ -808,6 +882,7 @@
         "subgroup": "Sottogruppo:"
     },
     "roles": {
+        "staff": "Staff",
         "admin": "Admin",
         "staff1": "Visualizzatore",
         "staff2": "Staff attivo",

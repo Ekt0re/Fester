@@ -1,12 +1,13 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'logger_service.dart';
 import '../models/app_settings.dart';
 import '../models/custom_theme.dart';
 
 /// Servizio per gestire il salvataggio e caricamento delle impostazioni dell'app
 class SettingsService {
   static const String _settingsKey = 'app_settings';
+  static const String _tag = 'SettingsService';
 
   /// Carica le impostazioni salvate
   Future<AppSettings> loadSettings() async {
@@ -21,7 +22,11 @@ class SettingsService {
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
       return AppSettings.fromJson(json);
     } catch (e) {
-      debugPrint('Errore caricamento impostazioni: $e');
+      LoggerService.error(
+        'Errore caricamento impostazioni',
+        tag: _tag,
+        error: e,
+      );
       return AppSettings.defaultSettings;
     }
   }
@@ -33,7 +38,11 @@ class SettingsService {
       final jsonString = jsonEncode(settings.toJson());
       await prefs.setString(_settingsKey, jsonString);
     } catch (e) {
-      debugPrint('Errore salvataggio impostazioni: $e');
+      LoggerService.error(
+        'Errore salvataggio impostazioni',
+        tag: _tag,
+        error: e,
+      );
       rethrow;
     }
   }
@@ -44,7 +53,7 @@ class SettingsService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_settingsKey);
     } catch (e) {
-      debugPrint('Errore reset impostazioni: $e');
+      LoggerService.error('Errore reset impostazioni', tag: _tag, error: e);
       rethrow;
     }
   }
@@ -66,14 +75,22 @@ class SettingsService {
             try {
               return CustomTheme.fromJson(jsonDecode(jsonString));
             } catch (e) {
-              debugPrint('Error parsing custom theme: $e');
+              LoggerService.warning(
+                'Error parsing custom theme',
+                tag: _tag,
+                error: e,
+              );
               return null;
             }
           })
           .whereType<CustomTheme>()
           .toList();
     } catch (e) {
-      debugPrint('Errore caricamento temi personalizzati: $e');
+      LoggerService.error(
+        'Errore caricamento temi personalizzati',
+        tag: _tag,
+        error: e,
+      );
       return [];
     }
   }
@@ -86,7 +103,11 @@ class SettingsService {
           themes.map((theme) => jsonEncode(theme.toJson())).toList();
       await prefs.setStringList(_customThemesKey, jsonStringList);
     } catch (e) {
-      debugPrint('Errore salvataggio temi personalizzati: $e');
+      LoggerService.error(
+        'Errore salvataggio temi personalizzati',
+        tag: _tag,
+        error: e,
+      );
       rethrow;
     }
   }

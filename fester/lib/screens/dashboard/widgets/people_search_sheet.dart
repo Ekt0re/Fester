@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../../services/supabase/participation_service.dart';
 import '../qr_scanner_screen.dart';
 
@@ -132,7 +133,7 @@ class _PeopleSearchSheetState extends State<PeopleSearchSheet> {
                   controller: _searchController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search),
-                    hintText: 'Cerca persona...',
+                    hintText: 'add_guest.search_person'.tr(),
                     filled: true,
                     fillColor: theme.cardColor.withOpacity(
                       0.5,
@@ -193,11 +194,11 @@ class _PeopleSearchSheetState extends State<PeopleSearchSheet> {
                           subtitle: Text(
                             isInArea
                                 ? (item['current_area']?['name'] ??
-                                    'In un\'area')
+                                    'common.in_area'.tr())
                                 : (item['status']?['name']
                                         ?.toString()
                                         .toUpperCase() ??
-                                    'UNKNOWN'),
+                                    'common.unknown'.tr().toUpperCase()),
                             style:
                                 isInArea
                                     ? TextStyle(
