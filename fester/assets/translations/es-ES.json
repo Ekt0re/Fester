@@ -202,7 +202,8 @@
         "time": {
             "now": "Ahora",
             "minutes_ago": " hace min"
-        }
+        },
+        "import_guests": "Importar Invitados"
     },
     "event_settings": {
         "title": "Ajustes del Evento",
@@ -261,7 +262,35 @@
         "title": "Importar Invitados",
         "mapping": "Mapping",
         "importing": "Importando",
-        "results": "Resultados"
+        "results": "Resultados",
+        "file_step_title": "Archivo",
+        "select_file_description": "Selecciona un archivo CSV o Excel (.xlsx) para importar invitados.",
+        "choose_file": "Elegir Archivo",
+        "header_row": "Fila de Encabezado",
+        "start_row": "Fila Inicial de Datos",
+        "row_prefix": "Fila {}",
+        "file_read_error": "Error de lectura de archivo: {}",
+        "no_data_found": "No se encontraron datos en el archivo.",
+        "map_columns_description": "Asigna las columnas de tu archivo a los campos de la app.",
+        "ignore": "Ignorar",
+        "importing_progress": "Importando... {}%",
+        "import_completed": "Importación completada!",
+        "guests_added": "Invitados añadidos: {}",
+        "guests_failed": "Invitados fallidos: {}",
+        "success_errors": "Éxito: {} | Errores: {}",
+        "all_success": "¡Todos los invitados fueron importados con éxito!",
+        "back_to_dashboard": "Volver al Dashboard",
+        "some_failed": "Algunos invitados no se importaron. Puedes corregirlos y reintentar.",
+        "unknown_error": "Error desconocido",
+        "save_retry": "Guardar y Reintentar",
+        "fix_data": "Corregir Datos",
+        "name_missing_error": "Falta Nombre o Apellido",
+        "mapping_required_error": "Debes asignar al menos Nombre y Apellido",
+        "select_file_error": "Selecciona un archivo",
+        "import_button": "Importar",
+        "next_button": "Siguiente",
+        "cancel_button": "Cancelar",
+        "back_button": "Atrás"
     },
     "export": {
         "title": "Exportar Datos del Evento",
@@ -446,6 +475,8 @@
         "unknown_time": "Desconocido"
     },
     "notifications_service": {
+        "sync_title": "Sincronización",
+        "sync_message": "Se actualizaron {} elementos.",
         "sync_completed_title": "Sincronización completada",
         "sync_completed_message": "Todas las notificaciones se han sincronizado con éxito.",
         "sync_error_title": "Error de sincronización",
@@ -606,7 +637,14 @@
         "max_drinks_hint": "Ej: 5",
         "create_event": "Crear Evento",
         "select_date": "Seleccionar fecha",
-        "select_time": "Seleccionar hora"
+        "select_time": "Seleccionar hora",
+        "select_location": "Seleccionar Ubicación",
+        "confirm_location": "Confirmar Ubicación",
+        "location_selected_on_map": "Ubicación seleccionada en el mapa",
+        "search_bar": "Bar",
+        "search_club": "Club",
+        "search_restaurant": "Restaurante",
+        "search_pub": "Pub"
     },
     "history": {
         "title": "Historial de Estados",
@@ -637,7 +675,9 @@
         "title": "Transacciones",
         "show_all": "Mostrar todo",
         "empty": "Ninguna transacción encontrada.",
+        "food_label": "COMIDA",
         "total": "TOTAL",
+        "total_label": "Total: ",
         "delete_title": "Eliminar Transacción",
         "delete_confirm": "¿Estás seguro de que quieres eliminar esta transacción?",
         "cancel": "Cancelar",
@@ -646,7 +686,25 @@
         "edit_title": "Editar Transacción",
         "amount_label": "Importe",
         "description_label": "Descripción",
-        "save": "Guardar"
+        "save": "Guardar",
+        "subscribed": "Subgrupo:",
+        "view_transactions": "Ver lista de transacciones",
+        "details_title": "DETALLES",
+        "name_label": "NOMBRE",
+        "surname_label": "APELLIDO",
+        "age_label": "EDAD",
+        "contact_title": "CONTACTO",
+        "contact_button": "CONTACTAR",
+        "no_contact": "Ningún contacto",
+        "additional_info": "INFORMACIÓN ADICIONAL",
+        "fiscal_code": "CÓDIGO FISCAL",
+        "group": "Grupo:",
+        "address": "Dirección:",
+        "invited_by": "Invitado por:",
+        "participation_status": "ESTADO DE PARTICIPACIÓN",
+        "view_status_history": "Ver historial de estados",
+        "reports_area": "Área de Reportes",
+        "add_report": "Añadir Reporte"
     },
     "event_selection": {
         "subtitle": "Seleccionar Evento",
@@ -686,7 +744,11 @@
         "participation_status": "ESTADO DE PARTICIPACIÓN",
         "view_status_history": "Ver historial de estados",
         "reports_area": "Área de Reportes",
-        "add_report": "Añadir Reporte"
+        "add_report": "Añadir Reporte",
+        "no_reports": "Ningún reporte presente",
+        "call_user": "Llamar",
+        "email_user": "Enviar Email",
+        "subgroup": "Subgrupo:"
     },
     "staff_profile": {
         "contact_details": "Detalles de Contacto",

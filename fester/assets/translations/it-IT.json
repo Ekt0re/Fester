@@ -492,7 +492,9 @@
         "sync_completed_title": "Sincronizzazione completata",
         "sync_completed_message": "Tutte le notifiche sono state sincronizzate con successo.",
         "sync_error_title": "Errore di sincronizzazione",
-        "sync_error_message": "Si è verificato un errore durante la sincronizzazione delle notifiche. Riprova più tardi."
+        "sync_error_message": "Si è verificato un errore durante la sincronizzazione delle notifiche. Riprova più tardi.",
+        "sync_title": "Sincronizzazione",
+        "sync_message": "Aggiornati {} elementi."
     },
     "qr": {
         "title": "Controllo Accessi",

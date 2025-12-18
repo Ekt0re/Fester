@@ -17,7 +17,8 @@ class ParticipationService {
             person:person_id(*),
             status:status_id(name, description, is_inside),
             role:role_id(name, description),
-            invited_by_person:invited_by(first_name, last_name)
+            invited_by_person:invited_by(first_name, last_name),
+            current_area:current_area_id(id, name)
           ''')
           .eq('event_id', eventId)
           .order('created_at', ascending: false);
@@ -37,7 +38,8 @@ class ParticipationService {
               .select('''
                 *,
                 person:person_id(*),
-                role:role_id(*)
+                role:role_id(*),
+                current_area:current_area_id(id, name)
               ''')
               .eq('id', participationId)
               .maybeSingle();

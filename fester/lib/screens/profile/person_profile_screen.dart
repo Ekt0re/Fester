@@ -645,6 +645,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     dynamic gruppo,
     String? invitedById,
     String? invitedByName,
+    String? currentAreaName,
   ) {
     // Check if there's any data to display
     final hasData =
@@ -652,7 +653,8 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
         (indirizzo != null && indirizzo.isNotEmpty) ||
         (sottogruppo != null) ||
         (gruppo != null) ||
-        (invitedByName != null && invitedByName.isNotEmpty);
+        (invitedByName != null && invitedByName.isNotEmpty) ||
+        (currentAreaName != null);
 
     if (!hasData) {
       return const SizedBox.shrink(); // Return empty widget if no data
@@ -670,6 +672,27 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
             style: _headerStyle(theme),
           ),
           const SizedBox(height: 12),
+          if (currentAreaName != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                children: [
+                  Text(
+                    'Area Attuale: ',
+                    style: _labelStyle(theme).copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  Text(
+                    currentAreaName,
+                    style: _valueStyle(
+                      theme,
+                    ).copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
           if (codiceFiscale != null && codiceFiscale.isNotEmpty)
             _detailRow('person_profile.fiscal_code'.tr(), codiceFiscale, theme),
           if (indirizzo != null && indirizzo.isNotEmpty)
@@ -1011,6 +1034,9 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
     final sottogruppo = person['sottogruppo'];
     final gruppo = person['gruppo'];
 
+    final currentArea = _profileData!['current_area'];
+    final currentAreaName = currentArea?['name'] as String?;
+
     // Get invited_by information
     final invitedById = _profileData!['invited_by'] as String?;
     String? invitedByName;
@@ -1102,6 +1128,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                                   gruppo,
                                   invitedById,
                                   invitedByName,
+                                  currentAreaName,
                                 ),
                                 const SizedBox(height: 24),
                                 _buildParticipationStatus(
@@ -1168,6 +1195,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                   gruppo,
                   invitedById,
                   invitedByName,
+                  currentAreaName,
                 ),
                 const SizedBox(height: 16),
                 _buildParticipationStatus(theme, colorScheme, statusId),

@@ -202,7 +202,8 @@
         "time": {
             "now": "À l'instant",
             "minutes_ago": " min"
-        }
+        },
+        "import_guests": "Importer Invités"
     },
     "event_settings": {
         "title": "Paramètres de l'Événement",
@@ -261,7 +262,35 @@
         "title": "Importer les Invités",
         "mapping": "Mapping",
         "importing": "Importation",
-        "results": "Résultats"
+        "results": "Résultats",
+        "file_step_title": "Fichier",
+        "select_file_description": "Sélectionnez un fichier CSV ou Excel (.xlsx) pour importer des invités.",
+        "choose_file": "Choisir Fichier",
+        "header_row": "Ligne d'En-tête",
+        "start_row": "Ligne de Début des Données",
+        "row_prefix": "Ligne {}",
+        "file_read_error": "Erreur de lecture du fichier : {}",
+        "no_data_found": "Aucune donnée trouvée dans le fichier.",
+        "map_columns_description": "Mappez les colonnes de votre fichier aux champs de l'app.",
+        "ignore": "Ignorer",
+        "importing_progress": "Importation... {}%",
+        "import_completed": "Importation terminée !",
+        "guests_added": "Invités ajoutés : {}",
+        "guests_failed": "Invités échoués : {}",
+        "success_errors": "Succès : {} | Erreurs : {}",
+        "all_success": "Tous les invités ont été importés avec succès !",
+        "back_to_dashboard": "Retour au Tableau de Bord",
+        "some_failed": "Certains invités n'ont pas été importés. Vous pouvez les corriger et réessayer.",
+        "unknown_error": "Erreur inconnue",
+        "save_retry": "Enregistrer et Réessayer",
+        "fix_data": "Corriger Données",
+        "name_missing_error": "Nom ou Prénom manquant",
+        "mapping_required_error": "Vous devez mapper au moins le Nom et le Prénom",
+        "select_file_error": "Sélectionnez un fichier",
+        "import_button": "Importer",
+        "next_button": "Suivant",
+        "cancel_button": "Annuler",
+        "back_button": "Retour"
     },
     "export": {
         "title": "Exporter les Données de l'Événement",
@@ -446,6 +475,8 @@
         "unknown_time": "Inconnu"
     },
     "notifications_service": {
+        "sync_title": "Synchronisation",
+        "sync_message": "{} éléments mis à jour.",
         "sync_completed_title": "Synchronisation terminée",
         "sync_completed_message": "Toutes les notifications ont été synchronisées avec succès.",
         "sync_error_title": "Erreur de synchronisation",
@@ -606,7 +637,14 @@
         "max_drinks_hint": "Ex : 5",
         "create_event": "Créer l'Événement",
         "select_date": "Sélectionner la date",
-        "select_time": "Sélectionner l'heure"
+        "select_time": "Sélectionner l'heure",
+        "select_location": "Sélectionner Lieu",
+        "confirm_location": "Confirmer Lieu",
+        "location_selected_on_map": "Lieu sélectionné sur la carte",
+        "search_bar": "Bar",
+        "search_club": "Club",
+        "search_restaurant": "Restaurant",
+        "search_pub": "Pub"
     },
     "history": {
         "title": "Historique des Statuts",
@@ -637,7 +675,9 @@
         "title": "Transactions",
         "show_all": "Tout afficher",
         "empty": "Aucune transaction trouvée.",
+        "food_label": "NOURRITURE",
         "total": "TOTAL",
+        "total_label": "Total : ",
         "delete_title": "Supprimer la Transaction",
         "delete_confirm": "Êtes-vous sûr de vouloir supprimer cette transaction ?",
         "cancel": "Annuler",
@@ -646,7 +686,25 @@
         "edit_title": "Modifier la Transaction",
         "amount_label": "Montant",
         "description_label": "Description",
-        "save": "Enregistrer"
+        "save": "Enregistrer",
+        "subscribed": "Sous-groupe :",
+        "view_transactions": "Voir la liste des transactions",
+        "details_title": "DÉTAILS",
+        "name_label": "PRÉNOM",
+        "surname_label": "NOM",
+        "age_label": "ÂGE",
+        "contact_title": "CONTACT",
+        "contact_button": "CONTACTER",
+        "no_contact": "Aucun contact",
+        "additional_info": "INFORMATIONS SUPPLÉMENTAIRES",
+        "fiscal_code": "CODE FISCAL",
+        "group": "Groupe :",
+        "address": "Adresse :",
+        "invited_by": "Invité par :",
+        "participation_status": "STATUT DE PARTICIPATION",
+        "view_status_history": "Voir l'historique des statuts",
+        "reports_area": "Zone de Signalements",
+        "add_report": "Ajouter un Signalement"
     },
     "event_selection": {
         "subtitle": "Sélectionner l'Événement",
@@ -686,7 +744,11 @@
         "participation_status": "STATUT DE PARTICIPATION",
         "view_status_history": "Voir l'historique des statuts",
         "reports_area": "Zone de Signalements",
-        "add_report": "Ajouter un Signalement"
+        "add_report": "Ajouter un Signalement",
+        "no_reports": "Aucun signalement présent",
+        "call_user": "Appeler",
+        "email_user": "Envoyer Email",
+        "subgroup": "Sous-groupe :"
     },
     "staff_profile": {
         "contact_details": "Détails de Contact",

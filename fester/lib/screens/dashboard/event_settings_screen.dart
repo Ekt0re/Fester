@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/supabase/event_service.dart';
+import '../../services/supabase/people_counter_service.dart';
 import '../create_event/location_selection_screen.dart';
 import 'package:latlong2/latlong.dart';
 import '../../utils/location_helper.dart';
@@ -36,6 +37,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
   bool _allowGuests = true;
   bool _lateEntryAllowed = true;
   bool _idCheckRequired = false;
+  bool _specificPeopleCounting = false; // New state
   DateTime? _startAt;
   DateTime? _endAt;
 
@@ -84,6 +86,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
         _allowGuests = response['allow_guests'] ?? true;
         _lateEntryAllowed = response['late_entry_allowed'] ?? true;
         _idCheckRequired = response['id_check_required'] ?? false;
+        _specificPeopleCounting = response['specific_people_counting'] ?? false;
 
         if (response['start_at'] != null) {
           _startAt = DateTime.parse(response['start_at']);
@@ -129,6 +132,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
         'allow_guests': _allowGuests,
         'late_entry_allowed': _lateEntryAllowed,
         'id_check_required': _idCheckRequired,
+        'specific_people_counting': _specificPeopleCounting,
         'start_at': _startAt?.toIso8601String(),
         'end_at': _endAt?.toIso8601String(),
       };
@@ -324,6 +328,15 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
               value: _lateEntryAllowed,
               onChanged: (val) => setState(() => _lateEntryAllowed = val),
             ),
+            const SizedBox(height: 8),
+            const SizedBox(height: 8),
+            _buildSwitchTile(
+              theme: theme,
+              title: 'Conteggio Persone Specifico',
+              subtitle: 'Attiva il conteggio nominativo per aree',
+              value: _specificPeopleCounting,
+              onChanged: _onSpecificPeopleCountingChanged,
+            ),
             const SizedBox(height: 32),
 
             _buildSectionTitle(theme, 'event_settings.danger_zone'.tr()),
@@ -452,6 +465,69 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _onSpecificPeopleCountingChanged(bool val) async {
+    // Determine if we are disabling or enabling, but usually reset is relevant for both or primarily when switching modes?
+    // User said: "appear popup when activating / deactivating... ask if desired to reset current state".
+    // "If pressed yes, delete counts etc and associated people".
+
+    final shouldReset = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              "Reset Conteggi?",
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+            ),
+            content: const Text(
+              "Vuoi resettare lo stato attuale del conteggio? \n\n"
+              "Se selezioni 'Sì', tutti i contatori verranno azzerati e le persone verranno rimosse dalle aree.\n"
+              "Le aree stesse NON verranno eliminate.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false), // No reset
+                child: const Text("No, mantieni"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true), // Yes reset
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("Sì, resetta tutto"),
+              ),
+            ],
+          ),
+    );
+
+    if (shouldReset == true) {
+      // Perform reset
+      try {
+        // We need an instance of PeopleCounterService.
+        // It's not instantiated in this class yet.
+        // Assuming we can instantiate it on the fly or add it to state.
+        final peopleCounterService = PeopleCounterService();
+        await peopleCounterService.resetEventCounts(widget.eventId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Conteggi resettati con successo")),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Errore durante il reset: $e")),
+          );
+        }
+      }
+    }
+
+    // Update the setting state regardless of reset choice (unless we want to cancel toggle? assumed "apply toggle")
+    if (mounted) {
+      setState(() => _specificPeopleCounting = val);
+    }
   }
 
   Widget _buildSwitchTile({

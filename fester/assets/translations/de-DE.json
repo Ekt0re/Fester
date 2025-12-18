@@ -202,7 +202,8 @@
         "time": {
             "now": "Jetzt",
             "minutes_ago": " vor Min."
-        }
+        },
+        "import_guests": "Gäste importieren"
     },
     "event_settings": {
         "title": "Event-Einstellungen",
@@ -261,7 +262,35 @@
         "title": "Gäste importieren",
         "mapping": "Mapping",
         "importing": "Importieren",
-        "results": "Ergebnisse"
+        "results": "Ergebnisse",
+        "file_step_title": "Datei",
+        "select_file_description": "Wählen Sie eine CSV- oder Excel-Datei (.xlsx) zum Importieren von Gästen.",
+        "choose_file": "Datei wählen",
+        "header_row": "Kopfzeile",
+        "start_row": "Daten-Startzeile",
+        "row_prefix": "Zeile {}",
+        "file_read_error": "Dateilesefehler: {}",
+        "no_data_found": "Keine Daten in der Datei gefunden.",
+        "map_columns_description": "Ordnen Sie Ihre Dateispalten den App-Feldern zu.",
+        "ignore": "Ignorieren",
+        "importing_progress": "Importiere... {}%",
+        "import_completed": "Import abgeschlossen!",
+        "guests_added": "Gäste hinzugefügt: {}",
+        "guests_failed": "Gäste fehlgeschlagen: {}",
+        "success_errors": "Erfolg: {} | Fehler: {}",
+        "all_success": "Alle Gäste wurden erfolgreich importiert!",
+        "back_to_dashboard": "Zurück zum Dashboard",
+        "some_failed": "Einige Gäste konnten nicht importiert werden. Sie können sie korrigieren und erneut versuchen.",
+        "unknown_error": "Unbekannter Fehler",
+        "save_retry": "Speichern und wiederholen",
+        "fix_data": "Daten korrigieren",
+        "name_missing_error": "Vorname oder Nachname fehlt",
+        "mapping_required_error": "Sie müssen mindestens Vorname und Nachname zuordnen",
+        "select_file_error": "Wählen Sie eine Datei",
+        "import_button": "Importieren",
+        "next_button": "Weiter",
+        "cancel_button": "Abbrechen",
+        "back_button": "Zurück"
     },
     "export": {
         "title": "Event-Daten exportieren",
@@ -446,6 +475,8 @@
         "unknown_time": "Unbekannt"
     },
     "notifications_service": {
+        "sync_title": "Synchronisierung",
+        "sync_message": "{} Elemente aktualisiert.",
         "sync_completed_title": "Synchronisierung abgeschlossen",
         "sync_completed_message": "Alle Benachrichtigungen wurden erfolgreich synchronisiert.",
         "sync_error_title": "Synchronisierungsfehler",
@@ -606,7 +637,14 @@
         "max_drinks_hint": "z.B.: 5",
         "create_event": "Event erstellen",
         "select_date": "Datum auswählen",
-        "select_time": "Zeit auswählen"
+        "select_time": "Zeit auswählen",
+        "select_location": "Ort auswählen",
+        "confirm_location": "Ort bestätigen",
+        "location_selected_on_map": "Auf der Karte ausgewählter Ort",
+        "search_bar": "Bar",
+        "search_club": "Club",
+        "search_restaurant": "Restaurant",
+        "search_pub": "Pub"
     },
     "history": {
         "title": "Statusverlauf",
@@ -637,7 +675,9 @@
         "title": "Transaktionen",
         "show_all": "Alles anzeigen",
         "empty": "Keine Transaktionen gefunden.",
+        "food_label": "ESSEN",
         "total": "GESAMT",
+        "total_label": "Gesamt: ",
         "delete_title": "Transaktion löschen",
         "delete_confirm": "Bist du sicher, dass du diese Transaktion löschen möchtest?",
         "cancel": "Abbrechen",
@@ -646,7 +686,25 @@
         "edit_title": "Transaktion bearbeiten",
         "amount_label": "Betrag",
         "description_label": "Beschreibung",
-        "save": "Speichern"
+        "save": "Speichern",
+        "subscribed": "Untergruppe:",
+        "view_transactions": "Transaktionsliste anzeigen",
+        "details_title": "DETAILS",
+        "name_label": "VORNAME",
+        "surname_label": "NACHNAME",
+        "age_label": "ALTER",
+        "contact_title": "KONTAKT",
+        "contact_button": "KONTAKTIEREN",
+        "no_contact": "Kein Kontakt",
+        "additional_info": "ZUSÄTZLICHE INFO",
+        "fiscal_code": "STEUERNUMMER",
+        "group": "Gruppe:",
+        "address": "Adresse:",
+        "invited_by": "Eingeladen von:",
+        "participation_status": "TEILNAHMESTATUS",
+        "view_status_history": "Statusverlauf anzeigen",
+        "reports_area": "Meldungsbereich",
+        "add_report": "Meldung hinzufügen"
     },
     "event_selection": {
         "subtitle": "Event auswählen",
@@ -686,7 +744,11 @@
         "participation_status": "TEILNAHMESTATUS",
         "view_status_history": "Statusverlauf anzeigen",
         "reports_area": "Meldungsbereich",
-        "add_report": "Meldung hinzufügen"
+        "add_report": "Meldung hinzufügen",
+        "no_reports": "Keine Meldungen vorhanden",
+        "call_user": "Anrufen",
+        "email_user": "E-Mail senden",
+        "subgroup": "Untergruppe:"
     },
     "staff_profile": {
         "contact_details": "Kontaktdetails",

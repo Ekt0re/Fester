@@ -6,9 +6,11 @@ class Participation {
   final int statusId;
   final int? roleId;
   final String? invitedBy;
+  final String? currentAreaId; // New field
   final DateTime createdAt;
   final DateTime? updatedAt;
   final Map<String, dynamic>? person;
+  final Map<String, dynamic>? currentArea; // New field for joined data
 
   Participation({
     required this.id,
@@ -17,9 +19,11 @@ class Participation {
     required this.statusId,
     this.roleId,
     this.invitedBy,
+    this.currentAreaId,
     required this.createdAt,
     this.updatedAt,
     this.person,
+    this.currentArea,
   });
 
   factory Participation.fromJson(Map<String, dynamic> json) {
@@ -30,12 +34,14 @@ class Participation {
       statusId: json['status_id'] as int,
       roleId: json['role_id'] as int?,
       invitedBy: json['invited_by'] as String?,
+      currentAreaId: json['current_area_id'] as String?,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt:
           json['updated_at'] != null
               ? DateTime.parse(json['updated_at'])
               : null,
       person: json['person'] as Map<String, dynamic>?,
+      currentArea: json['current_area'] as Map<String, dynamic>?,
     );
   }
 
@@ -47,6 +53,7 @@ class Participation {
       'status_id': statusId,
       'role_id': roleId,
       'invited_by': invitedBy,
+      'current_area_id': currentAreaId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };

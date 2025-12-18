@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/supabase/models/event_area.dart';
 import '../../services/supabase/people_counter_service.dart';
 import '../../theme/app_theme.dart';
+import 'widgets/people_search_sheet.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PeopleCounterScreen extends StatefulWidget {
   final String eventId;
@@ -18,11 +20,30 @@ class PeopleCounterScreen extends StatefulWidget {
 class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
   final PeopleCounterService _service = PeopleCounterService();
   late Stream<List<EventArea>> _areasStream;
+  bool _specificPeopleCounting = false;
 
   @override
   void initState() {
     super.initState();
     _refreshStream();
+    _fetchSettings();
+  }
+
+  Future<void> _fetchSettings() async {
+    try {
+      final response =
+          await Supabase.instance.client
+              .from('event_settings')
+              .select('specific_people_counting')
+              .eq('event_id', widget.eventId)
+              .maybeSingle();
+      if (response != null && mounted) {
+        setState(() {
+          _specificPeopleCounting =
+              response['specific_people_counting'] ?? false;
+        });
+      }
+    } catch (_) {}
   }
 
   void _refreshStream() {
@@ -224,7 +245,7 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     _buildControlButton(
                       icon: Icons.remove,
                       color: theme.colorScheme.error,
-                      onTap: () => _updateCount(area.id, -1),
+                      onTap: () => _handleCountChange(area, -1),
                     ),
                     Expanded(
                       child: Text(
@@ -240,7 +261,7 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     _buildControlButton(
                       icon: Icons.add,
                       color: theme.colorScheme.secondary,
-                      onTap: () => _updateCount(area.id, 1),
+                      onTap: () => _handleCountChange(area, 1),
                     ),
                   ],
                 ),
@@ -274,6 +295,138 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
         ),
       ),
     );
+  }
+
+  void _handleCountChange(EventArea area, int delta) {
+    if (_specificPeopleCounting) {
+      if (delta > 0) {
+        _showAddPersonSheet(area);
+      } else {
+        _showRemovePersonSheet(area);
+      }
+    } else {
+      _updateCount(area.id, delta);
+    }
+  }
+
+  void _showAddPersonSheet(EventArea area) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => PeopleSearchSheet(
+            eventId: widget.eventId,
+            excludePeopleInAreas:
+                false, // Allow adding even if they are in another area (it will move them)
+            excludePeopleInSpecificAreaId:
+                area.id, // Exclude people already in THIS area
+            // Logic: If user clicks +, they want to add someone TO this area.
+            // They might be in another area or no area.
+            // Let's allow fetching anyone. filtering/moving logic is handled by service.
+          ),
+    ).then((participationId) {
+      if (participationId != null && participationId is String) {
+        _movePersonToArea(participationId, area.id);
+      }
+    });
+  }
+
+  void _showRemovePersonSheet(EventArea area) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => PeopleSearchSheet(
+            eventId: widget.eventId,
+            filterAreaId: area.id, // Only show people currently in this area
+          ),
+    ).then((participationId) {
+      if (participationId != null && participationId is String) {
+        // Remove = move to null area? Or just remove from this area?
+        // Since structure tracks current_area_id, moving to null means "Exit Area".
+        // We need a clear "Exit" or "Null" area ID concept or pass null.
+        // DB column is nullable.
+        // BUT movePersonToArea logic requires targetAreaId.
+        // If we want to support "Exit", the service needs to support null.
+        // Let's check service. TargetAreaId is String (required).
+        // I should update service to allow nullable targetAreaId OR handle it here by passing a magic value? No.
+        // I need to update service to allow nullable targetAreaId to support "Exit".
+        // OR, users just move people to "Outside"? No "Outside" is a specific status usually.
+        // If a person is in an area, and we remove them, they go to limbo (no area).
+
+        // Let's assume for now removing just decrements count but if specific is ON, we must update the person record.
+        // I will assume for now I cannot simply pass null if it's required.
+        // I will temporarily show a "Not supported" or handle it if I update service.
+        // I'll update the logic to support removal if I can.
+        // WAIT: Review plan. "Minus button opens list of people in area to remove".
+        // So I need to support "Remove from Area".
+        // I will update service signature in next step or use a workaround?
+        // Actually, I can quickly update service signature to String? targetAreaId.
+        // But I already wrote it as required.
+        // Let's assume for now we only support ADDING/MOVING.
+        // Or: "Remove" implies moving to "Outside"? No.
+        // Let's just create a special "Exit" helper in service or make targetAreaId nullable.
+        // I'll make targetAreaId nullable in service in a moment.
+        // For now I'll call a hypothetical clearArea method or just wait.
+        // Actually, I'll update the Service in the same turn if possible? No, file lock.
+
+        // I'll use a local helper `_removePersonFromArea(participationId, areaId)` that calls service appropriately.
+        // I will update service in next step to support null area.
+        _removePersonFromArea(participationId, area.id);
+      }
+    });
+  }
+
+  Future<void> _movePersonToArea(
+    String participationId,
+    String targetAreaId,
+  ) async {
+    try {
+      await _service.movePersonToAreaSafe(
+        participationId: participationId,
+        targetAreaId: targetAreaId,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Persona spostata con successo')),
+        );
+        _refreshStream();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+      }
+    }
+  }
+
+  Future<void> _removePersonFromArea(
+    String participationId,
+    String currentAreaId,
+  ) async {
+    try {
+      // Pass null to targetAreaId to indicate removal from any area
+      await _service.movePersonToAreaSafe(
+        participationId: participationId,
+        targetAreaId: null,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Persona rimossa dall\'area')),
+        );
+        _refreshStream();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore durante la rimozione: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _updateCount(String areaId, int delta) async {

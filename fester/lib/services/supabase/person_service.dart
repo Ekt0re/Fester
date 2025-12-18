@@ -25,7 +25,8 @@ class PersonService {
             id,
             first_name,
             last_name
-          )
+          ),
+          current_area:current_area_id (id, name)
         ''')
               .eq('person_id', personId)
               .eq('event_id', eventId)

@@ -202,7 +202,8 @@
         "time": {
             "now": "刚刚",
             "minutes_ago": " 分钟前"
-        }
+        },
+        "import_guests": "导入访客"
     },
     "event_settings": {
         "title": "活动设置",
@@ -261,7 +262,35 @@
         "title": "导入宾客",
         "mapping": "映射",
         "importing": "导入",
-        "results": "结果"
+        "results": "结果",
+        "file_step_title": "文件",
+        "select_file_description": "选择 CSV 或 Excel (.xlsx) 文件以导入访客。",
+        "choose_file": "选择文件",
+        "header_row": "标题行",
+        "start_row": "数据起始行",
+        "row_prefix": "第 {} 行",
+        "file_read_error": "文件读取错误：{}",
+        "no_data_found": "文件中未找到数据。",
+        "map_columns_description": "将文件列映射到应用程序字段。",
+        "ignore": "忽略",
+        "importing_progress": "正在导入... {}%",
+        "import_completed": "导入完成！",
+        "guests_added": "已添加访客：{}",
+        "guests_failed": "失败访客：{}",
+        "success_errors": "成功：{} | 错误：{}",
+        "all_success": "所有访客已成功导入！",
+        "back_to_dashboard": "返回仪表板",
+        "some_failed": "部分访客导入失败。您可以修正并重试。",
+        "unknown_error": "未知错误",
+        "save_retry": "保存并重试",
+        "fix_data": "修正数据",
+        "name_missing_error": "缺少名字或姓氏",
+        "mapping_required_error": "您必须至少映射名字和姓氏",
+        "select_file_error": "选择一个文件",
+        "import_button": "导入",
+        "next_button": "下一步",
+        "cancel_button": "取消",
+        "back_button": "返回"
     },
     "export": {
         "title": "导出活动数据",
@@ -446,6 +475,8 @@
         "unknown_time": "未知"
     },
     "notifications_service": {
+        "sync_title": "同步",
+        "sync_message": "已更新 {} 个项目。",
         "sync_completed_title": "同步完成",
         "sync_completed_message": "所有通知已成功同步。",
         "sync_error_title": "同步错误",
@@ -606,7 +637,14 @@
         "max_drinks_hint": "例如：5",
         "create_event": "创建活动",
         "select_date": "选择日期",
-        "select_time": "选择时间"
+        "select_time": "选择时间",
+        "select_location": "选择地点",
+        "confirm_location": "确认地点",
+        "location_selected_on_map": "地图上选择的地点",
+        "search_bar": "酒吧",
+        "search_club": "夜店",
+        "search_restaurant": "餐厅",
+        "search_pub": "酒馆"
     },
     "history": {
         "title": "状态历史",
@@ -637,7 +675,9 @@
         "title": "交易",
         "show_all": "显示全部",
         "empty": "未找到交易。",
+        "food_label": "食物",
         "total": "总计",
+        "total_label": "总计：",
         "delete_title": "删除交易",
         "delete_confirm": "您确定要删除此交易吗？",
         "cancel": "取消",
@@ -646,7 +686,25 @@
         "edit_title": "编辑交易",
         "amount_label": "金额",
         "description_label": "描述",
-        "save": "保存"
+        "save": "保存",
+        "subscribed": "子组：",
+        "view_transactions": "查看交易列表",
+        "details_title": "详情",
+        "name_label": "名字",
+        "surname_label": "姓氏",
+        "age_label": "年龄",
+        "contact_title": "联系",
+        "contact_button": "联系",
+        "no_contact": "无联系方式",
+        "additional_info": "附加信息",
+        "fiscal_code": "税号",
+        "group": "组：",
+        "address": "地址：",
+        "invited_by": "邀请人：",
+        "participation_status": "参与状态",
+        "view_status_history": "查看状态历史",
+        "reports_area": "报告区域",
+        "add_report": "添加报告"
     },
     "event_selection": {
         "subtitle": "选择活动",
@@ -684,6 +742,10 @@
         "view_status_history": "查看状态历史",
         "reports_area": "报告区域",
         "add_report": "添加报告",
+        "no_reports": "无报告",
+        "call_user": "呼叫",
+        "email_user": "发送邮件",
+        "subgroup": "子组：",
         "address": "地址:",
         "invited_by": "邀请人:",
         "subscribed": "子组:"
