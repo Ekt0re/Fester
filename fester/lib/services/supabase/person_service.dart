@@ -422,8 +422,9 @@ class PersonService {
       for (var part in participations) {
         final person = part['person'];
         if (person == null) continue;
-        if (excludePersonId != null && person['id'] == excludePersonId)
+        if (excludePersonId != null && person['id'] == excludePersonId) {
           continue;
+        }
 
         if (email != null &&
             person['email']?.toString().toLowerCase() == email.toLowerCase()) {

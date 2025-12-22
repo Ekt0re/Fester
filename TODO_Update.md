@@ -2,14 +2,7 @@
 
 
 ## Criticità e Problemi Identificati
-
-
-### 2. Gestione Eventi
-- **Statistiche in tempo reale**: Grafici presenti ma potrebbero needing more granular data
-- **Export dati**: Servizio export esiste ma incompleto e disfunzionale.
-
 ### 3. Gestione Ospiti
-- **Validazione duplicati**: Non presente in tempo reale
 - **QR Code generation**: Manca il flusso completo di invio del qr code
 
 ### 4. Gestione Staff

@@ -273,6 +273,35 @@ CREATE INDEX idx_event_settings_event ON event_settings(event_id);
 CREATE INDEX idx_event_settings_dates ON event_settings(start_at, end_at);
 
 -- ============================================
+-- CONFIGURAZIONE SMTP EVENTI
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS event_smtp_config (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    event_id UUID NOT NULL REFERENCES event(id) ON DELETE CASCADE,
+    host TEXT NOT NULL,
+    port INTEGER NOT NULL DEFAULT 587,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    sender_name TEXT NOT NULL,
+    sender_email TEXT NOT NULL,
+    ssl BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(event_id)
+);
+
+COMMENT ON TABLE event_smtp_config IS 'Credenziali SMTP per l invio email dell evento';
+CREATE INDEX idx_event_smtp_config_event ON event_smtp_config(event_id);
+
+-- GRANT per tabella SMTP
+ALTER TABLE event_smtp_config OWNER TO postgres;
+GRANT ALL ON TABLE event_smtp_config TO postgres;
+GRANT ALL ON TABLE event_smtp_config TO authenticated;
+GRANT ALL ON TABLE event_smtp_config TO service_role;
+
+
+-- ============================================
 -- MENU
 -- ============================================
 
@@ -646,6 +675,12 @@ CREATE TRIGGER update_event_staff_updated_at
     BEFORE UPDATE ON event_staff
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_event_smtp_config_updated_at
+    BEFORE UPDATE ON event_smtp_config
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 
 CREATE OR REPLACE FUNCTION update_updated_at_column_staff_user()
 RETURNS TRIGGER
@@ -1585,6 +1620,53 @@ CREATE POLICY person_select_by_staff ON person FOR SELECT TO authenticated USING
 -- Enable RLS
 ALTER TABLE event_staff ENABLE ROW LEVEL SECURITY;
 ALTER TABLE staff_user ENABLE ROW LEVEL SECURITY;
+ALTER TABLE event_smtp_config ENABLE ROW LEVEL SECURITY;
+
+-- --------------------------------------------------------
+-- EVENT_SMTP_CONFIG POLICIES
+-- --------------------------------------------------------
+
+DROP POLICY IF EXISTS "Admins can view SMTP config" ON public.event_smtp_config;
+DROP POLICY IF EXISTS "Admins can insert SMTP config" ON public.event_smtp_config;
+DROP POLICY IF EXISTS "Admins can update SMTP config" ON public.event_smtp_config;
+DROP POLICY IF EXISTS "Admins can delete SMTP config" ON public.event_smtp_config;
+
+CREATE POLICY "Admins can view SMTP config" ON public.event_smtp_config
+    FOR SELECT
+    TO authenticated
+    USING (
+        check_is_event_admin_or_staff3(event_id)
+        OR
+        check_is_event_creator(event_id)
+    );
+
+CREATE POLICY "Admins can insert SMTP config" ON public.event_smtp_config
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        check_is_event_admin_or_staff3(event_id)
+        OR
+        check_is_event_creator(event_id)
+    );
+
+CREATE POLICY "Admins can update SMTP config" ON public.event_smtp_config
+    FOR UPDATE
+    TO authenticated
+    USING (
+        check_is_event_admin_or_staff3(event_id)
+        OR
+        check_is_event_creator(event_id)
+    );
+
+CREATE POLICY "Admins can delete SMTP config" ON public.event_smtp_config
+    FOR DELETE
+    TO authenticated
+    USING (
+        check_is_event_admin_or_staff3(event_id)
+        OR
+        check_is_event_creator(event_id)
+    );
+
 
 -- Function to check if current user is staff for an event
 -- SECURITY DEFINER allows this function to run with privileges of the creator, 
@@ -1600,6 +1682,30 @@ BEGIN
     WHERE event_id = check_event_id
     AND staff_user_id = auth.uid()
   );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION check_is_event_admin_or_staff3(p_event_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM event_staff es
+        JOIN role r ON es.role_id = r.id
+        WHERE es.event_id = p_event_id
+        AND es.staff_user_id = auth.uid()
+        AND LOWER(r.name) IN ('admin', 'staff3')
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION check_is_event_creator(p_event_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM event
+        WHERE id = p_event_id
+        AND created_by = auth.uid()
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

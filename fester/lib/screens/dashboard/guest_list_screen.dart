@@ -145,6 +145,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
     String participationId,
     int currentStatusId,
   ) async {
+    if (!PermissionService.canCheckIn(_userRole)) return;
     // Logic: confirmed -> checked_in -> inside -> outside -> left -> confirmed (loop or back?)
     // User said: confirmed -> checked_in -> inside -> outside -> left.
     // If left -> turn back (maybe to confirmed or just toggle back?)
@@ -229,6 +230,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
   }
 
   void _showStatusMenu(String participationId, int currentStatusId) {
+    if (!PermissionService.canCheckIn(_userRole)) return;
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -269,6 +271,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
   }
 
   void _showTransactionCreation(String participationId, String type) {
+    if (!PermissionService.canAddTransaction(_userRole)) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -574,7 +577,10 @@ class _GuestListScreenState extends State<GuestListScreen> {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => AddGuestScreen(eventId: widget.eventId),
+                          (context) => AddGuestScreen(
+                            eventId: widget.eventId,
+                            currentUserRole: _userRole,
+                          ),
                     ),
                   );
                   // Reload list if guest was added

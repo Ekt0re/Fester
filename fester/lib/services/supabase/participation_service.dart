@@ -235,4 +235,14 @@ class ParticipationService {
         .order('created_at', ascending: false)
         .map((data) => List<Map<String, dynamic>>.from(data));
   }
+
+  /// Delete participation
+  Future<void> deleteParticipation(String participationId) async {
+    try {
+      await _supabase.from('participation').delete().eq('id', participationId);
+    } catch (e) {
+      LoggerService.error('Error deleting participation', tag: _tag, error: e);
+      rethrow;
+    }
+  }
 }

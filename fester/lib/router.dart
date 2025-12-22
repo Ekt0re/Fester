@@ -17,6 +17,8 @@ import 'screens/dashboard/global_search_screen.dart';
 import 'screens/dashboard/notifications_screen.dart';
 import 'screens/dashboard/event_statistics_screen.dart';
 import 'screens/dashboard/qr_scanner_screen.dart';
+import 'screens/dashboard/communications_screen.dart';
+import 'screens/dashboard/smtp_config_screen.dart';
 import 'screens/invite_bridge_screen.dart';
 import 'services/supabase/deep_link_handler.dart';
 
@@ -163,6 +165,26 @@ final GoRouter router = GoRouter(
             final eventId = state.pathParameters['eventId']!;
             final role = state.extra as String?;
             return QRScannerScreen(eventId: eventId, currentUserRole: role);
+          },
+        ),
+        GoRoute(
+          path: 'communications',
+          name: 'event-communications',
+          builder: (context, state) {
+            final eventId = state.pathParameters['eventId']!;
+            final role = state.extra as String?;
+            return CommunicationsScreen(
+              eventId: eventId,
+              currentUserRole: role,
+            );
+          },
+        ),
+        GoRoute(
+          path: 'smtp-config',
+          name: 'event-smtp-config',
+          builder: (context, state) {
+            final eventId = state.pathParameters['eventId']!;
+            return SmtpConfigScreen(eventId: eventId);
           },
         ),
       ],

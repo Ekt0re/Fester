@@ -1256,6 +1256,7 @@ class _PersonProfileScreenState extends State<PersonProfileScreen> {
                             eventId: widget.eventId,
                             personId: person['id'],
                             initialData: initialData,
+                            currentUserRole: widget.currentUserRole,
                           ),
                     ),
                   );

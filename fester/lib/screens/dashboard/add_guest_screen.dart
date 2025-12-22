@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -51,6 +52,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
   int _selectedRoleId = 2; // Default fallback
   int _selectedStatusId = 1; // Default fallback
   bool _isLoading = true;
+  Timer? _debounceTimer;
+  String? _duplicateWarning;
 
   List<Map<String, dynamic>> _roles = [];
   List<Map<String, dynamic>> _statuses = [];
@@ -100,7 +103,50 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     _selectedSottogruppoId = person?['sottogruppo_id'];
     _selectedInvitedById = data?['invited_by'];
 
+    _emailController.addListener(_onContactChanged);
+    _phoneController.addListener(_onContactChanged);
+
     _loadFormData();
+  }
+
+  void _onContactChanged() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _checkDuplicateRealTime();
+    });
+  }
+
+  Future<void> _checkDuplicateRealTime() async {
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (email.isEmpty && phone.isEmpty) {
+      if (mounted) setState(() => _duplicateWarning = null);
+      return;
+    }
+
+    try {
+      final duplicate = await _personService.checkDuplicate(
+        eventId: widget.eventId,
+        email: email.isEmpty ? null : email,
+        phone: phone.isEmpty ? null : phone,
+        excludePersonId: widget.personId,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (duplicate != null) {
+            _duplicateWarning = 'add_guest.duplicate_warning'.tr(
+              args: ['${duplicate['first_name']} ${duplicate['last_name']}'],
+            );
+          } else {
+            _duplicateWarning = null;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking duplicate: $e');
+    }
   }
 
   Future<void> _loadFormData() async {
@@ -197,6 +243,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     _indirizzoController.dispose();
     _localIdController.dispose();
     _invitedBySearchController.dispose();
+    _debounceTimer?.cancel();
+    _emailController.removeListener(_onContactChanged);
+    _phoneController.removeListener(_onContactChanged);
     super.dispose();
   }
 
@@ -219,6 +268,60 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       return (maxId + 1).toString();
     } catch (e) {
       return '1';
+    }
+  }
+
+  Future<void> _deleteGuest() async {
+    final participationId =
+        widget.initialData?['participation_id'] ?? widget.initialData?['id'];
+    if (participationId == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _participationService.deleteParticipation(participationId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('add_guest.delete_success'.tr())),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorDialog.show(
+          context,
+          message: 'add_guest.delete_error'.tr(),
+          technicalDetails: e.toString(),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmDeleteGuest() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('add_guest.delete_confirm_title'.tr()),
+            content: Text('add_guest.delete_confirm_message'.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('common.cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text('common.confirm'.tr()),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      await _deleteGuest();
     }
   }
 
@@ -749,6 +852,18 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          if (widget.personId != null &&
+              PermissionService.canDelete(widget.currentUserRole))
+            IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                color: theme.colorScheme.onPrimary,
+              ),
+              onPressed: _confirmDeleteGuest,
+              tooltip: 'common.delete'.tr(),
+            ),
+        ],
         centerTitle: true,
       ),
       body:
@@ -827,6 +942,49 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                           icon: Icons.phone_outlined,
                                           keyboardType: TextInputType.phone,
                                         ),
+                                        if (_duplicateWarning != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
+                                              bottom: 8,
+                                            ),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange.shade50,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: Colors.orange.shade200,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.warning_amber_rounded,
+                                                    color:
+                                                        Colors.orange.shade800,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      _duplicateWarning!,
+                                                      style: GoogleFonts.outfit(
+                                                        color:
+                                                            Colors
+                                                                .orange
+                                                                .shade900,
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
                                         const SizedBox(height: 16),
                                         InkWell(
                                           onTap: _selectDate,

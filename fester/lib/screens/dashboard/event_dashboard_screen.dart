@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/animated_settings_icon.dart';
 import '../../services/notification_service.dart';
 import '../../services/notification_scheduler.dart';
+import '../../services/permission_service.dart';
 // Ensure this exists for navigation
 import '../settings/settings_screen.dart';
 import 'event_settings_screen.dart';
@@ -18,8 +19,8 @@ import 'guests_import_screen.dart';
 import '../profile/staff_profile_screen.dart';
 import '../../services/supabase/models/event_staff.dart';
 import 'people_counter_screen.dart';
+import 'communications_screen.dart';
 import '../../utils/location_helper.dart';
-import '../../services/permission_service.dart';
 
 class EventDashboardScreen extends StatefulWidget {
   final String eventId;
@@ -443,6 +444,33 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                           );
                         },
                       ),
+                    if (PermissionService.canManageSmtp(_userRole))
+                      _buildMenuGridItem(
+                        icon: Icons.alternate_email,
+                        label: 'smtp_config.title'.tr(),
+                        color: Colors.blueAccent,
+                        onTap: () {
+                          context.push('/event/${widget.eventId}/smtp-config');
+                        },
+                      ),
+                    if (PermissionService.canEdit(_userRole))
+                      _buildMenuGridItem(
+                        icon: Icons.mail_outline,
+                        label: 'dashboard.communications'.tr(),
+                        color: Colors.teal,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => CommunicationsScreen(
+                                    eventId: widget.eventId,
+                                    currentUserRole: _userRole,
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
                     _buildMenuGridItem(
                       icon: Icons.analytics_outlined,
                       label: 'dashboard.advanced_stats'.tr(),
@@ -743,6 +771,40 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                     ],
                                   ),
                                 ),
+                              if (PermissionService.canManageSmtp(_userRole))
+                                PopupMenuItem(
+                                  value: 'smtp_config',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.alternate_email,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'smtp_config.title'.tr(),
+                                        style: GoogleFonts.outfit(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (PermissionService.canEdit(_userRole))
+                                PopupMenuItem(
+                                  value: 'communications',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.mail_outline,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'dashboard.communications'.tr(),
+                                        style: GoogleFonts.outfit(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               const PopupMenuItem(
                                 value: 'divider',
                                 enabled: false,
@@ -809,6 +871,17 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => PeopleCounterScreen(
+                                      eventId: widget.eventId,
+                                      currentUserRole: _userRole,
+                                    ),
+                              ),
+                            );
+                          } else if (value == 'communications') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => CommunicationsScreen(
                                       eventId: widget.eventId,
                                       currentUserRole: _userRole,
                                     ),

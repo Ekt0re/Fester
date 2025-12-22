@@ -1,0 +1,17 @@
+
+Building Windows application...                                 
+CMake Deprecation Warning at D:/Progetti/Fester 3.0/fester/build/windows/x64/extracted/firebase_cpp_sdk_windows/CMakeLists.txt:17 (cmake_minimum_required):
+  Compatibility with CMake < 3.5 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value or use a ...<max> suffix to tell
+  CMake that the project does not need compatibility with older versions.
+
+
+Nuget.exe not found, trying to download or use cached version.
+Nuget.exe not found, trying to download or use cached version.
+firebase_app.lib(9df1b499e9d93fa7bea97ae713d33ce7_flatbuffers.dir_Release_idl_parser.obj) : error LNK2019: riferimento al simbolo esterno __std_remove_8 non risolto nella funzione "struct f_b_flatbuffers::StructDef * * __cdecl std::_Remove_vectorized<struct f_b_flatbuffers::StructDef *,struct f_b_flatbuffers::StructDef *>(struct f_b_flatbuffers::StructDef * * const,struct f_b_flatbuffers::StructDef * * const,struct f_b_flatbuffers::StructDef * const)" (??$_Remove_vectorized@PEAUStructDef@f_b_flatbuffers@@PEAU12@@std@@YAPEAPEAUStructDef@f_b_flatbuffers@@QEAPEAU12@0QEAU12@@Z) [D:\Progetti\Fester 3.0\fester\build\windows\x64\runner\fester.vcxproj]
+firebase_app.lib(9df1b499e9d93fa7bea97ae713d33ce7_flatbuffers.dir_Release_util.obj) : error LNK2019: riferimento al simbolo esterno __std_find_last_of_trivial_pos_1 non risolto nella funzione "unsigned __int64 __cdecl std::_Find_last_of_pos_vectorized<char,char>(char const * const,unsigned __int64,char const * const,unsigned __int64)" (??$_Find_last_of_pos_vectorized@DD@std@@YA_KQEBD_K01@Z) [D:\Progetti\Fester 3.0\fester\build\windows\x64\runner\fester.vcxproj]
+D:\Progetti\Fester 3.0\fester\build\windows\x64\runner\Release\fester.exe : fatal error LNK1120: 2 esterni non risolti [D:\Progetti\Fester 3.0\fester\build\windows\x64\runner\fester.vcxproj]
+Building Windows application...                                    18,0s
+Build process failed.

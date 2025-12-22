@@ -239,7 +239,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     String participationId,
     int currentStatusId,
   ) async {
-    if (PermissionService.isReadOnly(widget.currentUserRole)) return;
+    if (!PermissionService.canCheckIn(widget.currentUserRole)) return;
     final currentIndex = _statuses.indexWhere(
       (s) => s['id'] == currentStatusId,
     );
@@ -329,7 +329,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 
   void _showStatusMenu(String participationId, int currentStatusId) {
-    if (PermissionService.isReadOnly(widget.currentUserRole)) return;
+    if (!PermissionService.canCheckIn(widget.currentUserRole)) return;
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -370,7 +370,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 
   void _showTransactionCreation(String participationId, String type) {
-    if (PermissionService.isReadOnly(widget.currentUserRole)) return;
+    if (!PermissionService.canAddTransaction(widget.currentUserRole)) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
