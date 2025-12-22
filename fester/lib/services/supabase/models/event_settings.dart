@@ -18,6 +18,7 @@ class EventSettings {
   final Map<String, dynamic>? roleDrinkLimits;
   final Map<String, dynamic>? customSettings;
   final bool isActive;
+  final bool specificPeopleCounting; // New field
   final String createdBy;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -41,6 +42,7 @@ class EventSettings {
     this.roleDrinkLimits,
     this.customSettings,
     this.isActive = true,
+    this.specificPeopleCounting = false, // Default to false
     required this.createdBy,
     required this.createdAt,
     this.updatedAt,
@@ -72,6 +74,8 @@ class EventSettings {
       roleDrinkLimits: json['role_drink_limits'] as Map<String, dynamic>?,
       customSettings: json['custom_settings'] as Map<String, dynamic>?,
       isActive: json['is_active'] as bool? ?? true,
+      specificPeopleCounting:
+          json['specific_people_counting'] as bool? ?? false,
       createdBy: json['created_by'] as String,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt:
@@ -101,6 +105,7 @@ class EventSettings {
       'role_drink_limits': roleDrinkLimits,
       'custom_settings': customSettings,
       'is_active': isActive,
+      'specific_people_counting': specificPeopleCounting,
       'created_by': createdBy,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),

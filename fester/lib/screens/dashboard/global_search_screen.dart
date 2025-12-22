@@ -12,11 +12,17 @@ import '../profile/person_profile_screen.dart';
 import '../profile/staff_profile_screen.dart';
 import 'widgets/guest_card.dart';
 import '../profile/widgets/transaction_creation_sheet.dart';
+import '../../services/permission_service.dart';
 
 class GlobalSearchScreen extends StatefulWidget {
   final String eventId;
+  final String? currentUserRole;
 
-  const GlobalSearchScreen({super.key, required this.eventId});
+  const GlobalSearchScreen({
+    super.key,
+    required this.eventId,
+    this.currentUserRole,
+  });
 
   @override
   State<GlobalSearchScreen> createState() => _GlobalSearchScreenState();
@@ -100,7 +106,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 phone: staff.staff!.phone ?? '',
                 imagePath: staff.staff!.imagePath,
                 type: SearchResultType.staff,
-                roleName: staff.roleName ?? 'Staff',
+                roleName: staff.roleName ?? 'roles.staff'.tr(),
                 originalData: staff,
               ),
             );
@@ -130,7 +136,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 phone: person['phone'] ?? '',
                 imagePath: null,
                 type: SearchResultType.guest,
-                roleName: status?['name'] ?? 'Sconosciuto',
+                roleName: status?['name'] ?? 'common.unknown'.tr(),
                 originalData: p,
               ),
             );
@@ -204,10 +210,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => StaffProfileScreen(
-            eventStaff: eventStaff,
-            eventId: widget.eventId,
-          ),
+          builder:
+              (context) => StaffProfileScreen(
+                eventStaff: eventStaff,
+                eventId: widget.eventId,
+              ),
         ),
       );
     } else {
@@ -221,6 +228,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               (context) => PersonProfileScreen(
                 personId: personId,
                 eventId: widget.eventId,
+                currentUserRole: widget.currentUserRole,
               ),
         ),
       );
@@ -231,6 +239,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     String participationId,
     int currentStatusId,
   ) async {
+    if (!PermissionService.canCheckIn(widget.currentUserRole)) return;
     final currentIndex = _statuses.indexWhere(
       (s) => s['id'] == currentStatusId,
     );
@@ -299,7 +308,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
           phone: oldResult.phone,
           imagePath: oldResult.imagePath,
           type: oldResult.type,
-          roleName: newStatus['name'] ?? 'Sconosciuto',
+          roleName: newStatus['name'] ?? 'common.unknown'.tr(),
           originalData: updatedData,
         );
 
@@ -320,6 +329,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 
   void _showStatusMenu(String participationId, int currentStatusId) {
+    if (!PermissionService.canCheckIn(widget.currentUserRole)) return;
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -360,6 +370,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
   }
 
   void _showTransactionCreation(String participationId, String type) {
+    if (!PermissionService.canAddTransaction(widget.currentUserRole)) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

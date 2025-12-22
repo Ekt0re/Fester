@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../utils/validation_utils.dart';
 import 'register_step2_page.dart';
 
 class RegisterStep1Page extends StatefulWidget {
@@ -56,8 +57,8 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
     if (!_formKey.currentState!.validate() || _selectedDate == null) {
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Seleziona la data di nascita'),
+          SnackBar(
+            content: Text('register.dob_error'.tr()),
             backgroundColor: Colors.orange,
           ),
         );
@@ -104,7 +105,7 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'FESTER 3.0',
+                          'common.app_title'.tr(),
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
@@ -136,12 +137,12 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                             labelText: 'register.first_name_label'.tr(),
                             prefixIcon: const Icon(Icons.person_outline),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'register.first_name_error'.tr();
-                            }
-                            return null;
-                          },
+                          validator:
+                              (value) =>
+                                  FormValidator.validateRequired(
+                                    value,
+                                    'register.first_name_label',
+                                  )?.tr(),
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -151,12 +152,12 @@ class _RegisterStep1PageState extends State<RegisterStep1Page> {
                             labelText: 'register.last_name_label'.tr(),
                             prefixIcon: const Icon(Icons.person_outline),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'register.last_name_error'.tr();
-                            }
-                            return null;
-                          },
+                          validator:
+                              (value) =>
+                                  FormValidator.validateRequired(
+                                    value,
+                                    'register.last_name_label',
+                                  )?.tr(),
                         ),
                         const SizedBox(height: 16),
                         InkWell(

@@ -1,12 +1,13 @@
 // lib/services/event_service.dart
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../logger_service.dart';
 import 'models/event.dart';
 import 'models/event_settings.dart';
 import 'models/event_staff.dart';
 
 class EventService {
+  static const String _tag = 'EventService';
   final SupabaseClient _supabase = Supabase.instance.client;
 
   /// Get all events for current staff_user
@@ -16,7 +17,7 @@ class EventService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
-      debugPrint('[EventService] Getting events for staff_user: $userId');
+      LoggerService.info('Getting events for staff_user: $userId', tag: _tag);
 
       // Simplified query thanks to RLS policies (event_select_unified)
       var query = _supabase.from('event').select();
@@ -27,10 +28,13 @@ class EventService {
 
       final response = await query.order('created_at', ascending: false);
 
-      debugPrint('[EventService] Found ${(response as List).length} events');
+      LoggerService.info(
+        'Found ${(response as List).length} events',
+        tag: _tag,
+      );
       return (response).map((json) => Event.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('[EventService] ERROR: $e');
+      LoggerService.error('Failed to get events', tag: _tag, error: e);
       rethrow;
     }
   }
@@ -252,7 +256,10 @@ class EventService {
   /// Get event staff members
   Future<List<EventStaff>> getEventStaff(String eventId) async {
     try {
-      debugPrint('[DEBUG] getEventStaff: Fetching staff for event $eventId');
+      LoggerService.debug(
+        'getEventStaff: Fetching staff for event $eventId',
+        tag: _tag,
+      );
       final response = await _supabase
           .from('event_staff')
           .select('''
@@ -263,33 +270,31 @@ class EventService {
           .eq('event_id', eventId)
           .order('created_at', ascending: false);
 
-      debugPrint(
-        '[DEBUG] getEventStaff: Received ${(response as List).length} staff members',
+      LoggerService.debug(
+        'getEventStaff: Received ${(response as List).length} staff members',
+        tag: _tag,
       );
 
       final staffList =
           (response).map((json) => EventStaff.fromJson(json)).toList();
 
-      // Debug debugPrint first staff member to verify data
+      // Log first staff member to verify data
       if (staffList.isNotEmpty) {
         final firstStaff = staffList.first;
-        debugPrint('[DEBUG] getEventStaff: Sample staff data:');
-        debugPrint(
-          '  - Name: ${firstStaff.staff?.firstName} ${firstStaff.staff?.lastName}',
-        );
-        debugPrint('  - Email: ${firstStaff.staff?.email}');
-        debugPrint('  - Phone: ${firstStaff.staff?.phone}');
-        debugPrint('  - DOB: ${firstStaff.staff?.dateOfBirth}');
-        debugPrint('  - Image: ${firstStaff.staff?.imagePath}');
-        debugPrint(
-          '  - Role: ${firstStaff.roleName} (ID: ${firstStaff.roleId})',
+        LoggerService.debug(
+          'getEventStaff: Sample - ${firstStaff.staff?.firstName} ${firstStaff.staff?.lastName} (${firstStaff.roleName})',
+          tag: _tag,
         );
       }
 
       return staffList;
     } catch (e, stackTrace) {
-      debugPrint('[ERROR] getEventStaff: $e');
-      debugPrint('[ERROR] Stack trace: $stackTrace');
+      LoggerService.error(
+        'getEventStaff failed',
+        tag: _tag,
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -338,18 +343,26 @@ class EventService {
     required int newRoleId,
   }) async {
     try {
-      debugPrint(
-        '[DEBUG] updateStaffRole: Updating role for user $staffUserId in event $eventId to role $newRoleId',
+      LoggerService.debug(
+        'updateStaffRole: Updating role for user $staffUserId in event $eventId to role $newRoleId',
+        tag: _tag,
       );
       await _supabase
           .from('event_staff')
           .update({'role_id': newRoleId})
           .eq('event_id', eventId)
           .eq('staff_user_id', staffUserId);
-      debugPrint('[DEBUG] updateStaffRole: Role updated successfully');
+      LoggerService.debug(
+        'updateStaffRole: Role updated successfully',
+        tag: _tag,
+      );
     } catch (e, stackTrace) {
-      debugPrint('[ERROR] updateStaffRole: $e');
-      debugPrint('[ERROR] Stack trace: $stackTrace');
+      LoggerService.error(
+        'updateStaffRole failed',
+        tag: _tag,
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }

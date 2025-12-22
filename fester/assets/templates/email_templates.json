@@ -1,0 +1,48 @@
+{
+    "templates": [
+        {
+            "id": "default_ticket",
+            "name": "Biglietto Standard",
+            "description": "Template base per biglietti evento con QR Code",
+            "type": "email",
+            "css": "body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: #ffffff; margin: 0; padding: 20px; } .ticket { max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #16213e 0%, #0f0f23 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); } .header { background: linear-gradient(90deg, #e94560 0%, #ff6b9d 100%); padding: 30px; text-align: center; } .header h1 { margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 2px; } .content { padding: 30px; text-align: center; } .guest-name { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #e94560; } .event-info { margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; } .event-info p { margin: 8px 0; font-size: 16px; } .qr-container { margin: 30px 0; padding: 20px; background: #ffffff; border-radius: 16px; display: inline-block; } .qr-container img { width: 200px; height: 200px; } .footer { padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid rgba(255,255,255,0.1); }",
+            "html": "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Biglietto - {{event_name}}</title><style>{{css}}</style></head><body><div class=\"ticket\"><div class=\"header\"><h1>{{event_name}}</h1></div><div class=\"content\"><div class=\"guest-name\">{{guest_name}}</div><div class=\"event-info\"><p><strong>📅 Data:</strong> {{event_date}}</p><p><strong>📍 Luogo:</strong> {{event_location}}</p></div><div class=\"qr-container\"><img src=\"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{qr_data}}\" alt=\"QR Code\"></div><p style=\"font-size: 14px; color: #888;\">Mostra questo QR Code all'ingresso</p></div><div class=\"footer\"><p>Generato da Fester App</p></div></div></body></html>",
+            "variables": [
+                "event_name",
+                "guest_name",
+                "event_date",
+                "event_location",
+                "qr_data"
+            ]
+        },
+        {
+            "id": "vip_ticket",
+            "name": "Biglietto VIP",
+            "description": "Template premium per ospiti VIP con design dorato",
+            "type": "email",
+            "css": "body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #ffffff; margin: 0; padding: 20px; } .ticket { max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 2px solid #d4af37; } .header { background: linear-gradient(90deg, #d4af37 0%, #f4e4a6 50%, #d4af37 100%); padding: 30px; text-align: center; } .header h1 { margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 2px; color: #1a1a1a; } .vip-badge { display: inline-block; background: #d4af37; color: #1a1a1a; padding: 5px 15px; border-radius: 20px; font-weight: bold; margin-top: 10px; } .content { padding: 30px; text-align: center; } .guest-name { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #d4af37; } .event-info { margin: 20px 0; padding: 20px; background: rgba(212,175,55,0.1); border-radius: 12px; border: 1px solid rgba(212,175,55,0.3); } .event-info p { margin: 8px 0; font-size: 16px; } .qr-container { margin: 30px 0; padding: 20px; background: #ffffff; border-radius: 16px; display: inline-block; border: 3px solid #d4af37; } .qr-container img { width: 200px; height: 200px; } .footer { padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid rgba(212,175,55,0.3); }",
+            "html": "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>VIP - {{event_name}}</title><style>{{css}}</style></head><body><div class=\"ticket\"><div class=\"header\"><h1>{{event_name}}</h1><span class=\"vip-badge\">⭐ VIP ACCESS ⭐</span></div><div class=\"content\"><div class=\"guest-name\">{{guest_name}}</div><div class=\"event-info\"><p><strong>📅 Data:</strong> {{event_date}}</p><p><strong>📍 Luogo:</strong> {{event_location}}</p></div><div class=\"qr-container\"><img src=\"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{qr_data}}\" alt=\"QR Code\"></div><p style=\"font-size: 14px; color: #d4af37;\">Accesso prioritario - Mostra il QR all'ingresso</p></div><div class=\"footer\"><p>Generato da Fester App</p></div></div></body></html>",
+            "variables": [
+                "event_name",
+                "guest_name",
+                "event_date",
+                "event_location",
+                "qr_data"
+            ]
+        },
+        {
+            "id": "simple_notification",
+            "name": "Notifica Semplice",
+            "description": "Template minimale per comunicazioni generiche",
+            "type": "email",
+            "css": "body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; margin: 0; padding: 20px; } .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); } .header { background: #e94560; padding: 20px; text-align: center; } .header h1 { margin: 0; font-size: 24px; color: #ffffff; } .content { padding: 30px; } .content p { line-height: 1.6; } .footer { padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }",
+            "html": "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>{{subject}}</title><style>{{css}}</style></head><body><div class=\"container\"><div class=\"header\"><h1>{{event_name}}</h1></div><div class=\"content\"><p>Ciao <strong>{{guest_name}}</strong>,</p><p>{{message}}</p></div><div class=\"footer\"><p>Fester App</p></div></div></body></html>",
+            "variables": [
+                "event_name",
+                "guest_name",
+                "subject",
+                "message"
+            ]
+        }
+    ]
+}

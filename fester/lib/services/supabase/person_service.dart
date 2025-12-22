@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../logger_service.dart';
 
 class PersonService {
+  static const String _tag = 'PersonService';
   final SupabaseClient _supabase = Supabase.instance.client;
 
   /// Fetches full profile details including participation info
@@ -25,7 +27,8 @@ class PersonService {
             id,
             first_name,
             last_name
-          )
+          ),
+          current_area:current_area_id (id, name)
         ''')
               .eq('person_id', personId)
               .eq('event_id', eventId)
@@ -33,7 +36,8 @@ class PersonService {
 
       return response;
     } catch (e) {
-      throw Exception('Error fetching person profile: $e');
+      LoggerService.error('Error fetching person profile', tag: _tag, error: e);
+      rethrow;
     }
   }
 
@@ -47,7 +51,8 @@ class PersonService {
           .order('first_name');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error fetching group members: $e');
+      LoggerService.error('Error fetching group members', tag: _tag, error: e);
+      rethrow;
     }
   }
 
@@ -61,7 +66,12 @@ class PersonService {
           .order('first_name');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error fetching subgroup members: $e');
+      LoggerService.error(
+        'Error fetching subgroup members',
+        tag: _tag,
+        error: e,
+      );
+      rethrow;
     }
   }
 
@@ -92,7 +102,8 @@ class PersonService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error fetching invited guests: $e');
+      LoggerService.error('Error fetching invited guests', tag: _tag, error: e);
+      rethrow;
     }
   }
 
@@ -113,7 +124,12 @@ class PersonService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error fetching transactions: $e');
+      LoggerService.error(
+        'Error fetching person transactions',
+        tag: _tag,
+        error: e,
+      );
+      rethrow;
     }
   }
 
@@ -123,7 +139,12 @@ class PersonService {
       final response = await _supabase.from('transaction_type').select();
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error fetching transaction types: $e');
+      LoggerService.error(
+        'Error fetching transaction types',
+        tag: _tag,
+        error: e,
+      );
+      rethrow;
     }
   }
 
@@ -161,7 +182,8 @@ class PersonService {
 
       return response;
     } catch (e) {
-      throw Exception('Error creating person: $e');
+      LoggerService.error('Error creating person', tag: _tag, error: e);
+      rethrow;
     }
   }
 
@@ -194,7 +216,8 @@ class PersonService {
           })
           .eq('id', personId);
     } catch (e) {
-      throw Exception('Error updating person: $e');
+      LoggerService.error('Error updating person', tag: _tag, error: e);
+      rethrow;
     }
   }
 
@@ -209,7 +232,8 @@ class PersonService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error fetching event guests: $e');
+      LoggerService.error('Error fetching event guests', tag: _tag, error: e);
+      rethrow;
     }
   }
 
@@ -241,7 +265,12 @@ class PersonService {
 
       return data;
     } catch (e) {
-      throw Exception('Error fetching event participants: $e');
+      LoggerService.error(
+        'Error fetching event participants',
+        tag: _tag,
+        error: e,
+      );
+      rethrow;
     }
   }
 
@@ -363,7 +392,56 @@ class PersonService {
 
       return results;
     } catch (e) {
-      throw Exception('Error searching people and staff: $e');
+      LoggerService.error(
+        'Error searching people and staff',
+        tag: _tag,
+        error: e,
+      );
+      rethrow;
+    }
+  }
+
+  /// Checks if a person with the same email or phone already exists in the event
+  Future<Map<String, dynamic>?> checkDuplicate({
+    required String eventId,
+    String? email,
+    String? phone,
+    String? excludePersonId,
+  }) async {
+    try {
+      if (email == null && phone == null) return null;
+
+      var query = _supabase
+          .from('participation')
+          .select('person:person_id(*)')
+          .eq('event_id', eventId);
+
+      final response = await query;
+      final participations = List<Map<String, dynamic>>.from(response);
+
+      for (var part in participations) {
+        final person = part['person'];
+        if (person == null) continue;
+        if (excludePersonId != null && person['id'] == excludePersonId) {
+          continue;
+        }
+
+        if (email != null &&
+            person['email']?.toString().toLowerCase() == email.toLowerCase()) {
+          return person;
+        }
+        if (phone != null && person['phone']?.toString() == phone) {
+          return person;
+        }
+      }
+      return null;
+    } catch (e) {
+      LoggerService.error(
+        'Error checking duplicate person',
+        tag: _tag,
+        error: e,
+      );
+      return null;
     }
   }
 }

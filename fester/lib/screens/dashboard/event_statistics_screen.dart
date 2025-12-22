@@ -31,6 +31,9 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
   double _checkInRate = 0;
   double _staffGuestRatio = 0;
   int _totalInvited = 0;
+  List<FlSpot> _attendanceSeries = [];
+  List<FlSpot> _revenueSeries = [];
+  List<String> _timeLabels = [];
 
   @override
   void initState() {
@@ -62,7 +65,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
 
       for (var p in participations) {
         final statusData = p['participation_status'];
-        final statusName = statusData?['name'] ?? 'Unknown';
+        final statusName = statusData?['name'] ?? 'common.unknown'.tr();
         final isInside = statusData?['is_inside'] ?? false;
 
         statusCounts[statusName] = (statusCounts[statusName] ?? 0) + 1;
@@ -102,7 +105,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
 
         // Count products
         if (t['menu_item_id'] != null) {
-          final itemName = t['menu_item']?['name'] ?? 'Unknown';
+          final itemName = t['menu_item']?['name'] ?? 'common.unknown'.tr();
           productCounts[itemName] = (productCounts[itemName] ?? 0) + quantity;
         }
       }
@@ -120,19 +123,75 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
         _checkInRate = (_totalAttendance / _totalInvited) * 100;
       }
 
-      setState(() {
-        _totalAttendance = totalAttendance;
-        _totalRevenue = totalRevenue;
-        _statusCounts = statusCounts;
-        _activeStaff = _activeStaff;
-        _topProducts =
-            topProducts
-                .take(5)
-                .map((e) => {'name': e.key, 'count': e.value})
-                .toList();
-        _totalItemsSold = totalItemsSold;
-        _isLoading = false;
-      });
+      _totalItemsSold = totalItemsSold;
+
+      // 5. Time series (Attendance)
+      final history = await _supabase
+          .from('participation_status_history')
+          .select(
+            'created_at, status_id, participation_status!inner(is_inside)',
+          )
+          .eq('participation_status.is_inside', true)
+          .order('created_at', ascending: true);
+
+      // 6. Time series (Revenue)
+      final transactionHistory = await _supabase
+          .from('transaction')
+          .select('created_at, amount, quantity, participation!inner(event_id)')
+          .eq('participation.event_id', widget.eventId)
+          .order('created_at', ascending: true);
+
+      // Process Attendance Series (by hour)
+      final Map<int, int> hourlyAttendance = {};
+      for (var h in history) {
+        final dt = DateTime.parse(h['created_at']).toLocal();
+        final hour = dt.hour;
+        hourlyAttendance[hour] = (hourlyAttendance[hour] ?? 0) + 1;
+      }
+
+      // Process Revenue Series (by hour)
+      final Map<int, double> hourlyRevenue = {};
+      for (var t in transactionHistory) {
+        final dt = DateTime.parse(t['created_at']).toLocal();
+        final hour = dt.hour;
+        final amt = (t['amount'] as num?)?.toDouble() ?? 0;
+        final qty = (t['quantity'] as num?)?.toInt() ?? 1;
+        hourlyRevenue[hour] = (hourlyRevenue[hour] ?? 0) + (amt * qty);
+      }
+
+      // Generate Labels (last 12 hours)
+      final now = DateTime.now();
+      final List<FlSpot> attendanceSpots = [];
+      final List<FlSpot> revenueSpots = [];
+      final List<String> labels = [];
+
+      for (int i = 0; i < 12; i++) {
+        final hour = (now.hour - (11 - i)) % 24;
+        final displayHour = hour < 0 ? hour + 24 : hour;
+        labels.add('${displayHour.toString().padLeft(2, '0')}:00');
+        attendanceSpots.add(
+          FlSpot(i.toDouble(), (hourlyAttendance[displayHour] ?? 0).toDouble()),
+        );
+        revenueSpots.add(FlSpot(i.toDouble(), hourlyRevenue[displayHour] ?? 0));
+      }
+
+      if (mounted) {
+        setState(() {
+          _totalAttendance = totalAttendance;
+          _totalRevenue = totalRevenue;
+          _statusCounts = statusCounts;
+          _topProducts =
+              topProducts
+                  .take(5)
+                  .map((e) => {'name': e.key, 'count': e.value})
+                  .toList();
+          _totalItemsSold = totalItemsSold;
+          _attendanceSeries = attendanceSpots;
+          _revenueSeries = revenueSpots;
+          _timeLabels = labels;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -332,6 +391,10 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                     _buildTopProductsChart(theme),
                   ],
                 ),
+
+              const SizedBox(height: 24),
+              _buildTimeSeriesChart(theme),
+              const SizedBox(height: 24),
             ],
           );
         },
@@ -414,7 +477,7 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${entry.key} (${entry.value})',
+                          '${entry.key.startsWith('status.') ? entry.key.tr() : ('status.${entry.key}'.tr().contains('status.') ? entry.key : 'status.${entry.key}'.tr())} (${entry.value})',
                           style: theme.textTheme.bodyMedium,
                         ),
                       ],
@@ -610,6 +673,129 @@ class _EventStatisticsScreenState extends State<EventStatisticsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTimeSeriesChart(ThemeData theme) {
+    return Card(
+      color: theme.cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'statistics.trends'.tr(),
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: theme.textTheme.bodyLarge?.color,
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              height: 250,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (value) {
+                      return FlLine(
+                        color: Colors.grey.withOpacity(0.1),
+                        strokeWidth: 1,
+                      );
+                    },
+                  ),
+                  titlesData: FlTitlesData(
+                    show: true,
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30,
+                        interval: 2,
+                        getTitlesWidget: (value, meta) {
+                          final index = value.toInt();
+                          if (index >= 0 && index < _timeLabels.length) {
+                            return Text(
+                              _timeLabels[index],
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10,
+                              ),
+                            );
+                          }
+                          return const Text('');
+                        },
+                      ),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: _attendanceSeries,
+                      isCurved: true,
+                      color: AppTheme.primaryLight,
+                      barWidth: 3,
+                      isStrokeCapRound: true,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: AppTheme.primaryLight.withOpacity(0.1),
+                      ),
+                    ),
+                    LineChartBarData(
+                      spots: _revenueSeries,
+                      isCurved: true,
+                      color: Colors.green,
+                      barWidth: 3,
+                      isStrokeCapRound: true,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: Colors.green.withOpacity(0.1),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildLegendItem(
+                  'statistics.attendance'.tr(),
+                  AppTheme.primaryLight,
+                ),
+                const SizedBox(width: 24),
+                _buildLegendItem('statistics.revenue'.tr(), Colors.green),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
     );
   }
 

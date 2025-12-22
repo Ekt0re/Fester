@@ -33,7 +33,7 @@ class _RegistrationConfirmationPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${'confirmation.resend_error'.tr()}${e.toString()}'),
+            content: Text('${'common.error_prefix'.tr()}${e.toString()}'),
             backgroundColor: Colors.red.shade400,
           ),
         );

@@ -4,24 +4,33 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 import 'package:logger/logger.dart';
+import '../logger_service.dart';
 
 class DeepLinkHandler {
+  static const String _tag = 'DeepLinkHandler';
   static final DeepLinkHandler _instance = DeepLinkHandler._internal();
   factory DeepLinkHandler() => _instance;
   DeepLinkHandler._internal();
 
   final SupabaseClient _supabase = Supabase.instance.client;
   StreamSubscription<AuthState>? _authSubscription;
-  
+
   // Flag globale per recovery mode - BLOCCA qualsiasi redirect automatico
   static bool _isRecoveryMode = false;
   static bool get isRecoveryMode => _isRecoveryMode;
   static void setRecoveryMode(bool value) {
     _isRecoveryMode = value;
-    debugPrint('[NAV] Recovery mode: $_isRecoveryMode');
+    LoggerService.info('Recovery mode: $_isRecoveryMode', tag: _tag);
   }
 
-  static final Logger _logger = Logger(printer: PrettyPrinter(methodCount: 0, colors: false, printEmojis: false, printTime: false));
+  static final Logger _logger = Logger(
+    printer: PrettyPrinter(
+      methodCount: 0,
+      colors: false,
+      printEmojis: false,
+      printTime: false,
+    ),
+  );
 
   /// Initialize deep link handling
   void initialize(BuildContext context) {
@@ -118,7 +127,7 @@ class DeepLinkHandler {
   void _handlePasswordRecovery(BuildContext context, Session? session) async {
     // SETTA FLAG GLOBALE - BLOCCA TUTTI I REDIRECT AUTOMATICI
     setRecoveryMode(true);
-    
+
     // BLOCCA se già nella schermata del reset
     if (ModalRoute.of(context)?.settings.name == '/set-new-password') {
       return;
@@ -171,7 +180,10 @@ class DeepLinkHandler {
   }
 
   /// Handle password reset callback
-  Future<void> _handleResetPasswordCallback(BuildContext context, Uri uri) async {
+  Future<void> _handleResetPasswordCallback(
+    BuildContext context,
+    Uri uri,
+  ) async {
     try {
       // SETTA FLAG PRIMA di getSessionFromUrl per bloccare signedIn event
       setRecoveryMode(true);

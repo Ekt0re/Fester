@@ -8,6 +8,8 @@ import '../../services/supabase/staff_user_service.dart';
 import '../../services/supabase/models/event_staff.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../theme/app_theme.dart';
+import '../../services/logger_service.dart';
+import '../../services/permission_service.dart';
 
 class StaffProfileScreen extends StatefulWidget {
   final EventStaff eventStaff;
@@ -24,6 +26,7 @@ class StaffProfileScreen extends StatefulWidget {
 }
 
 class _StaffProfileScreenState extends State<StaffProfileScreen> {
+  static const String _tag = 'StaffProfileScreen';
   final EventService _eventService = EventService();
   late EventStaff _currentStaff;
   bool _isLoading = false;
@@ -59,8 +62,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
               ),
         );
 
-        if (userStaff.roleName?.toLowerCase() == 'admin' ||
-            userStaff.roleName?.toLowerCase() == 'staff3') {
+        if (PermissionService.canDelete(userStaff.roleName)) {
           setState(() {
             _canEdit = true;
           });
@@ -156,12 +158,13 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
   Future<void> _uploadProfileImage() async {
     final staffUser = _currentStaff.staff;
     if (staffUser == null) {
-      debugPrint('[DEBUG] _uploadProfileImage: staffUser is null');
+      LoggerService.info('staffUser is null', tag: _tag);
       return;
     }
 
-    debugPrint(
-      '[DEBUG] _uploadProfileImage: Starting image upload for user ${staffUser.id}',
+    LoggerService.info(
+      'Starting image upload for user ${staffUser.id}',
+      tag: _tag,
     );
 
     try {
@@ -174,17 +177,15 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
       );
 
       if (image == null) {
-        debugPrint('[DEBUG] _uploadProfileImage: No image selected');
+        LoggerService.info('No image selected', tag: _tag);
         return;
       }
 
-      debugPrint('[DEBUG] _uploadProfileImage: Image selected: ${image.path}');
+      LoggerService.info('Image selected: ${image.path}', tag: _tag);
       setState(() => _isLoading = true);
 
       final bytes = await image.readAsBytes();
-      debugPrint(
-        '[DEBUG] _uploadProfileImage: Image bytes read: ${bytes.length} bytes',
-      );
+      LoggerService.info('Image bytes read: ${bytes.length} bytes', tag: _tag);
 
       final staffService = StaffUserService();
 
@@ -194,9 +195,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         fileBytes: bytes,
       );
 
-      debugPrint(
-        '[DEBUG] _uploadProfileImage: Image uploaded successfully: $imageUrl',
-      );
+      LoggerService.info('Image uploaded successfully: $imageUrl', tag: _tag);
 
       if (!mounted) return;
 
@@ -216,8 +215,12 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('staff.image_updated'.tr())));
     } catch (e, stackTrace) {
-      debugPrint('[ERROR] _uploadProfileImage: $e');
-      debugPrint('[ERROR] Stack trace: $stackTrace');
+      LoggerService.error(
+        '_uploadProfileImage error',
+        tag: _tag,
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (!mounted) return;
       setState(() => _isLoading = false);
       // ignore: use_build_context_synchronously
@@ -277,8 +280,12 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         const SnackBar(content: Text('Account eliminato con successo')),
       );
     } catch (e, stackTrace) {
-      debugPrint('[ERROR] _deleteAccount: $e');
-      debugPrint('[ERROR] Stack trace: $stackTrace');
+      LoggerService.error(
+        '_deleteAccount error',
+        tag: _tag,
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (!mounted) return;
       setState(() => _isLoading = false);
       // ignore: use_build_context_synchronously
@@ -291,11 +298,13 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
   Future<void> _editRole() async {
     if (!_canEdit || _currentStaff.staffUserId == null) return;
 
-    debugPrint(
-      '[DEBUG] _editRole: Starting role edit for user ${_currentStaff.staffUserId}',
+    LoggerService.info(
+      'Starting role edit for user ${_currentStaff.staffUserId}',
+      tag: _tag,
     );
-    debugPrint(
-      '[DEBUG] _editRole: Current role: ${_currentStaff.roleName} (id: ${_currentStaff.roleId})',
+    LoggerService.info(
+      'Current role: ${_currentStaff.roleName} (id: ${_currentStaff.roleId})',
+      tag: _tag,
     );
 
     final roles = ['admin', 'staff1', 'staff2', 'staff3'];
@@ -311,7 +320,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
             )
             .$1;
 
-    debugPrint('[DEBUG] _editRole: Current role index: $currentRoleIndex');
+    LoggerService.info('Current role index: $currentRoleIndex', tag: _tag);
 
     int selectedRoleIndex = currentRoleIndex;
 
@@ -360,8 +369,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
     );
 
     if (result == null || result == currentRoleIndex) {
-      debugPrint(
-        '[DEBUG] _editRole: Role change cancelled or same role selected',
+      LoggerService.info(
+        'Role change cancelled or same role selected',
+        tag: _tag,
       );
       return;
     }
@@ -370,8 +380,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
 
     try {
       final newRoleId = roleIds[roles[result]]!;
-      debugPrint(
-        '[DEBUG] _editRole: Updating role from ${_currentStaff.roleName} (${_currentStaff.roleId}) to ${roles[result]} ($newRoleId)',
+      LoggerService.info(
+        'Updating role from ${_currentStaff.roleName} (${_currentStaff.roleId}) to ${roles[result]} ($newRoleId)',
+        tag: _tag,
       );
 
       await _eventService.updateStaffRole(
@@ -380,7 +391,7 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         newRoleId: newRoleId,
       );
 
-      debugPrint('[DEBUG] _editRole: Role updated successfully in database');
+      LoggerService.info('Role updated successfully in database', tag: _tag);
 
       if (!mounted) return;
 
@@ -393,8 +404,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         orElse: () => _currentStaff,
       );
 
-      debugPrint(
-        '[DEBUG] _editRole: Staff data reloaded, new role: ${updatedStaff.roleName} (id: ${updatedStaff.roleId})',
+      LoggerService.info(
+        'Staff data reloaded, new role: ${updatedStaff.roleName} (id: ${updatedStaff.roleId})',
+        tag: _tag,
       );
 
       setState(() {
@@ -408,8 +420,12 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
         );
       }
     } catch (e, stackTrace) {
-      debugPrint('[ERROR] _editRole: $e');
-      debugPrint('[ERROR] Stack trace: $stackTrace');
+      LoggerService.error(
+        '_editRole error',
+        tag: _tag,
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (!mounted) return;
       setState(() => _isLoading = false);
       // ignore: use_build_context_synchronously
@@ -423,8 +439,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
     final staffUser = _currentStaff.staff;
     if (staffUser == null) return;
 
-    debugPrint(
-      '[DEBUG] _editProfile: Opening edit dialog for user ${staffUser.id}',
+    LoggerService.info(
+      'Opening edit dialog for user ${staffUser.id}',
+      tag: _tag,
     );
 
     final firstNameController = TextEditingController(
@@ -532,8 +549,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () async {
-                              debugPrint(
-                                '[DEBUG] _editProfile: Saving profile changes',
+                              LoggerService.info(
+                                'Saving profile changes',
+                                tag: _tag,
                               );
                               setState(() => _isLoading = true);
                               // Close the bottom sheet first
@@ -551,8 +569,9 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                       dateOfBirth: selectedDate,
                                     );
 
-                                debugPrint(
-                                  '[DEBUG] _editProfile: Profile updated successfully',
+                                LoggerService.info(
+                                  'Profile updated successfully',
+                                  tag: _tag,
                                 );
 
                                 if (!mounted) return;
@@ -573,8 +592,12 @@ class _StaffProfileScreenState extends State<StaffProfileScreen> {
                                   ),
                                 );
                               } catch (e, stackTrace) {
-                                debugPrint('[ERROR] _editProfile: $e');
-                                debugPrint('[ERROR] Stack trace: $stackTrace');
+                                LoggerService.error(
+                                  '_editProfile error',
+                                  tag: _tag,
+                                  error: e,
+                                  stackTrace: stackTrace,
+                                );
                                 if (!mounted) return;
                                 // ignore: use_build_context_synchronously
                                 ScaffoldMessenger.of(context).showSnackBar(

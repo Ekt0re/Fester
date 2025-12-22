@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,17 +10,22 @@ import '../../services/supabase/sottogruppo_service.dart';
 import '../../services/supabase/models/gruppo.dart';
 import '../../services/supabase/models/sottogruppo.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/validation_utils.dart';
+import '../../widgets/error_dialog.dart';
+import '../../services/permission_service.dart';
 
 class AddGuestScreen extends StatefulWidget {
   final String eventId;
   final String? personId;
   final Map<String, dynamic>? initialData;
+  final String? currentUserRole;
 
   const AddGuestScreen({
     super.key,
     required this.eventId,
     this.personId,
     this.initialData,
+    this.currentUserRole,
   });
 
   @override
@@ -46,6 +52,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
   int _selectedRoleId = 2; // Default fallback
   int _selectedStatusId = 1; // Default fallback
   bool _isLoading = true;
+  Timer? _debounceTimer;
+  String? _duplicateWarning;
 
   List<Map<String, dynamic>> _roles = [];
   List<Map<String, dynamic>> _statuses = [];
@@ -95,7 +103,50 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     _selectedSottogruppoId = person?['sottogruppo_id'];
     _selectedInvitedById = data?['invited_by'];
 
+    _emailController.addListener(_onContactChanged);
+    _phoneController.addListener(_onContactChanged);
+
     _loadFormData();
+  }
+
+  void _onContactChanged() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _checkDuplicateRealTime();
+    });
+  }
+
+  Future<void> _checkDuplicateRealTime() async {
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    if (email.isEmpty && phone.isEmpty) {
+      if (mounted) setState(() => _duplicateWarning = null);
+      return;
+    }
+
+    try {
+      final duplicate = await _personService.checkDuplicate(
+        eventId: widget.eventId,
+        email: email.isEmpty ? null : email,
+        phone: phone.isEmpty ? null : phone,
+        excludePersonId: widget.personId,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (duplicate != null) {
+            _duplicateWarning = 'add_guest.duplicate_warning'.tr(
+              args: ['${duplicate['first_name']} ${duplicate['last_name']}'],
+            );
+          } else {
+            _duplicateWarning = null;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking duplicate: $e');
+    }
   }
 
   Future<void> _loadFormData() async {
@@ -130,7 +181,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
             _selectedInvitedByName =
                 '${person['first_name']} ${person['last_name']}';
             _selectedInvitedByType =
-                person['type'] == 'staff' ? 'Staff' : 'Ospite';
+                person['type'] == 'staff'
+                    ? 'roles.staff'.tr()
+                    : 'roles.guest'.tr();
           }
         } catch (e) {
           // Ignore error, leave name as null
@@ -171,10 +224,11 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
+        ErrorDialog.show(
           context,
-        ).showSnackBar(SnackBar(content: Text('${'add_guest.data_load_error'.tr()}$e')));
+          message: 'add_guest.data_load_error'.tr(),
+          technicalDetails: e.toString(),
+        );
       }
     }
   }
@@ -189,6 +243,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     _indirizzoController.dispose();
     _localIdController.dispose();
     _invitedBySearchController.dispose();
+    _debounceTimer?.cancel();
+    _emailController.removeListener(_onContactChanged);
+    _phoneController.removeListener(_onContactChanged);
     super.dispose();
   }
 
@@ -214,7 +271,62 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     }
   }
 
+  Future<void> _deleteGuest() async {
+    final participationId =
+        widget.initialData?['participation_id'] ?? widget.initialData?['id'];
+    if (participationId == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _participationService.deleteParticipation(participationId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('add_guest.delete_success'.tr())),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorDialog.show(
+          context,
+          message: 'add_guest.delete_error'.tr(),
+          technicalDetails: e.toString(),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmDeleteGuest() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('add_guest.delete_confirm_title'.tr()),
+            content: Text('add_guest.delete_confirm_message'.tr()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('common.cancel'.tr()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text('common.confirm'.tr()),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      await _deleteGuest();
+    }
+  }
+
   Future<void> _saveGuest() async {
+    if (!PermissionService.canEdit(widget.currentUserRole)) return;
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -222,20 +334,58 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Duplicate check
+      final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
+
+      if (email.isNotEmpty || phone.isNotEmpty) {
+        final duplicate = await _personService.checkDuplicate(
+          eventId: widget.eventId,
+          email: email.isEmpty ? null : email,
+          phone: phone.isEmpty ? null : phone,
+          excludePersonId: widget.personId,
+        );
+
+        if (duplicate != null && mounted) {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: Text('add_guest.duplicate_title'.tr()),
+                  content: Text(
+                    'add_guest.duplicate_message'.tr(
+                      args: [
+                        '${duplicate['first_name']} ${duplicate['last_name']}',
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text('common.cancel'.tr()),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text('common.confirm'.tr()),
+                    ),
+                  ],
+                ),
+          );
+          if (confirm != true) {
+            setState(() => _isLoading = false);
+            return;
+          }
+        }
+      }
+
       if (widget.personId != null) {
         // Update existing person
         await _personService.updatePerson(
           personId: widget.personId!,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
-          email:
-              _emailController.text.trim().isEmpty
-                  ? null
-                  : _emailController.text.trim(),
-          phone:
-              _phoneController.text.trim().isEmpty
-                  ? null
-                  : _phoneController.text.trim(),
+          email: email.isEmpty ? null : email,
+          phone: phone.isEmpty ? null : phone,
           dateOfBirth: _dateOfBirth,
           codiceFiscale:
               _codiceFiscaleController.text.trim().isEmpty
@@ -281,14 +431,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
         final person = await _personService.createPerson(
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
-          email:
-              _emailController.text.trim().isEmpty
-                  ? null
-                  : _emailController.text.trim(),
-          phone:
-              _phoneController.text.trim().isEmpty
-                  ? null
-                  : _phoneController.text.trim(),
+          email: email.isEmpty ? null : email,
+          phone: phone.isEmpty ? null : phone,
           dateOfBirth: _dateOfBirth,
           codiceFiscale:
               _codiceFiscaleController.text.trim().isEmpty
@@ -318,19 +462,22 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('add_guest.guest_added'.tr())),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('add_guest.guest_added'.tr())));
           Navigator.pop(context, true);
         }
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'add_guest.save_error'.tr()}$e')),
+        ErrorDialog.show(
+          context,
+          message: 'add_guest.save_error'.tr(),
+          technicalDetails: e.toString(),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -380,7 +527,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${'add_guest.subgroup_load_error'.tr()}$e')),
+            SnackBar(
+              content: Text('${'add_guest.subgroup_load_error'.tr()}$e'),
+            ),
           );
         }
       }
@@ -494,7 +643,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${'add_guest.subgroup_create_error'.tr()}$e')),
+            SnackBar(
+              content: Text('${'add_guest.subgroup_create_error'.tr()}$e'),
+            ),
           );
         }
       }
@@ -539,7 +690,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                     setDialogState(() => isSearching = false);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${'add_guest.search_error'.tr()}$e')),
+                        SnackBar(
+                          content: Text('${'add_guest.search_error'.tr()}$e'),
+                        ),
                       );
                     }
                   }
@@ -579,10 +732,12 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                   '${person['first_name']} ${person['last_name']}';
                               final type =
                                   person['type'] == 'staff'
-                                      ? 'Staff'
-                                      : 'Ospite';
+                                      ? 'roles.staff'.tr()
+                                      : 'roles.guest'.tr();
                               final subtitle =
-                                  person['email'] ?? person['phone'] ?? 'N/A';
+                                  person['email'] ??
+                                  person['phone'] ??
+                                  'common.not_available'.tr();
 
                               return Card(
                                 child: ListTile(
@@ -678,6 +833,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final canEdit = PermissionService.canEdit(widget.currentUserRole);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -688,12 +844,26 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          widget.personId != null ? 'add_guest.edit_guest'.tr() : 'add_guest.add_guest'.tr(),
+          widget.personId != null
+              ? 'add_guest.edit_guest'.tr()
+              : 'add_guest.add_guest'.tr(),
           style: GoogleFonts.outfit(
             color: theme.colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          if (widget.personId != null &&
+              PermissionService.canDelete(widget.currentUserRole))
+            IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                color: theme.colorScheme.onPrimary,
+              ),
+              onPressed: _confirmDeleteGuest,
+              tooltip: 'common.delete'.tr(),
+            ),
+        ],
         centerTitle: true,
       ),
       body:
@@ -726,13 +896,13 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                           label: 'add_guest.name'.tr(),
                                           hint: 'add_guest.name_hint'.tr(),
                                           icon: Icons.person_outline,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.trim().isEmpty) {
-                                              return 'add_guest.name_required'.tr();
-                                            }
-                                            return null;
-                                          },
+                                          enabled: canEdit,
+                                          validator:
+                                              (value) =>
+                                                  FormValidator.validateRequired(
+                                                    value,
+                                                    'add_guest.name',
+                                                  )?.tr(),
                                         ),
                                         const SizedBox(height: 16),
                                         _buildTextField(
@@ -740,43 +910,81 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                           label: 'add_guest.surname'.tr(),
                                           hint: 'add_guest.surname_hint'.tr(),
                                           icon: Icons.person,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.trim().isEmpty) {
-                                              return 'add_guest.surname_required'.tr();
-                                            }
-                                            return null;
-                                          },
+                                          enabled: canEdit,
+                                          validator:
+                                              (value) =>
+                                                  FormValidator.validateRequired(
+                                                    value,
+                                                    'add_guest.surname',
+                                                  )?.tr(),
                                         ),
                                         const SizedBox(height: 16),
                                         _buildTextField(
                                           controller: _emailController,
-                                          label: 'add_guest.email_optional'.tr(),
+                                          label:
+                                              'add_guest.email_optional'.tr(),
                                           hint: 'add_guest.email_hint'.tr(),
                                           icon: Icons.email_outlined,
                                           keyboardType:
                                               TextInputType.emailAddress,
-                                          validator: (value) {
-                                            if (value != null &&
-                                                value.isNotEmpty) {
-                                              final emailRegex = RegExp(
-                                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                              );
-                                              if (!emailRegex.hasMatch(value)) {
-                                                return 'add_guest.email_invalid'.tr();
-                                              }
-                                            }
-                                            return null;
-                                          },
+                                          validator:
+                                              (value) =>
+                                                  FormValidator.validateEmail(
+                                                    value,
+                                                  )?.tr(),
                                         ),
                                         const SizedBox(height: 16),
                                         _buildTextField(
                                           controller: _phoneController,
-                                          label: 'add_guest.phone_optional'.tr(),
+                                          label:
+                                              'add_guest.phone_optional'.tr(),
                                           hint: 'add_guest.phone_hint'.tr(),
                                           icon: Icons.phone_outlined,
                                           keyboardType: TextInputType.phone,
                                         ),
+                                        if (_duplicateWarning != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
+                                              bottom: 8,
+                                            ),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange.shade50,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: Colors.orange.shade200,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.warning_amber_rounded,
+                                                    color:
+                                                        Colors.orange.shade800,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      _duplicateWarning!,
+                                                      style: GoogleFonts.outfit(
+                                                        color:
+                                                            Colors
+                                                                .orange
+                                                                .shade900,
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
                                         const SizedBox(height: 16),
                                         InkWell(
                                           onTap: _selectDate,
@@ -802,7 +1010,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                                 Expanded(
                                                   child: Text(
                                                     _dateOfBirth == null
-                                                        ? 'add_guest.birth_date_optional'.tr()
+                                                        ? 'add_guest.birth_date_optional'
+                                                            .tr()
                                                         : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
                                                     style: GoogleFonts.outfit(
                                                       color:
@@ -838,14 +1047,18 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                         const SizedBox(height: 16),
                                         _buildTextField(
                                           controller: _codiceFiscaleController,
-                                          label: 'add_guest.fiscal_code_optional'.tr(),
-                                          hint: 'add_guest.fiscal_code_hint'.tr(),
+                                          label:
+                                              'add_guest.fiscal_code_optional'
+                                                  .tr(),
+                                          hint:
+                                              'add_guest.fiscal_code_hint'.tr(),
                                           icon: Icons.badge_outlined,
                                         ),
                                         const SizedBox(height: 16),
                                         _buildTextField(
                                           controller: _indirizzoController,
-                                          label: 'add_guest.address_optional'.tr(),
+                                          label:
+                                              'add_guest.address_optional'.tr(),
                                           hint: 'add_guest.address_hint'.tr(),
                                           icon: Icons.home_outlined,
                                           maxLines: 2,
@@ -883,7 +1096,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                                   color:
                                                       theme.colorScheme.primary,
                                                   onPressed: _createNewGruppo,
-                                                  tooltip: 'add_guest.create_new_group'.tr(),
+                                                  tooltip:
+                                                      'add_guest.create_new_group'
+                                                          .tr(),
                                                 ),
                                               ],
                                             ),
@@ -915,7 +1130,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                                     onPressed:
                                                         _createNewSottogruppo,
                                                     tooltip:
-                                                        'add_guest.create_new_subgroup'.tr(),
+                                                        'add_guest.create_new_subgroup'
+                                                            .tr(),
                                                   ),
                                                 ],
                                               ),
@@ -924,7 +1140,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                           ),
                                         _buildTextField(
                                           controller: _localIdController,
-                                          label: 'add_guest.local_id_optional'.tr(),
+                                          label:
+                                              'add_guest.local_id_optional'
+                                                  .tr(),
                                           hint: 'add_guest.local_id_hint'.tr(),
                                           icon:
                                               Icons
@@ -937,7 +1155,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'add_guest.invited_by_optional'.tr(),
+                                              'add_guest.invited_by_optional'
+                                                  .tr(),
                                               style: GoogleFonts.outfit(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w500,
@@ -981,7 +1200,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                                         _selectedInvitedByName !=
                                                                 null
                                                             ? '$_selectedInvitedByName ($_selectedInvitedByType)'
-                                                            : 'add_guest.search_person'.tr(),
+                                                            : 'add_guest.search_person'
+                                                                .tr(),
                                                         style: GoogleFonts.outfit(
                                                           color:
                                                               _selectedInvitedByName ==
@@ -1057,7 +1277,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                               color: theme.colorScheme.primary,
                                             ),
                                             label: Text(
-                                              'add_guest.manage_transactions'.tr(),
+                                              'add_guest.manage_transactions'
+                                                  .tr(),
                                               style: GoogleFonts.outfit(
                                                 color:
                                                     theme.colorScheme.primary,
@@ -1119,13 +1340,12 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                     label: 'add_guest.name'.tr(),
                                     hint: 'add_guest.name_hint'.tr(),
                                     icon: Icons.person_outline,
-                                    validator: (value) {
-                                      if (value == null ||
-                                          value.trim().isEmpty) {
-                                        return 'add_guest.name_required'.tr();
-                                      }
-                                      return null;
-                                    },
+                                    validator:
+                                        (value) =>
+                                            FormValidator.validateRequired(
+                                              value,
+                                              'add_guest.name',
+                                            )?.tr(),
                                   ),
                                   const SizedBox(height: 16),
 
@@ -1135,13 +1355,12 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                     label: 'add_guest.surname'.tr(),
                                     hint: 'add_guest.surname_hint'.tr(),
                                     icon: Icons.person,
-                                    validator: (value) {
-                                      if (value == null ||
-                                          value.trim().isEmpty) {
-                                        return 'add_guest.surname_required'.tr();
-                                      }
-                                      return null;
-                                    },
+                                    validator:
+                                        (value) =>
+                                            FormValidator.validateRequired(
+                                              value,
+                                              'add_guest.surname',
+                                            )?.tr(),
                                   ),
                                   const SizedBox(height: 16),
 
@@ -1152,17 +1371,11 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                     hint: 'add_guest.email_hint'.tr(),
                                     icon: Icons.email_outlined,
                                     keyboardType: TextInputType.emailAddress,
-                                    validator: (value) {
-                                      if (value != null && value.isNotEmpty) {
-                                        final emailRegex = RegExp(
-                                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                        );
-                                        if (!emailRegex.hasMatch(value)) {
-                                          return 'add_guest.email_invalid'.tr();
-                                        }
-                                      }
-                                      return null;
-                                    },
+                                    validator:
+                                        (value) =>
+                                            FormValidator.validateEmail(
+                                              value,
+                                            )?.tr(),
                                   ),
                                   const SizedBox(height: 16),
 
@@ -1199,7 +1412,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                           Expanded(
                                             child: Text(
                                               _dateOfBirth == null
-                                                  ? 'add_guest.birth_date_optional'.tr()
+                                                  ? 'add_guest.birth_date_optional'
+                                                      .tr()
                                                   : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
                                               style: GoogleFonts.outfit(
                                                 color:
@@ -1231,7 +1445,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                   // Codice Fiscale
                                   _buildTextField(
                                     controller: _codiceFiscaleController,
-                                    label: 'add_guest.fiscal_code_optional'.tr(),
+                                    label:
+                                        'add_guest.fiscal_code_optional'.tr(),
                                     hint: 'add_guest.fiscal_code_hint'.tr(),
                                     icon: Icons.badge_outlined,
                                   ),
@@ -1264,7 +1479,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                             ),
                                             color: theme.colorScheme.primary,
                                             onPressed: _createNewGruppo,
-                                            tooltip: 'add_guest.create_new_group'.tr(),
+                                            tooltip:
+                                                'add_guest.create_new_group'
+                                                    .tr(),
                                           ),
                                         ],
                                       ),
@@ -1292,7 +1509,9 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                               ),
                                               color: theme.colorScheme.primary,
                                               onPressed: _createNewSottogruppo,
-                                              tooltip: 'add_guest.create_new_subgroup'.tr(),
+                                              tooltip:
+                                                  'add_guest.create_new_subgroup'
+                                                      .tr(),
                                             ),
                                           ],
                                         ),
@@ -1351,7 +1570,8 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                                                 child: Text(
                                                   _selectedInvitedByName != null
                                                       ? '$_selectedInvitedByName ($_selectedInvitedByType)'
-                                                      : 'add_guest.search_person'.tr(),
+                                                      : 'add_guest.search_person'
+                                                          .tr(),
                                                   style: GoogleFonts.outfit(
                                                     color:
                                                         _selectedInvitedByName ==
@@ -1519,8 +1739,10 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${'add_guest.transaction_load_error'.tr()}$e')),
+        ErrorDialog.show(
+          context,
+          message: 'add_guest.transaction_load_error'.tr(),
+          technicalDetails: e.toString(),
         );
       }
     }
@@ -1534,11 +1756,13 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
     int? maxLines,
+    bool enabled = true,
   }) {
     final theme = Theme.of(context);
 
     return TextFormField(
       controller: controller,
+      enabled: enabled,
       keyboardType: keyboardType,
       validator: validator,
       maxLines: maxLines ?? 1,
@@ -1581,6 +1805,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     required IconData icon,
     required List<Map<String, dynamic>> items,
     required void Function(int?) onChanged,
+    bool enabled = true,
   }) {
     final theme = Theme.of(context);
 
@@ -1624,7 +1849,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                             ),
                           );
                         }).toList(),
-                    onChanged: onChanged,
+                    onChanged: enabled ? onChanged : null,
                   ),
                 ),
               ),
@@ -1635,12 +1860,12 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     );
   }
 
-  Widget _buildGruppoDropdown(ThemeData theme) {
+  Widget _buildGruppoDropdown(ThemeData theme, {bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Gruppo (opzionale)',
+          'add_guest.group_optional'.tr(),
           style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -1666,11 +1891,14 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                   child: DropdownButton<int?>(
                     value: _selectedGruppoId,
                     isExpanded: true,
-                    hint: Text('Seleziona gruppo', style: GoogleFonts.outfit()),
+                    hint: Text(
+                      'add_guest.select_group'.tr(),
+                      style: GoogleFonts.outfit(),
+                    ),
                     items: [
-                      const DropdownMenuItem<int?>(
+                      DropdownMenuItem<int?>(
                         value: null,
-                        child: Text('Nessun gruppo'),
+                        child: Text('add_guest.no_group'.tr()),
                       ),
                       ..._gruppi.map((gruppo) {
                         return DropdownMenuItem<int?>(
@@ -1679,7 +1907,7 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                         );
                       }),
                     ],
-                    onChanged: _onGruppoChanged,
+                    onChanged: enabled ? _onGruppoChanged : null,
                   ),
                 ),
               ),
@@ -1690,12 +1918,12 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
     );
   }
 
-  Widget _buildSottogruppoDropdown(ThemeData theme) {
+  Widget _buildSottogruppoDropdown(ThemeData theme, {bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Sottogruppo (opzionale)',
+          'add_guest.subgroup_optional'.tr(),
           style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -1722,13 +1950,13 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                     value: _selectedSottogruppoId,
                     isExpanded: true,
                     hint: Text(
-                      'Seleziona sottogruppo',
+                      'add_guest.select_subgroup'.tr(),
                       style: GoogleFonts.outfit(),
                     ),
                     items: [
-                      const DropdownMenuItem<int?>(
+                      DropdownMenuItem<int?>(
                         value: null,
-                        child: Text('Nessun sottogruppo'),
+                        child: Text('add_guest.no_subgroup'.tr()),
                       ),
                       ..._sottogruppi.map((sottogruppo) {
                         return DropdownMenuItem<int?>(
@@ -1740,11 +1968,14 @@ class _AddGuestScreenState extends State<AddGuestScreen> {
                         );
                       }),
                     ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedSottogruppoId = value;
-                      });
-                    },
+                    onChanged:
+                        enabled
+                            ? (value) {
+                              setState(() {
+                                _selectedSottogruppoId = value;
+                              });
+                            }
+                            : null,
                   ),
                 ),
               ),

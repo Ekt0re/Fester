@@ -110,7 +110,7 @@ class StaffCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'IN ATTESA',
+                              'common.pending'.tr().toUpperCase(),
                               style: GoogleFonts.outfit(
                                 fontSize: 10,
                                 color: colorScheme.onSurfaceVariant,

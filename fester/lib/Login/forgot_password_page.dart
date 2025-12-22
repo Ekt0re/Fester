@@ -40,7 +40,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore: ${e.toString()}'),
+            content: Text('${'common.error_prefix'.tr()}${e.toString()}'),
             backgroundColor: Colors.red.shade400,
           ),
         );
@@ -89,7 +89,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'FESTER 3.0',
+            'common.app_title'.tr(),
             style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.primary,
@@ -97,7 +97,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'ORGANIZZA LA TUA FESTA!',
+            'register.subtitle'.tr(),
             style: theme.textTheme.bodySmall?.copyWith(
               letterSpacing: 1.2,
               color: theme.colorScheme.onSurface.withOpacity(0.6),
@@ -183,7 +183,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'FESTER 3.0',
+          'common.app_title'.tr(),
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,
@@ -191,7 +191,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          'ORGANIZZA LA TUA FESTA!',
+          'register.subtitle'.tr(),
           style: theme.textTheme.bodySmall?.copyWith(
             letterSpacing: 1.2,
             color: theme.colorScheme.onSurface.withOpacity(0.6),

@@ -14,6 +14,7 @@ import '../../services/supabase/gruppo_service.dart';
 import '../../services/supabase/sottogruppo_service.dart';
 import '../../services/supabase/models/gruppo.dart';
 import '../../services/supabase/models/sottogruppo.dart';
+import '../../services/permission_service.dart';
 
 class GuestListScreen extends StatefulWidget {
   final String eventId;
@@ -144,6 +145,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
     String participationId,
     int currentStatusId,
   ) async {
+    if (!PermissionService.canCheckIn(_userRole)) return;
     // Logic: confirmed -> checked_in -> inside -> outside -> left -> confirmed (loop or back?)
     // User said: confirmed -> checked_in -> inside -> outside -> left.
     // If left -> turn back (maybe to confirmed or just toggle back?)
@@ -221,13 +223,14 @@ class _GuestListScreenState extends State<GuestListScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore aggiornamento stato: $e')),
+          SnackBar(content: Text('${'guest_list.status_update_error'.tr()}$e')),
         );
       }
     }
   }
 
   void _showStatusMenu(String participationId, int currentStatusId) {
+    if (!PermissionService.canCheckIn(_userRole)) return;
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -268,6 +271,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
   }
 
   void _showTransactionCreation(String participationId, String type) {
+    if (!PermissionService.canAddTransaction(_userRole)) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -300,10 +304,10 @@ class _GuestListScreenState extends State<GuestListScreen> {
     final role = participation['role'] ?? {};
 
     return GuestCard(
-      name: person['first_name'] ?? 'Sconosciuto',
+      name: person['first_name'] ?? 'common.unknown'.tr(),
       surname: person['last_name'] ?? '',
       idEvent: person['id_event'] ?? '---',
-      statusName: status['name'] ?? 'unknown',
+      statusName: status['name'] ?? 'common.unknown'.tr(),
       isVip: (role['name'] ?? '').toString().toLowerCase() == 'vip',
       onTap: () {
         Navigator.push(
@@ -325,6 +329,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
               _showStatusMenu(participation['id'], participation['status_id']),
       onReport: () => _showTransactionCreation(participation['id'], 'report'),
       onDrink: () => _showTransactionCreation(participation['id'], 'drink'),
+      canEdit: PermissionService.canEdit(_userRole),
     );
   }
 
@@ -337,7 +342,7 @@ class _GuestListScreenState extends State<GuestListScreen> {
           return status == 'inside' || status == 'checked_in';
         }).length;
 
-    final canAddGuests = _userRole == 'staff3' || _userRole == 'admin';
+    final canAddGuests = PermissionService.canAdd(_userRole);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -572,7 +577,10 @@ class _GuestListScreenState extends State<GuestListScreen> {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => AddGuestScreen(eventId: widget.eventId),
+                          (context) => AddGuestScreen(
+                            eventId: widget.eventId,
+                            currentUserRole: _userRole,
+                          ),
                     ),
                   );
                   // Reload list if guest was added

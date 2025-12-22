@@ -103,8 +103,7 @@ dependencies:
   http: ^1.2.0
   flutter_colorpicker: ^1.1.0
   flutter_dotenv: ^6.0.0
-  firebase_core: ^4.3.0
-  firebase_messaging: ^16.1.0
+  mailer: ^6.6.0
   
 
   
@@ -140,6 +139,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/translations/
+    - assets/templates/
     - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see

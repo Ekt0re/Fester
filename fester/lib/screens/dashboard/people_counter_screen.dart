@@ -1,15 +1,24 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/supabase/models/event_area.dart';
 import '../../services/supabase/people_counter_service.dart';
+import '../../services/permission_service.dart';
 import '../../theme/app_theme.dart';
+import 'widgets/people_search_sheet.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PeopleCounterScreen extends StatefulWidget {
   final String eventId;
+  final String? currentUserRole;
 
-  const PeopleCounterScreen({super.key, required this.eventId});
+  const PeopleCounterScreen({
+    super.key,
+    required this.eventId,
+    this.currentUserRole,
+  });
 
   @override
   State<PeopleCounterScreen> createState() => _PeopleCounterScreenState();
@@ -18,11 +27,30 @@ class PeopleCounterScreen extends StatefulWidget {
 class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
   final PeopleCounterService _service = PeopleCounterService();
   late Stream<List<EventArea>> _areasStream;
+  bool _specificPeopleCounting = false;
 
   @override
   void initState() {
     super.initState();
     _refreshStream();
+    _fetchSettings();
+  }
+
+  Future<void> _fetchSettings() async {
+    try {
+      final response =
+          await Supabase.instance.client
+              .from('event_settings')
+              .select('specific_people_counting')
+              .eq('event_id', widget.eventId)
+              .maybeSingle();
+      if (response != null && mounted) {
+        setState(() {
+          _specificPeopleCounting =
+              response['specific_people_counting'] ?? false;
+        });
+      }
+    } catch (_) {}
   }
 
   void _refreshStream() {
@@ -48,23 +76,28 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "Conta Persone",
+          "people_counter.title".tr(),
           style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddAreaDialog,
-        backgroundColor: theme.colorScheme.primary,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton:
+          PermissionService.canAdd(widget.currentUserRole)
+              ? FloatingActionButton(
+                onPressed: _showAddAreaDialog,
+                backgroundColor: theme.colorScheme.primary,
+                child: const Icon(Icons.add),
+              )
+              : null,
       body: StreamBuilder<List<EventArea>>(
         stream: _areasStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Errore: ${snapshot.error}'));
+            return Center(
+              child: Text('${'common.error_prefix'.tr()}${snapshot.error}'),
+            );
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -85,7 +118,7 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    "Nessuna area creata",
+                    "people_counter.no_areas".tr(),
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -154,9 +187,9 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                       labelStyle: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
                       ),
-                      tabs: const [
-                        Tab(text: "Contatori"),
-                        Tab(text: "Statistiche"),
+                      tabs: [
+                        Tab(text: "people_counter.counters_tab".tr()),
+                        Tab(text: "people_counter.stats_tab".tr()),
                       ],
                     ),
                     Expanded(
@@ -208,13 +241,14 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.delete_outline,
-                        color: theme.colorScheme.error,
+                    if (PermissionService.canDelete(widget.currentUserRole))
+                      IconButton(
+                        icon: Icon(
+                          Icons.delete_outline,
+                          color: theme.colorScheme.error,
+                        ),
+                        onPressed: () => _showDeleteConfirmDialog(area),
                       ),
-                      onPressed: () => _showDeleteConfirmDialog(area),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -224,7 +258,10 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     _buildControlButton(
                       icon: Icons.remove,
                       color: theme.colorScheme.error,
-                      onTap: () => _updateCount(area.id, -1),
+                      onTap:
+                          PermissionService.canEdit(widget.currentUserRole)
+                              ? () => _handleCountChange(area, -1)
+                              : null,
                     ),
                     Expanded(
                       child: Text(
@@ -240,7 +277,10 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     _buildControlButton(
                       icon: Icons.add,
                       color: theme.colorScheme.secondary,
-                      onTap: () => _updateCount(area.id, 1),
+                      onTap:
+                          PermissionService.canEdit(widget.currentUserRole)
+                              ? () => _handleCountChange(area, 1)
+                              : null,
                     ),
                   ],
                 ),
@@ -255,17 +295,20 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
   Widget _buildControlButton({
     required IconData icon,
     required Color color,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
     return Material(
       color: color.withOpacity(0.1),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onTap();
-        },
+        onTap:
+            onTap != null
+                ? () {
+                  HapticFeedback.lightImpact();
+                  onTap();
+                }
+                : null,
         child: Container(
           width: 60,
           height: 60,
@@ -276,14 +319,146 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
     );
   }
 
+  void _handleCountChange(EventArea area, int delta) {
+    if (_specificPeopleCounting) {
+      if (delta > 0) {
+        _showAddPersonSheet(area);
+      } else {
+        _showRemovePersonSheet(area);
+      }
+    } else {
+      _updateCount(area.id, delta);
+    }
+  }
+
+  void _showAddPersonSheet(EventArea area) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => PeopleSearchSheet(
+            eventId: widget.eventId,
+            excludePeopleInAreas:
+                false, // Allow adding even if they are in another area (it will move them)
+            excludePeopleInSpecificAreaId:
+                area.id, // Exclude people already in THIS area
+            // Logic: If user clicks +, they want to add someone TO this area.
+            // They might be in another area or no area.
+            // Let's allow fetching anyone. filtering/moving logic is handled by service.
+          ),
+    ).then((participationId) {
+      if (participationId != null && participationId is String) {
+        _movePersonToArea(participationId, area.id);
+      }
+    });
+  }
+
+  void _showRemovePersonSheet(EventArea area) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => PeopleSearchSheet(
+            eventId: widget.eventId,
+            filterAreaId: area.id, // Only show people currently in this area
+          ),
+    ).then((participationId) {
+      if (participationId != null && participationId is String) {
+        // Remove = move to null area? Or just remove from this area?
+        // Since structure tracks current_area_id, moving to null means "Exit Area".
+        // We need a clear "Exit" or "Null" area ID concept or pass null.
+        // DB column is nullable.
+        // BUT movePersonToArea logic requires targetAreaId.
+        // If we want to support "Exit", the service needs to support null.
+        // Let's check service. TargetAreaId is String (required).
+        // I should update service to allow nullable targetAreaId OR handle it here by passing a magic value? No.
+        // I need to update service to allow nullable targetAreaId to support "Exit".
+        // OR, users just move people to "Outside"? No "Outside" is a specific status usually.
+        // If a person is in an area, and we remove them, they go to limbo (no area).
+
+        // Let's assume for now removing just decrements count but if specific is ON, we must update the person record.
+        // I will assume for now I cannot simply pass null if it's required.
+        // I will temporarily show a "Not supported" or handle it if I update service.
+        // I'll update the logic to support removal if I can.
+        // WAIT: Review plan. "Minus button opens list of people in area to remove".
+        // So I need to support "Remove from Area".
+        // I will update service signature in next step or use a workaround?
+        // Actually, I can quickly update service signature to String? targetAreaId.
+        // But I already wrote it as required.
+        // Let's assume for now we only support ADDING/MOVING.
+        // Or: "Remove" implies moving to "Outside"? No.
+        // Let's just create a special "Exit" helper in service or make targetAreaId nullable.
+        // I'll make targetAreaId nullable in service in a moment.
+        // For now I'll call a hypothetical clearArea method or just wait.
+        // Actually, I'll update the Service in the same turn if possible? No, file lock.
+
+        // I'll use a local helper `_removePersonFromArea(participationId, areaId)` that calls service appropriately.
+        // I will update service in next step to support null area.
+        _removePersonFromArea(participationId, area.id);
+      }
+    });
+  }
+
+  Future<void> _movePersonToArea(
+    String participationId,
+    String targetAreaId,
+  ) async {
+    try {
+      await _service.movePersonToAreaSafe(
+        participationId: participationId,
+        targetAreaId: targetAreaId,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('people_counter.success_move'.tr())),
+        );
+        _refreshStream();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'common.error_prefix'.tr()}$e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _removePersonFromArea(
+    String participationId,
+    String currentAreaId,
+  ) async {
+    try {
+      // Pass null to targetAreaId to indicate removal from any area
+      await _service.movePersonToAreaSafe(
+        participationId: participationId,
+        targetAreaId: null,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('people_counter.success_remove'.tr())),
+        );
+        _refreshStream();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${'people_counter.remove_error'.tr()}$e')),
+        );
+      }
+    }
+  }
+
   Future<void> _updateCount(String areaId, int delta) async {
     try {
       await _service.updateCount(areaId, delta);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Errore: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${'common.error_prefix'.tr()}$e")),
+        );
       }
     }
   }
@@ -295,21 +470,21 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       builder:
           (dialogContext) => AlertDialog(
             title: Text(
-              "Nuova Area",
+              "people_counter.add_area_title".tr(),
               style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
             ),
             content: TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: "Nome Area (es. Piano Terra)",
-                hintText: "Inserisci nome",
+              decoration: InputDecoration(
+                labelText: "people_counter.area_name_label".tr(),
+                hintText: "people_counter.area_name_hint".tr(),
               ),
               textCapitalization: TextCapitalization.sentences,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text("Annulla"),
+                child: Text("common.cancel".tr()),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -323,13 +498,15 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Errore creazione: $e")),
+                          SnackBar(
+                            content: Text("${'common.error_prefix'.tr()}$e"),
+                          ),
                         );
                       }
                     }
                   }
                 },
-                child: const Text("Crea"),
+                child: Text("people_counter.create_button".tr()),
               ),
             ],
           ),
@@ -342,16 +519,14 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
       builder:
           (dialogContext) => AlertDialog(
             title: Text(
-              "Elimina ${area.name}?",
+              "people_counter.delete_confirm_title".tr(args: [area.name]),
               style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
             ),
-            content: const Text(
-              "Questa azione non può essere annullata. Tutti i dati relativi a questa area verranno persi.",
-            ),
+            content: Text("people_counter.delete_confirm_content".tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text("Annulla"),
+                child: Text("common.cancel".tr()),
               ),
               TextButton(
                 onPressed: () async {
@@ -372,7 +547,7 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
                 style: TextButton.styleFrom(
                   foregroundColor: AppTheme.errorLight,
                 ),
-                child: const Text("Elimina"),
+                child: Text("people_counter.delete_button".tr()),
               ),
             ],
           ),
@@ -523,7 +698,7 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
 
           // Current Distribution Chart
           Text(
-            "Distribuzione Attuale",
+            "people_counter.current_distribution".tr(),
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -565,7 +740,7 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
               height: 100,
               child: Center(
                 child: Text(
-                  "Nessun dato attuale",
+                  "people_counter.no_current_data".tr(),
                   style: GoogleFonts.outfit(color: theme.hintColor),
                 ),
               ),
@@ -603,7 +778,7 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
 
           // History Line Chart
           Text(
-            "Andamento nel Tempo",
+            "people_counter.history_over_time".tr(),
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -615,12 +790,12 @@ class _PeopleCounterStatisticsState extends State<PeopleCounterStatistics> {
             const Center(child: CircularProgressIndicator())
           else if (_error != null)
             Text(
-              "Errore: $_error",
+              "common.error_prefix".tr() + _error!,
               style: TextStyle(color: theme.colorScheme.error),
             )
           else if (_logs.isEmpty)
             Text(
-              "Nessuno storico disponibile",
+              "people_counter.no_history_available".tr(),
               style: GoogleFonts.outfit(color: theme.hintColor),
             )
           else

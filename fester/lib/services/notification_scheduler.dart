@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'logger_service.dart';
 import 'notification_service.dart';
 
 /// Scheduler for event start/end notifications.
 /// Instantiated once per event (e.g. by the Admin/Organizer) to broadcast notifications.
 class NotificationScheduler {
+  static const String _tag = 'NotificationScheduler';
   final NotificationService _notificationService = NotificationService();
 
   Timer? _startTimer;
@@ -32,14 +33,15 @@ class NotificationScheduler {
     if (startNotifyAt.isAfter(now)) {
       final diff = startNotifyAt.difference(now);
       _startTimer = Timer(diff, () async {
-        debugPrint('Scheduler: Triggering Event Start Notification');
+        LoggerService.info('Triggering Event Start Notification', tag: _tag);
         await _notificationService.notifyEventStart(
           eventId: eventId,
           eventName: eventName,
         );
       });
-      debugPrint(
+      LoggerService.debug(
         'Scheduled Start Notification for: $startNotifyAt (in ${diff.inMinutes} mins)',
+        tag: _tag,
       );
     }
 
@@ -49,14 +51,15 @@ class NotificationScheduler {
       if (endNotifyAt.isAfter(now)) {
         final diff = endNotifyAt.difference(now);
         _endTimer = Timer(diff, () async {
-          debugPrint('Scheduler: Triggering Event End Notification');
+          LoggerService.info('Triggering Event End Notification', tag: _tag);
           await _notificationService.notifyEventEnd(
             eventId: eventId,
             eventName: eventName,
           );
         });
-        debugPrint(
+        LoggerService.debug(
           'Scheduled End Notification for: $endNotifyAt (in ${diff.inMinutes} mins)',
+          tag: _tag,
         );
       }
     }

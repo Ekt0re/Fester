@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/animated_settings_icon.dart';
 import '../../services/notification_service.dart';
 import '../../services/notification_scheduler.dart';
+import '../../services/permission_service.dart';
 // Ensure this exists for navigation
 import '../settings/settings_screen.dart';
 import 'event_settings_screen.dart';
@@ -18,6 +19,7 @@ import 'guests_import_screen.dart';
 import '../profile/staff_profile_screen.dart';
 import '../../services/supabase/models/event_staff.dart';
 import 'people_counter_screen.dart';
+import 'communications_screen.dart';
 import '../../utils/location_helper.dart';
 
 class EventDashboardScreen extends StatefulWidget {
@@ -349,7 +351,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
-                        "Menu Rapido",
+                        "dashboard.quick_menu".tr(),
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
@@ -371,24 +373,25 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   crossAxisSpacing: 12,
                   childAspectRatio: 0.95, // Better proportions
                   children: [
-                    _buildMenuGridItem(
-                      icon: Icons.settings,
-                      label: 'dashboard.event_settings'.tr(),
-                      color: Colors.blue,
-                      onTap: () {
-                        _handleNavigationWithReload(
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => EventSettingsScreen(
-                                    eventId: widget.eventId,
-                                  ),
+                    if (PermissionService.canEdit(_userRole))
+                      _buildMenuGridItem(
+                        icon: Icons.settings,
+                        label: 'dashboard.event_settings'.tr(),
+                        color: Colors.blue,
+                        onTap: () {
+                          _handleNavigationWithReload(
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EventSettingsScreen(
+                                      eventId: widget.eventId,
+                                    ),
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
                     _buildMenuGridItem(
                       icon: Icons.download,
                       label: 'dashboard.export_data'.tr(),
@@ -400,33 +403,34 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                             builder:
                                 (context) => EventExportScreen(
                                   eventId: widget.eventId,
-                                  eventName: _event?.name ?? 'Evento',
+                                  eventName:
+                                      _event?.name ?? 'dashboard.event'.tr(),
                                 ),
                           ),
                         );
                       },
                     ),
-                    _buildMenuGridItem(
-                      icon: Icons.upload_file,
-                      label: 'dashboard.import_guests'.tr(),
-                      color: Colors.orange,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    GuestsImportScreen(eventId: widget.eventId),
-                          ),
-                        );
-                      },
-                    ),
-                    if (_userRole != null &&
-                        (_userRole!.toLowerCase() == 'admin' ||
-                            _userRole!.toLowerCase() == 'staff3'))
+                    if (PermissionService.canAdd(_userRole))
+                      _buildMenuGridItem(
+                        icon: Icons.upload_file,
+                        label: 'dashboard.import_guests'.tr(),
+                        color: Colors.orange,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => GuestsImportScreen(
+                                    eventId: widget.eventId,
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                    if (PermissionService.canEdit(_userRole))
                       _buildMenuGridItem(
                         icon: Icons.people_outline,
-                        label: 'Conta Persone',
+                        label: 'dashboard.people_counter'.tr(),
                         color: Colors.purple,
                         onTap: () {
                           Navigator.push(
@@ -435,6 +439,33 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                               builder:
                                   (context) => PeopleCounterScreen(
                                     eventId: widget.eventId,
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                    if (PermissionService.canManageSmtp(_userRole))
+                      _buildMenuGridItem(
+                        icon: Icons.alternate_email,
+                        label: 'smtp_config.title'.tr(),
+                        color: Colors.blueAccent,
+                        onTap: () {
+                          context.push('/event/${widget.eventId}/smtp-config');
+                        },
+                      ),
+                    if (PermissionService.canEdit(_userRole))
+                      _buildMenuGridItem(
+                        icon: Icons.mail_outline,
+                        label: 'dashboard.communications'.tr(),
+                        color: Colors.teal,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => CommunicationsScreen(
+                                    eventId: widget.eventId,
+                                    currentUserRole: _userRole,
                                   ),
                             ),
                           );
@@ -516,7 +547,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
         } else if (index == 2) {
           // Navigate to Menu Management
           _handleNavigationWithReload(
-            context.push('/event/${widget.eventId}/menu'),
+            context.push('/event/${widget.eventId}/menu', extra: _userRole),
           );
         } else if (index == 3) {
           // Navigate to Event Settings
@@ -555,7 +586,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 context.push('/event/${widget.eventId}/notifications');
               } else if (index == 3) {
                 // Navigate to Menu Management Screen
-                context.push('/event/${widget.eventId}/menu');
+                context.push('/event/${widget.eventId}/menu', extra: _userRole);
               } else {
                 setState(() {
                   _selectedIndex = index;
@@ -673,22 +704,23 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                         tooltip: 'dashboard.manage_event'.tr(),
                         itemBuilder:
                             (context) => [
-                              PopupMenuItem(
-                                value: 'settings',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.settings,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'dashboard.event_settings'.tr(),
-                                      style: GoogleFonts.outfit(),
-                                    ),
-                                  ],
+                              if (PermissionService.canEdit(_userRole))
+                                PopupMenuItem(
+                                  value: 'settings',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.settings,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'dashboard.event_settings'.tr(),
+                                        style: GoogleFonts.outfit(),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
                               PopupMenuItem(
                                 value: 'export',
                                 child: Row(
@@ -705,25 +737,24 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                   ],
                                 ),
                               ),
-                              PopupMenuItem(
-                                value: 'import',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.upload_file,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'dashboard.import_guests'.tr(),
-                                      style: GoogleFonts.outfit(),
-                                    ),
-                                  ],
+                              if (PermissionService.canAdd(_userRole))
+                                PopupMenuItem(
+                                  value: 'import',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.upload_file,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'dashboard.import_guests'.tr(),
+                                        style: GoogleFonts.outfit(),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              if (_userRole != null &&
-                                  (_userRole!.toLowerCase() == 'admin' ||
-                                      _userRole!.toLowerCase() == 'staff3'))
+                              if (PermissionService.canEdit(_userRole))
                                 PopupMenuItem(
                                   value: 'people_counter',
                                   child: Row(
@@ -734,7 +765,41 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
-                                        'Conta Persone',
+                                        'dashboard.people_counter'.tr(),
+                                        style: GoogleFonts.outfit(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (PermissionService.canManageSmtp(_userRole))
+                                PopupMenuItem(
+                                  value: 'smtp_config',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.alternate_email,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'smtp_config.title'.tr(),
+                                        style: GoogleFonts.outfit(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (PermissionService.canEdit(_userRole))
+                                PopupMenuItem(
+                                  value: 'communications',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.mail_outline,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'dashboard.communications'.tr(),
                                         style: GoogleFonts.outfit(),
                                       ),
                                     ],
@@ -782,7 +847,9 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                 builder:
                                     (context) => EventExportScreen(
                                       eventId: widget.eventId,
-                                      eventName: _event?.name ?? 'Evento',
+                                      eventName:
+                                          _event?.name ??
+                                          'dashboard.event'.tr(),
                                     ),
                               ),
                             );
@@ -805,6 +872,18 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                                 builder:
                                     (context) => PeopleCounterScreen(
                                       eventId: widget.eventId,
+                                      currentUserRole: _userRole,
+                                    ),
+                              ),
+                            );
+                          } else if (value == 'communications') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => CommunicationsScreen(
+                                      eventId: widget.eventId,
+                                      currentUserRole: _userRole,
                                     ),
                               ),
                             );
@@ -1101,7 +1180,10 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     label: 'dashboard.menu_management'.tr(),
                     value: '$_menuItemCount',
                     onTap: () {
-                      context.push('/event/${widget.eventId}/menu');
+                      context.push(
+                        '/event/${widget.eventId}/menu',
+                        extra: _userRole,
+                      );
                     },
                   ),
                   _DashboardCard(
@@ -1110,7 +1192,10 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     label: 'dashboard.manage_staff'.tr(),
                     value: '$_staffCount',
                     onTap: () {
-                      context.push('/event/${widget.eventId}/staff');
+                      context.push(
+                        '/event/${widget.eventId}/staff',
+                        extra: _userRole,
+                      );
                     },
                   ),
                   _DashboardCard(
@@ -1145,7 +1230,10 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        context.push('/event/${widget.eventId}/qr-scanner');
+                        context.push(
+                          '/event/${widget.eventId}/qr-scanner',
+                          extra: _userRole,
+                        );
                       },
                       borderRadius: BorderRadius.circular(24),
                       child: Center(

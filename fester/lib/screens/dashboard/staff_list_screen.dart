@@ -6,11 +6,17 @@ import '../../services/supabase/event_service.dart';
 import '../../services/supabase/models/event_staff.dart';
 import 'widgets/staff_card.dart';
 import '../profile/staff_profile_screen.dart';
+import '../../services/permission_service.dart';
 
 class StaffListScreen extends StatefulWidget {
   final String eventId;
+  final String? currentUserRole;
 
-  const StaffListScreen({super.key, required this.eventId});
+  const StaffListScreen({
+    super.key,
+    required this.eventId,
+    this.currentUserRole,
+  });
 
   @override
   State<StaffListScreen> createState() => _StaffListScreenState();
@@ -86,9 +92,12 @@ class _StaffListScreenState extends State<StaffListScreen> {
     final isPending = staffUser == null;
 
     return StaffCard(
-      name: isPending ? (staffMember.mail ?? 'No Email') : staffUser.firstName,
+      name:
+          isPending
+              ? (staffMember.mail ?? 'common.no_email'.tr())
+              : staffUser.firstName,
       surname: isPending ? '' : staffUser.lastName,
-      role: roleName ?? 'Unknown',
+      role: roleName ?? 'common.unknown'.tr(),
       imageUrl: staffUser?.imagePath,
       isPending: isPending,
       onTap: () async {
@@ -121,8 +130,8 @@ class _StaffListScreenState extends State<StaffListScreen> {
       final currentUserStaff = _allStaff.firstWhere(
         (s) => s.staff?.id == currentUserId,
       );
-      final role = currentUserStaff.roleName?.toLowerCase();
-      return role == 'admin' || role == 'staff3';
+      final role = currentUserStaff.roleName;
+      return PermissionService.canAdd(role);
     } catch (_) {
       return false;
     }
@@ -130,7 +139,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
 
   Future<void> _showAddStaffDialog() async {
     final emailController = TextEditingController();
-    String selectedRole = 'Staff1';
+    String selectedRole = 'roles.staff1';
     final formKey = GlobalKey<FormState>();
 
     await showDialog(
@@ -166,11 +175,11 @@ class _StaffListScreenState extends State<StaffListScreen> {
                       labelText: 'staff.role_label'.tr(),
                     ),
                     items:
-                        ['Staff1', 'Staff2', 'Staff3']
+                        ['roles.staff1', 'roles.staff2', 'roles.staff3']
                             .map(
-                              (role) => DropdownMenuItem(
-                                value: role,
-                                child: Text(role),
+                              (roleKey) => DropdownMenuItem(
+                                value: roleKey,
+                                child: Text(roleKey.tr()),
                               ),
                             )
                             .toList(),
@@ -208,13 +217,13 @@ class _StaffListScreenState extends State<StaffListScreen> {
     try {
       final supabase = Supabase.instance.client;
 
-      // Map UI role name to DB role name
+      // Map UI role key to DB role name
       String dbRoleName = 'staff1';
       switch (roleName) {
-        case 'Staff2':
+        case 'roles.staff2':
           dbRoleName = 'staff2';
           break;
-        case 'Staff3':
+        case 'roles.staff3':
           dbRoleName = 'staff3';
           break;
       }
@@ -323,11 +332,18 @@ class _StaffListScreenState extends State<StaffListScreen> {
                 value: _roleFilter ?? 'staff.all_roles'.tr(),
                 isExpanded: true,
                 items:
-                    ['staff.all_roles'.tr(), 'Staff1', 'Staff2', 'Staff3']
+                    [
+                          'staff.all_roles'.tr(),
+                          'roles.staff1',
+                          'roles.staff2',
+                          'roles.staff3',
+                        ]
                         .map(
                           (role) => DropdownMenuItem<String>(
                             value: role,
-                            child: Text(role),
+                            child: Text(
+                              role.startsWith('roles.') ? role.tr() : role,
+                            ),
                           ),
                         )
                         .toList(),

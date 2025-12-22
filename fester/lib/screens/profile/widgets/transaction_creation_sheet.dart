@@ -11,6 +11,7 @@ class TransactionCreationSheet extends StatefulWidget {
   final String participationId;
   final String? initialTransactionType;
   final bool? initialIsAlcoholic; // New parameter
+  final bool canEdit;
   final VoidCallback onSuccess;
 
   const TransactionCreationSheet({
@@ -19,6 +20,7 @@ class TransactionCreationSheet extends StatefulWidget {
     required this.participationId,
     this.initialTransactionType,
     this.initialIsAlcoholic,
+    this.canEdit = true,
     required this.onSuccess,
   });
 
@@ -137,6 +139,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
   }
 
   Future<void> _createTransaction() async {
+    if (!widget.canEdit) return;
     if (_selectedTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('transaction.select_type_error'.tr())),
@@ -536,7 +539,7 @@ class _TransactionCreationSheetState extends State<TransactionCreationSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _createTransaction,
+                onPressed: widget.canEdit ? _createTransaction : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),

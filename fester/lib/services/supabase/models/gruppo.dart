@@ -1,4 +1,4 @@
-// lib/services/SupabaseServicies/models/gruppo.dart
+// lib/services/supabase/models/gruppo.dart
 class Gruppo {
   final int id;
   final String name;

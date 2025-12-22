@@ -1,4 +1,4 @@
-// lib/services/SupabaseServicies/models/sottogruppo.dart
+// lib/services/supabase/models/sottogruppo.dart
 class Sottogruppo {
   final int id;
   final String name;

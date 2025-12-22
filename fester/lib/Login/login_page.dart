@@ -1,8 +1,9 @@
-import 'package:fester/services/supabase/supabase_auth.dart'
-    show AuthService;
+import 'package:fester/services/supabase/supabase_auth.dart' show AuthService;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../utils/validation_utils.dart';
+import '../widgets/error_dialog.dart';
 import 'register_step1_page.dart';
 import 'forgot_password_page.dart';
 
@@ -43,15 +44,14 @@ class _LoginPageState extends State<LoginPage> {
       if (response.session != null && mounted) {
         context.go('/event-selection');
       } else if (mounted) {
-        throw Exception('Login fallito: Nessuna sessione ricevuta');
+        ErrorDialog.show(context, message: 'login.login_error'.tr());
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: ${e.toString()}'),
-            backgroundColor: Colors.red.shade400,
-          ),
+        ErrorDialog.show(
+          context,
+          message: 'login.login_error'.tr(),
+          technicalDetails: e.toString(),
         );
       }
     } finally {
@@ -85,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'FESTER 3.0',
+                          'common.app_title'.tr(),
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
@@ -107,15 +107,9 @@ class _LoginPageState extends State<LoginPage> {
                             labelText: 'login.email_label'.tr(),
                             prefixIcon: const Icon(Icons.email_outlined),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'login.email_error_empty'.tr();
-                            }
-                            if (!value.contains('@')) {
-                              return 'login.email_error_invalid'.tr();
-                            }
-                            return null;
-                          },
+                          validator:
+                              (value) =>
+                                  FormValidator.validateEmail(value)?.tr(),
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
@@ -137,15 +131,9 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'login.password_error_empty'.tr();
-                            }
-                            if (value.length < 6) {
-                              return 'login.password_error_short'.tr();
-                            }
-                            return null;
-                          },
+                          validator:
+                              (value) =>
+                                  FormValidator.validatePassword(value)?.tr(),
                         ),
                         const SizedBox(height: 32),
                         SizedBox(

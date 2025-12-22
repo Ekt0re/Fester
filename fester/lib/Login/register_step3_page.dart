@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
+import '../services/logger_service.dart';
+import '../utils/validation_utils.dart';
+import '../widgets/error_dialog.dart';
 import 'registration_confirmation_page.dart';
-import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RegisterStep3Page extends StatefulWidget {
@@ -28,6 +30,7 @@ class RegisterStep3Page extends StatefulWidget {
 }
 
 class _RegisterStep3PageState extends State<RegisterStep3Page> {
+  static const String _tag = 'RegisterStep3Page';
   final _formKey = GlobalKey<FormState>();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -37,14 +40,6 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
   bool _isLoading = false;
 
   final AuthService _authService = AuthService();
-  final Logger _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 0,
-      colors: false,
-      printEmojis: false,
-      printTime: false,
-    ),
-  );
 
   @override
   void dispose() {
@@ -54,14 +49,11 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
   }
 
   Future<void> _handleRegister() async {
-    _logger.i('🔍 Validating form...');
     if (!_formKey.currentState!.validate()) {
-      _logger.w('❌ Form validation failed');
       return;
     }
 
     if (!_acceptTerms) {
-      _logger.w('❌ Terms not accepted');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -73,15 +65,13 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
       return;
     }
 
-    _logger.i('✅ Form validation successful');
     setState(() => _isLoading = true);
 
     try {
-      _logger.i('🚀 Starting registration process...');
-      _logger.d('📧 Email:  [4m${widget.email} [0m');
-      _logger.d('👤 Name: ${widget.firstName} ${widget.lastName}');
-      _logger.d('📅 Date of Birth: ${widget.dateOfBirth}');
-      _logger.d('📱 Phone: ${widget.phone}');
+      LoggerService.info(
+        'Starting registration for ${widget.email}',
+        tag: _tag,
+      );
 
       final authResponse = await _authService.signUp(
         email: widget.email,
@@ -92,18 +82,16 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
         phone: widget.phone,
       );
 
-      _logger.i('🎉 Registration response received');
-
       if (authResponse.user == null) {
-        _logger.e('❌ Auth response contains no user data');
         throw Exception('register.error_create_user'.tr());
       }
 
-      _logger.i('👤 User created with ID: ${authResponse.user?.id}');
-      _logger.i('📬 Confirmation email sent to: ${authResponse.user?.email}');
+      LoggerService.info(
+        'User created successfully: ${authResponse.user?.id}',
+        tag: _tag,
+      );
 
       if (mounted) {
-        _logger.i('🔄 Navigating to confirmation page');
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -112,18 +100,16 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
         );
       }
     } catch (e, stackTrace) {
-      _logger.e('❌ Registration error:', error: e, stackTrace: stackTrace);
-      _logger.e('Error type: ${e.runtimeType}');
-      _logger.e('Error message: $e');
-      _logger.t('Stack trace: $stackTrace');
+      LoggerService.error(
+        'Registration error',
+        tag: _tag,
+        error: e,
+        stackTrace: stackTrace,
+      );
 
       String errorMessage = 'register.error_generic'.tr();
 
       if (e is AuthException) {
-        _logger.w('🔍 AuthException details:');
-        _logger.w('Status code: ${e.statusCode}');
-        _logger.w('Message: ${e.message}');
-
         if (e.statusCode == '400') {
           if (e.message.contains('already registered') ||
               e.message.contains('already in use')) {
@@ -141,15 +127,11 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
         errorMessage = 'register.error_connection'.tr();
       }
 
-      _logger.w('📢 Showing error to user: $errorMessage');
-
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red.shade400,
-            duration: const Duration(seconds: 5),
-          ),
+        ErrorDialog.show(
+          context,
+          message: errorMessage,
+          technicalDetails: e.toString(),
         );
       }
     } finally {
@@ -162,7 +144,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
       'https://github.com/Ekt0re/Fester/blob/5e20be71f6fc756eaea696c95c6a863e6a8df5ac/Utility/Terms/Fester%20Terms%20Privacy%20Md.pdf',
     );
     if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
+      throw Exception('common.launch_error'.tr());
     }
   }
 
@@ -192,7 +174,7 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'FESTER 3.0',
+                          'common.app_title'.tr(),
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: theme.colorScheme.primary,
@@ -226,15 +208,12 @@ class _RegisterStep3PageState extends State<RegisterStep3Page> {
                                   ),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'login.password_error_empty'.tr();
-                            }
-                            if (value.length < 8) {
-                              return 'register.password_error_length'.tr();
-                            }
-                            return null;
-                          },
+                          validator:
+                              (value) =>
+                                  FormValidator.validatePassword(
+                                    value,
+                                    minLength: 8,
+                                  )?.tr(),
                         ),
                         const SizedBox(height: 16),
                         TextFormField(

@@ -1,9 +1,10 @@
-import 'package:flutter/foundation.dart';
+import '../logger_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Servizio per la gestione delle notifiche di eventi.
 /// Fornisce metodi per inviare notifiche relative all'inizio e fine degli eventi.
 class NotificationService {
+  static const String _tag = 'NotificationService';
   final SupabaseClient _supabase = Supabase.instance.client;
 
   /// Invia una notifica per l'inizio di un evento.
@@ -34,9 +35,16 @@ class NotificationService {
         );
       }
 
-      debugPrint('Notifiche di inizio evento inviate per: $eventId');
+      LoggerService.info(
+        'Notifiche di inizio evento inviate per: $eventId',
+        tag: _tag,
+      );
     } catch (e) {
-      debugPrint('Errore nell\'invio notifica inizio evento: $e');
+      LoggerService.error(
+        'Errore invio notifica inizio evento',
+        tag: _tag,
+        error: e,
+      );
     }
   }
 
@@ -69,9 +77,16 @@ class NotificationService {
         );
       }
 
-      debugPrint('Notifiche di fine evento inviate per: $eventId');
+      LoggerService.info(
+        'Notifiche di fine evento inviate per: $eventId',
+        tag: _tag,
+      );
     } catch (e) {
-      debugPrint('Errore nell\'invio notifica fine evento: $e');
+      LoggerService.error(
+        'Errore invio notifica fine evento',
+        tag: _tag,
+        error: e,
+      );
     }
   }
 
@@ -89,8 +104,11 @@ class NotificationService {
       // - Notifiche in-app
       // - WebSocket per notifiche real-time
 
-      // Per ora, stampiamo solo i dettagli della notifica
-      debugPrint('Notifica per utente $userId: $title - $body');
+      // Per ora, loggiamo solo i dettagli della notifica
+      LoggerService.debug(
+        'Notifica per utente $userId: $title - $body',
+        tag: _tag,
+      );
 
       // Esempio di implementazione con Supabase Realtime:
       // await _supabase.channel('notifications').send({
@@ -100,7 +118,7 @@ class NotificationService {
       //   'created_at': DateTime.now().toIso8601String(),
       // });
     } catch (e) {
-      debugPrint('Errore nell\'invio della notifica: $e');
+      LoggerService.error('Errore invio notifica', tag: _tag, error: e);
     }
   }
 }

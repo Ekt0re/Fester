@@ -260,7 +260,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (timestamp == null) return 'notifications.unknown_time'.tr();
     try {
       final time = DateTime.parse(timestamp);
-      return timeago.format(time, locale: 'it');
+      return timeago.format(time, locale: context.locale.languageCode);
     } catch (e) {
       return 'notifications.unknown_time'.tr();
     }
