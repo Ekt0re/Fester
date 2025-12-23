@@ -260,8 +260,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: _buildAppBar(theme: theme),
-      body: Stack(
-        children: [
+      body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : RefreshIndicator(
@@ -272,257 +271,6 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   theme: theme,
                 ),
               ),
-          _buildMobileBottomSheetMenu(theme),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.primaryLight,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildBottomNavItem(Icons.search, Colors.cyanAccent, 0),
-            _buildBottomNavItem(Icons.notifications, Colors.amber, 1),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.home,
-                color: Colors.orangeAccent,
-                size: 30,
-              ),
-            ),
-            _buildBottomNavItem(Icons.restaurant_menu, Colors.pinkAccent, 2),
-            _buildBottomNavItem(Icons.settings, Colors.white, 3),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileBottomSheetMenu(ThemeData theme) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.06, // Much smaller when hidden - just the handle
-      minChildSize: 0.06,
-      maxChildSize: 0.55,
-      snap: true,
-      snapSizes: const [0.06, 0.35, 0.55], // Snap points for smooth UX
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 12,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: CustomScrollView(
-            controller: scrollController,
-            slivers: [
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    // Handle bar - minimal when collapsed
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Center(
-                        child: Container(
-                          width: 36,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: theme.dividerColor.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Title only visible when expanded
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        "dashboard.quick_menu".tr(),
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-                sliver: SliverGrid.count(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.95, // Better proportions
-                  children: [
-                    if (PermissionService.canEdit(_userRole))
-                      _buildMenuGridItem(
-                        icon: Icons.settings,
-                        label: 'dashboard.event_settings'.tr(),
-                        color: Colors.blue,
-                        onTap: () {
-                          _handleNavigationWithReload(
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => EventSettingsScreen(
-                                      eventId: widget.eventId,
-                                    ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    _buildMenuGridItem(
-                      icon: Icons.download,
-                      label: 'dashboard.export_data'.tr(),
-                      color: Colors.green,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => EventExportScreen(
-                                  eventId: widget.eventId,
-                                  eventName:
-                                      _event?.name ?? 'dashboard.event'.tr(),
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                    if (PermissionService.canAdd(_userRole))
-                      _buildMenuGridItem(
-                        icon: Icons.upload_file,
-                        label: 'dashboard.import_guests'.tr(),
-                        color: Colors.orange,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => GuestsImportScreen(
-                                    eventId: widget.eventId,
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                    if (PermissionService.canEdit(_userRole))
-                      _buildMenuGridItem(
-                        icon: Icons.people_outline,
-                        label: 'dashboard.people_counter'.tr(),
-                        color: Colors.purple,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => PeopleCounterScreen(
-                                    eventId: widget.eventId,
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                    if (PermissionService.canManageSmtp(_userRole))
-                      _buildMenuGridItem(
-                        icon: Icons.alternate_email,
-                        label: 'smtp_config.title'.tr(),
-                        color: Colors.blueAccent,
-                        onTap: () {
-                          context.push('/event/${widget.eventId}/smtp-config');
-                        },
-                      ),
-                    if (PermissionService.canEdit(_userRole))
-                      _buildMenuGridItem(
-                        icon: Icons.mail_outline,
-                        label: 'dashboard.communications'.tr(),
-                        color: Colors.teal,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => CommunicationsScreen(
-                                    eventId: widget.eventId,
-                                    currentUserRole: _userRole,
-                                  ),
-                            ),
-                          );
-                        },
-                      ),
-                    _buildMenuGridItem(
-                      icon: Icons.analytics_outlined,
-                      label: 'dashboard.advanced_stats'.tr(),
-                      color: Colors.red,
-                      onTap: () {
-                        context.push('/event/${widget.eventId}/statistics');
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMenuGridItem({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start, // Align to top
-        children: [
-          const SizedBox(height: 12), // Fixed top padding
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -532,37 +280,6 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   ) async {
     await navigationFuture;
     _loadEventData(silent: true);
-  }
-
-  Widget _buildBottomNavItem(IconData icon, Color color, int index) {
-    return IconButton(
-      icon: Icon(icon, color: color),
-      onPressed: () {
-        if (index == 0) {
-          // Navigate to Global Search Screen
-          context.push('/event/${widget.eventId}/search');
-        } else if (index == 1) {
-          // Navigate to Notifications Screen
-          context.push('/event/${widget.eventId}/notifications');
-        } else if (index == 2) {
-          // Navigate to Menu Management
-          _handleNavigationWithReload(
-            context.push('/event/${widget.eventId}/menu', extra: _userRole),
-          );
-        } else if (index == 3) {
-          // Navigate to Event Settings
-          _handleNavigationWithReload(
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder:
-                    (context) => EventSettingsScreen(eventId: widget.eventId),
-              ),
-            ),
-          );
-        }
-      },
-    );
   }
 
   Widget _buildDesktopLayout() {
@@ -1155,7 +872,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16), // Reduced spacing below card
+              const SizedBox(height: 16),
               // Grid Actions
               GridView.count(
                 shrinkWrap: true,
@@ -1207,17 +924,86 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                       context.push('/event/${widget.eventId}/statistics');
                     },
                   ),
+                  if (isDesktop) ...[
+                    _DashboardCard(
+                      icon: Icons.qr_code_scanner_rounded,
+                      iconColor: Colors.amberAccent,
+                      label: 'dashboard.scan_qr'.tr(),
+                      value: '',
+                      onTap: () {
+                        context.push(
+                          '/event/${widget.eventId}/qr-scanner',
+                          extra: _userRole,
+                        );
+                      },
+                    ),
+                    _DashboardCard(
+                      icon: Icons.people_outline_rounded,
+                      iconColor: Colors.cyanAccent,
+                      label: 'dashboard.people_counter'.tr(),
+                      value: '',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => PeopleCounterScreen(
+                                  eventId: widget.eventId,
+                                  currentUserRole: _userRole,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                    _DashboardCard(
+                      icon: Icons.mail_outline_rounded,
+                      iconColor: Colors.tealAccent,
+                      label: 'dashboard.communications'.tr(),
+                      value: '',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => CommunicationsScreen(
+                                  eventId: widget.eventId,
+                                  currentUserRole: _userRole,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                    _DashboardCard(
+                      icon: Icons.settings_rounded,
+                      iconColor: Colors.white70,
+                      label: 'dashboard.event_settings'.tr(),
+                      value: '',
+                      onTap: () {
+                        _handleNavigationWithReload(
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => EventSettingsScreen(
+                                    eventId: widget.eventId,
+                                  ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 24),
 
-              // Scan QR Button
               if (!isDesktop) ...[
+                const SizedBox(height: 16),
                 Container(
-                  height: 100,
+                  height: 80,
                   decoration: BoxDecoration(
                     color: AppTheme.primaryLight,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
@@ -1235,47 +1021,29 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                           extra: _userRole,
                         );
                       },
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(20),
                       child: Center(
-                        child: Text(
-                          'dashboard.scan_qr'.tr(),
-                          style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.5,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.qr_code_scanner,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'dashboard.scan_qr'.tr(),
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ),
-              ] else ...[
-                // Desktop alternative for Scan QR (maybe smaller or different)
-                Card(
-                  elevation: 0,
-                  color: theme.colorScheme.surface.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.qr_code_scanner,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'dashboard.desktop_qr_hint'.tr(),
-                          style: GoogleFonts.outfit(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ),
