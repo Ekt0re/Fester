@@ -57,10 +57,15 @@ class _InviteBridgeScreenState extends State<InviteBridgeScreen> {
       }
 
       if (widget.inviteType == 'staff') {
+        // Extract role from query parameters if present
+        final uri = Uri.parse(GoRouterState.of(context).uri.toString());
+        final role = uri.queryParameters['role'];
+
         // Staff invite: associate current user with the inviter and specific event
         await _handleStaffInvite(
           widget.targetId!,
           eventId: widget.eventId,
+          role: role,
         );
       }
     } catch (e) {
@@ -74,26 +79,65 @@ class _InviteBridgeScreenState extends State<InviteBridgeScreen> {
   Future<void> _handleStaffInvite(
     String inviterUserId, {
     String? eventId,
+    String? role,
   }) async {
-    // Logic to handle staff invite
-    // If eventId is provided, redirect directly to that event
-    // Otherwise, redirect to event selection
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            eventId != null
-                ? 'Invito accettato! Reindirizzamento all\'evento...'
-                : 'Invito accettato! Seleziona un evento.',
+    if (eventId == null) {
+      if (mounted) context.go('/event-selection');
+      return;
+    }
+
+    try {
+      final supabase = Supabase.instance.client;
+      final currentUser = supabase.auth.currentUser;
+
+      if (currentUser != null) {
+        // Map role name to role ID
+        String dbRoleName = role ?? 'staff1';
+
+        final roleResponse =
+            await supabase
+                .from('role')
+                .select('id')
+                .eq('name', dbRoleName)
+                .maybeSingle();
+
+        if (roleResponse != null) {
+          final roleId = roleResponse['id'];
+
+          // Check if already staff
+          final existingStaff =
+              await supabase
+                  .from('event_staff')
+                  .select()
+                  .eq('event_id', eventId)
+                  .eq('user_id', currentUser.id)
+                  .maybeSingle();
+
+          if (existingStaff == null) {
+            await supabase.from('event_staff').insert({
+              'event_id': eventId,
+              'user_id': currentUser.id,
+              'role_id': roleId,
+              'assigned_by': inviterUserId,
+              'mail': currentUser.email,
+            });
+          }
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invito accettato! Benvenuto nello staff.'),
+            backgroundColor: Colors.green,
           ),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-      if (eventId != null) {
+        );
         context.go('/event/$eventId');
-      } else {
-        context.go('/event-selection');
+      }
+    } catch (e) {
+      debugPrint('Error handling staff invite: $e');
+      if (mounted) {
+        context.go('/event/$eventId');
       }
     }
   }
@@ -103,11 +147,13 @@ class _InviteBridgeScreenState extends State<InviteBridgeScreen> {
     String deepLinkPath;
     if (widget.eventId != null && widget.inviteType == 'staff') {
       // Include eventId for event-specific staff invites
-      deepLinkPath = 'fester://invite/${widget.inviteType ?? ""}/${widget.eventId}/${widget.targetId ?? ""}';
+      deepLinkPath =
+          'fester://invite/${widget.inviteType ?? ""}/${widget.eventId}/${widget.targetId ?? ""}';
     } else {
-      deepLinkPath = 'fester://invite/${widget.inviteType ?? ""}/${widget.targetId ?? ""}';
+      deepLinkPath =
+          'fester://invite/${widget.inviteType ?? ""}/${widget.targetId ?? ""}';
     }
-    
+
     final nativeUri = Uri.parse(deepLinkPath);
 
     try {

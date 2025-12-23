@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/services.dart';
 import '../../services/supabase/event_service.dart';
 import '../../services/supabase/models/event_staff.dart';
 import 'widgets/staff_card.dart';
@@ -304,6 +305,8 @@ class _StaffListScreenState extends State<StaffListScreen> {
       ),
       body: Column(
         children: [
+          // Invite section
+          if (_canAddStaff) _buildInviteSection(theme),
           // Search field
           Container(
             padding: const EdgeInsets.all(16),
@@ -370,7 +373,12 @@ class _StaffListScreenState extends State<StaffListScreen> {
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 1200),
                               child: GridView.builder(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  16,
+                                  16,
+                                  100,
+                                ),
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 2,
@@ -385,7 +393,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
                           );
                         }
                         return ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                           itemCount: _filteredStaff.length,
                           itemBuilder: _buildStaffItem,
                         );
@@ -396,11 +404,104 @@ class _StaffListScreenState extends State<StaffListScreen> {
       ),
       floatingActionButton: Visibility(
         visible: _canAddStaff,
-        child: FloatingActionButton.extended(
-          onPressed: _showAddStaffDialog,
-          icon: const Icon(Icons.add),
-          label: Text('staff.add_button'.tr()),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 80.0),
+          child: FloatingActionButton.extended(
+            onPressed: _showAddStaffDialog,
+            icon: const Icon(Icons.add),
+            label: Text('staff.add_button'.tr()),
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInviteSection(ThemeData theme) {
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final String baseInviteLink =
+        'https://fester.netlify.app/invite/staff/${widget.eventId}/$currentUserId';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Card(
+        elevation: 0,
+        color: theme.colorScheme.primary.withOpacity(0.05),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.2)),
+        ),
+        child: ExpansionTile(
+          title: Text(
+            'staff.invite_link_section_title'.tr(),
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          leading: const Icon(Icons.link_rounded),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _buildInviteOption(
+                theme,
+                'roles.staff1',
+                'staff.roles_description.staff1',
+                baseInviteLink,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInviteOption(
+    ThemeData theme,
+    String roleKey,
+    String descKey,
+    String link,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                roleKey.tr(),
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.copy_rounded, size: 20),
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: link));
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('create_event.link_copied'.tr())),
+                    );
+                  }
+                },
+                tooltip: 'create_event.copy_link'.tr(),
+              ),
+            ],
+          ),
+          Text(
+            descKey.tr(),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+        ],
       ),
     );
   }

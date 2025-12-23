@@ -607,6 +607,12 @@
     "staff": {
         "title": "Staff Evento",
         "total": "Totale: ",
+        "invite_link_section_title": "Genera Link d'Invito",
+        "roles_description": {
+            "staff1": "Può visualizzare i dati dell'evento, cercare persone e consultare statistiche, ma non può apportare modifiche o gestire transazioni.",
+            "staff2": "Può gestire l'accoglienza, registrare ingressi (check-in), visualizzare il menù e gestire la disponibilità degli articoli.",
+            "staff3": "Può gestire l'intero evento: modificare impostazioni, aggiungere/rimuovere staff, gestire menù e accedere a tutte le funzioni amministrative."
+        },
         "search_placeholder": "Cerca membro staff...",
         "all_roles": "Tutti",
         "add_button": "Aggiungi Staff",
