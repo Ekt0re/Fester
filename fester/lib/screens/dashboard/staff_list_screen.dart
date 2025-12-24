@@ -405,7 +405,7 @@ class _StaffListScreenState extends State<StaffListScreen> {
       floatingActionButton: Visibility(
         visible: _canAddStaff,
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 80.0),
+          padding: const EdgeInsets.only(bottom: 100.0),
           child: FloatingActionButton.extended(
             onPressed: _showAddStaffDialog,
             icon: const Icon(Icons.add),

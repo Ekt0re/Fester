@@ -24,6 +24,7 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _hasUnsavedChanges = false;
 
   // Controllers
   final _maxParticipantsController = TextEditingController();
@@ -218,153 +219,221 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text('event_settings.title'.tr()),
-        actions: [
-          if (_isSaving)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            )
-          else
-            TextButton(
-              onPressed: _saveSettings,
-              child: Text('event_settings.save'.tr()),
-            ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildSectionTitle(theme, 'event_settings.general_info'.tr()),
-            _buildLocationField(theme),
-            const SizedBox(height: 16),
-
-            _buildDateTimeField(
-              context: context,
-              label: 'event_settings.start_date'.tr(),
-              value: _startAt,
-              onChanged: (date) => setState(() => _startAt = date),
-            ),
-            const SizedBox(height: 16),
-
-            _buildDateTimeField(
-              context: context,
-              label: 'event_settings.end_date'.tr(),
-              value: _endAt,
-              onChanged: (date) => setState(() => _endAt = date),
-            ),
-            const SizedBox(height: 24),
-
-            _buildSectionTitle(theme, 'event_settings.limits_capacity'.tr()),
-            _buildTextField(
-              controller: _maxParticipantsController,
-              label: 'event_settings.max_participants'.tr(),
-              hint: 'event_settings.unlimited_hint'.tr(),
-              icon: Icons.people,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-
-            _buildTextField(
-              controller: _maxDrinksController,
-              label: 'event_settings.max_drinks'.tr(),
-              hint: 'event_settings.unlimited_hint'.tr(),
-              icon: Icons.local_bar,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-
-            _buildSectionTitle(theme, 'event_settings.security'.tr()),
-            _buildTextField(
-              controller: _ageRestrictionController,
-              label: 'event_settings.min_age'.tr(),
-              hint: 'event_settings.age_hint'.tr(),
-              icon: Icons.cake,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-
-            _buildTextField(
-              controller: _maxWarningsController,
-              label: 'event_settings.max_warnings'.tr(),
-              hint: '3',
-              icon: Icons.warning,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-
-            _buildSwitchTile(
-              theme: theme,
-              title: 'event_settings.id_check'.tr(),
-              value: _idCheckRequired,
-              onChanged: (val) => setState(() => _idCheckRequired = val),
-            ),
-            const SizedBox(height: 24),
-
-            _buildSectionTitle(theme, 'event_settings.permissions'.tr()),
-            _buildSwitchTile(
-              theme: theme,
-              title: 'event_settings.allow_guests'.tr(),
-              subtitle: 'event_settings.allow_guests_subtitle'.tr(),
-              value: _allowGuests,
-              onChanged: (val) => setState(() => _allowGuests = val),
-            ),
-            const SizedBox(height: 8),
-
-            _buildSwitchTile(
-              theme: theme,
-              title: 'event_settings.late_entry'.tr(),
-              value: _lateEntryAllowed,
-              onChanged: (val) => setState(() => _lateEntryAllowed = val),
-            ),
-            const SizedBox(height: 8),
-            const SizedBox(height: 8),
-            _buildSwitchTile(
-              theme: theme,
-              title: 'event_settings.specific_people_counting'.tr(),
-              subtitle: 'event_settings.specific_people_counting_desc'.tr(),
-              value: _specificPeopleCounting,
-              onChanged: _onSpecificPeopleCountingChanged,
-            ),
-            const SizedBox(height: 32),
-
-            _buildSectionTitle(theme, 'event_settings.danger_zone'.tr()),
-            Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.error.withOpacity(0.5),
-                ),
-              ),
-              child: ListTile(
-                leading: Icon(Icons.archive, color: theme.colorScheme.error),
-                title: Text(
-                  'event_settings.archive_event'.tr(),
-                  style: TextStyle(
-                    color: theme.colorScheme.error,
-                    fontWeight: FontWeight.bold,
+    return PopScope(
+      canPop: !_hasUnsavedChanges && !_isSaving,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldPop = await _showUnsavedChangesDialog();
+        if (shouldPop == true && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Text('event_settings.title'.tr()),
+          actions: [
+            if (_isSaving)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
-                subtitle: Text('event_settings.archive_subtitle'.tr()),
-                onTap: _archiveEvent,
+              )
+            else
+              TextButton(
+                onPressed: _saveSettings,
+                child: Text('event_settings.save'.tr()),
               ),
-            ),
-            const SizedBox(height: 32),
           ],
         ),
+        body: Form(
+          key: _formKey,
+          // onChanged: () => setState(() => _hasUnsavedChanges = true), // can't imply on Form directly easily without custom form field integration, so we'll do per field
+          child: ListView(
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: 100,
+            ),
+            children: [
+              _buildSectionTitle(theme, 'event_settings.general_info'.tr()),
+              _buildLocationField(theme),
+              const SizedBox(height: 16),
+
+              _buildDateTimeField(
+                context: context,
+                label: 'event_settings.start_date'.tr(),
+                value: _startAt,
+                onChanged:
+                    (date) => setState(() {
+                      _startAt = date;
+                      _hasUnsavedChanges = true;
+                    }),
+              ),
+              const SizedBox(height: 16),
+
+              _buildDateTimeField(
+                context: context,
+                label: 'event_settings.end_date'.tr(),
+                value: _endAt,
+                onChanged:
+                    (date) => setState(() {
+                      _endAt = date;
+                      _hasUnsavedChanges = true;
+                    }),
+              ),
+              const SizedBox(height: 24),
+
+              _buildSectionTitle(theme, 'event_settings.limits_capacity'.tr()),
+              _buildTextField(
+                controller: _maxParticipantsController,
+                label: 'event_settings.max_participants'.tr(),
+                hint: 'event_settings.unlimited_hint'.tr(),
+                icon: Icons.people,
+                keyboardType: TextInputType.number,
+                onChanged: (_) => setState(() => _hasUnsavedChanges = true),
+              ),
+              const SizedBox(height: 16),
+
+              _buildTextField(
+                controller: _maxDrinksController,
+                label: 'event_settings.max_drinks'.tr(),
+                hint: 'event_settings.unlimited_hint'.tr(),
+                icon: Icons.local_bar,
+                keyboardType: TextInputType.number,
+                onChanged: (_) => setState(() => _hasUnsavedChanges = true),
+              ),
+              const SizedBox(height: 24),
+
+              _buildSectionTitle(theme, 'event_settings.security'.tr()),
+              _buildTextField(
+                controller: _ageRestrictionController,
+                label: 'event_settings.min_age'.tr(),
+                hint: 'event_settings.age_hint'.tr(),
+                icon: Icons.cake,
+                keyboardType: TextInputType.number,
+                onChanged: (_) => setState(() => _hasUnsavedChanges = true),
+              ),
+              const SizedBox(height: 16),
+
+              _buildTextField(
+                controller: _maxWarningsController,
+                label: 'event_settings.max_warnings'.tr(),
+                hint: '3',
+                icon: Icons.warning,
+                keyboardType: TextInputType.number,
+                onChanged: (_) => setState(() => _hasUnsavedChanges = true),
+              ),
+              const SizedBox(height: 16),
+
+              _buildSwitchTile(
+                theme: theme,
+                title: 'event_settings.id_check'.tr(),
+                value: _idCheckRequired,
+                onChanged:
+                    (val) => setState(() {
+                      _idCheckRequired = val;
+                      _hasUnsavedChanges = true;
+                    }),
+              ),
+              const SizedBox(height: 24),
+
+              _buildSectionTitle(theme, 'event_settings.permissions'.tr()),
+              _buildSwitchTile(
+                theme: theme,
+                title: 'event_settings.allow_guests'.tr(),
+                subtitle: 'event_settings.allow_guests_subtitle'.tr(),
+                value: _allowGuests,
+                onChanged:
+                    (val) => setState(() {
+                      _allowGuests = val;
+                      _hasUnsavedChanges = true;
+                    }),
+              ),
+              const SizedBox(height: 8),
+
+              _buildSwitchTile(
+                theme: theme,
+                title: 'event_settings.late_entry'.tr(),
+                value: _lateEntryAllowed,
+                onChanged:
+                    (val) => setState(() {
+                      _lateEntryAllowed = val;
+                      _hasUnsavedChanges = true;
+                    }),
+              ),
+              const SizedBox(height: 8),
+              const SizedBox(height: 8),
+              _buildSwitchTile(
+                theme: theme,
+                title: 'event_settings.specific_people_counting'.tr(),
+                subtitle: 'event_settings.specific_people_counting_desc'.tr(),
+                value: _specificPeopleCounting,
+                onChanged: (val) {
+                  _onSpecificPeopleCountingChanged(val);
+                  // _hasUnsavedChanges is mostly for form fields, this setting triggers immediate action/popup logic but we can also mark dirty if it's just a switch toggle without immediate save
+                  setState(() => _hasUnsavedChanges = true);
+                },
+              ),
+              const SizedBox(height: 32),
+
+              _buildSectionTitle(theme, 'event_settings.danger_zone'.tr()),
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.errorContainer.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.colorScheme.error.withOpacity(0.5),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(Icons.archive, color: theme.colorScheme.error),
+                  title: Text(
+                    'event_settings.archive_event'.tr(),
+                    style: TextStyle(
+                      color: theme.colorScheme.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text('event_settings.archive_subtitle'.tr()),
+                  onTap: _archiveEvent,
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Future<bool?> _showUnsavedChangesDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Modifiche non salvate'),
+            content: Text(
+              'Ci sono modifiche non salvate. Vuoi abbandonare la pagina?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false), // Cancel
+                child: Text('Annulla'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true), // Discard
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: Text('Abbandona'),
+              ),
+            ],
+          ),
     );
   }
 
@@ -389,11 +458,13 @@ class _EventSettingsScreenState extends State<EventSettingsScreen> {
     required String hint,
     required IconData icon,
     TextInputType? keyboardType,
+    ValueChanged<String>? onChanged,
   }) {
     final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

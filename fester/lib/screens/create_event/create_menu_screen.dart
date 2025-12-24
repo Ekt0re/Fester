@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
-
+import '../../theme/app_theme.dart';
 
 class CreateMenuScreen extends StatefulWidget {
   final String? eventId; // Opzionale per caricare menu esistente
@@ -85,7 +85,9 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
         _transactionTypes = List<Map<String, dynamic>>.from(response);
       });
     } catch (e) {
-      debugPrint('create_menu.load_transaction_types_error'.tr() + e.toString());
+      debugPrint(
+        'create_menu.load_transaction_types_error'.tr() + e.toString(),
+      );
       // Fallback to hardcoded values
       setState(() {
         _transactionTypes = [
@@ -217,9 +219,7 @@ class _CreateMenuScreenState extends State<CreateMenuScreen> {
     for (var item in _menuItems) {
       if (!item.isValid()) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('create_menu.fill_all_fields'.tr()),
-          ),
+          SnackBar(content: Text('create_menu.fill_all_fields'.tr())),
         );
         return;
       }
@@ -827,14 +827,28 @@ class _MenuItemCardState extends State<_MenuItemCard> {
             child: DropdownButton<int>(
               value: value,
               isExpanded: true,
-              hint: Text('create_menu.select_type'.tr(), style: theme.textTheme.bodyMedium),
+              hint: Text(
+                'create_menu.select_type'.tr(),
+                style: theme.textTheme.bodyMedium,
+              ),
               dropdownColor: theme.colorScheme.surface,
               style: theme.textTheme.bodyLarge,
               items:
                   items.map((item) {
+                    final typeName = (item['name'] as String);
                     return DropdownMenuItem<int>(
                       value: item['id'] as int,
-                      child: Text(item['name'] as String),
+                      child: Row(
+                        children: [
+                          Icon(
+                            AppTheme.getTransactionTypeIcon(typeName),
+                            color: theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(typeName.tr(), overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
                     );
                   }).toList(),
               onChanged: onChanged,

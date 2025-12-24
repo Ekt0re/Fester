@@ -106,7 +106,9 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 phone: staff.staff!.phone ?? '',
                 imagePath: staff.staff!.imagePath,
                 type: SearchResultType.staff,
-                roleName: staff.roleName ?? 'roles.staff'.tr(),
+                roleName:
+                    'roles.${(staff.roleName ?? 'staff').toString().toLowerCase()}'
+                        .tr(),
                 originalData: staff,
               ),
             );
@@ -136,7 +138,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                 phone: person['phone'] ?? '',
                 imagePath: null,
                 type: SearchResultType.guest,
-                roleName: status?['name'] ?? 'common.unknown'.tr(),
+                roleName:
+                    status != null
+                        ? 'status.${status['name'].toString().toLowerCase()}'
+                            .tr()
+                        : 'common.unknown'.tr(),
                 originalData: p,
               ),
             );
@@ -347,15 +353,25 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               ),
               const SizedBox(height: 16),
               ..._statuses.map((status) {
+                final statusName = status['name'].toString();
+                final isSelected = status['id'] == currentStatusId;
+                final statusColor = AppTheme.getStatusColor(statusName);
+
                 return ListTile(
-                  title: Text(status['name'].toString().toUpperCase()),
-                  leading:
-                      status['id'] == currentStatusId
-                          ? const Icon(
-                            Icons.check,
-                            color: AppTheme.primaryLight,
-                          )
-                          : null,
+                  title: Text(
+                    'status_${statusName.toLowerCase()}'.tr(),
+                    style: GoogleFonts.outfit(
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? statusColor : null,
+                    ),
+                  ),
+                  leading: Icon(
+                    AppTheme.getStatusIcon(statusName),
+                    color: statusColor,
+                  ),
+                  trailing:
+                      isSelected ? Icon(Icons.check, color: statusColor) : null,
                   onTap: () {
                     Navigator.pop(context);
                     _changeStatus(participationId, status['id']);
@@ -525,7 +541,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                             ],
                             if (_statuses.isNotEmpty)
                               _buildDropdownFilter(
-                                hint: 'search.all_statuses'.tr(),
+                                hint: 'search.filters.all_statuses'.tr(),
                                 value: _selectedStatusId,
                                 items: _statuses,
                                 onChanged: (val) {
@@ -534,11 +550,12 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                                     _filterList(_searchQuery);
                                   });
                                 },
+                                translationPrefix: 'status',
                               ),
                             const SizedBox(width: 12),
                             if (_roles.isNotEmpty)
                               _buildDropdownFilter(
-                                hint: 'search.all_roles'.tr(),
+                                hint: 'search.filters.all_roles'.tr(),
                                 value: _selectedRoleId,
                                 items: _roles,
                                 onChanged: (val) {
@@ -547,6 +564,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
                                     _filterList(_searchQuery);
                                   });
                                 },
+                                translationPrefix: 'roles',
                               ),
                           ],
                         ),
@@ -652,6 +670,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     required int? value,
     required List<Map<String, dynamic>> items,
     required Function(int?) onChanged,
+    required String translationPrefix,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -675,7 +694,11 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             ...items.map((item) {
               return DropdownMenuItem<int>(
                 value: item['id'],
-                child: Text(item['name'], style: const TextStyle(fontSize: 14)),
+                child: Text(
+                  '$translationPrefix.${item['name'].toString().toLowerCase()}'
+                      .tr(),
+                  style: const TextStyle(fontSize: 14),
+                ),
               );
             }),
           ],

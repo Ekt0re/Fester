@@ -20,12 +20,12 @@ class MobileLayout extends StatelessWidget {
         final extra = state.extra;
         final String? userRole = extra is String ? extra : null;
 
-        // Determine if we should show the navbar (e.g., hide on login)
+        final location = state.matchedLocation;
         final bool showNavBar =
             isMobile &&
-            !state.matchedLocation.startsWith('/login') &&
-            !state.matchedLocation.startsWith('/set-new-password') &&
-            state.matchedLocation != '/';
+            (RegExp(r'^/event/[^/]+$').hasMatch(location) ||
+                location.endsWith('/people-counter') ||
+                location.endsWith('/settings'));
 
         if (!showNavBar) {
           return child;

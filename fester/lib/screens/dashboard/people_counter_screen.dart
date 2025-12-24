@@ -29,11 +29,41 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
   late Stream<List<EventArea>> _areasStream;
   bool _specificPeopleCounting = false;
 
+  String? _currentRole;
+
   @override
   void initState() {
     super.initState();
+    _currentRole = widget.currentUserRole;
     _refreshStream();
     _fetchSettings();
+    if (_currentRole == null) {
+      _fetchUserRole();
+    }
+  }
+
+  Future<void> _fetchUserRole() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      final response =
+          await Supabase.instance.client
+              .from('event_staff')
+              .select('role:role_id(name)')
+              .eq('event_id', widget.eventId)
+              .eq('staff_user_id', user.id)
+              .maybeSingle();
+
+      if (response != null && mounted) {
+        setState(() {
+          final roleData = response['role'] as Map<String, dynamic>?;
+          _currentRole = roleData?['name'] as String?;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching user role: $e');
+    }
   }
 
   Future<void> _fetchSettings() async {
@@ -84,11 +114,14 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
         elevation: 0,
       ),
       floatingActionButton:
-          PermissionService.canAdd(widget.currentUserRole)
-              ? FloatingActionButton(
-                onPressed: _showAddAreaDialog,
-                backgroundColor: theme.colorScheme.primary,
-                child: const Icon(Icons.add),
+          PermissionService.canAdd(_currentRole)
+              ? Padding(
+                padding: const EdgeInsets.only(bottom: 80.0), // Above nav bar
+                child: FloatingActionButton(
+                  onPressed: _showAddAreaDialog,
+                  backgroundColor: theme.colorScheme.primary,
+                  child: const Icon(Icons.add),
+                ),
               )
               : null,
       body: StreamBuilder<List<EventArea>>(
@@ -215,7 +248,7 @@ class _PeopleCounterScreenState extends State<PeopleCounterScreen> {
 
   Widget _buildCountersList(List<EventArea> areas, ThemeData theme) {
     return ListView.builder(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 80),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 120),
       itemCount: areas.length,
       itemBuilder: (context, index) {
         final area = areas[index];
