@@ -248,15 +248,25 @@ class _GuestListScreenState extends State<GuestListScreen> {
               ),
               const SizedBox(height: 16),
               ..._statuses.map((status) {
+                final statusName = status['name'].toString();
+                final isSelected = status['id'] == currentStatusId;
+                final statusColor = AppTheme.getStatusColor(statusName);
+
                 return ListTile(
-                  title: Text(status['name'].toString().toUpperCase()),
-                  leading:
-                      status['id'] == currentStatusId
-                          ? const Icon(
-                            Icons.check,
-                            color: AppTheme.primaryLight,
-                          )
-                          : null,
+                  title: Text(
+                    'status.${statusName.toLowerCase()}'.tr(),
+                    style: GoogleFonts.outfit(
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected ? statusColor : null,
+                    ),
+                  ),
+                  leading: Icon(
+                    AppTheme.getStatusIcon(statusName),
+                    color: statusColor,
+                  ),
+                  trailing:
+                      isSelected ? Icon(Icons.check, color: statusColor) : null,
                   onTap: () {
                     Navigator.pop(context);
                     _changeStatus(participationId, status['id']);

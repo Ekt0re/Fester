@@ -747,7 +747,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
   }) {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, isDesktop ? 12 : 110),
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: isDesktop ? 1200 : 600),
@@ -836,7 +836,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12), // Reduced spacing
+                    const SizedBox(height: 8), // Reduced spacing
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -881,6 +881,7 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 childAspectRatio: isDesktop ? 1.5 : 1.4,
+                padding: EdgeInsets.zero,
                 children: [
                   _DashboardCard(
                     icon: Icons.people,
@@ -995,12 +996,15 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                   ],
                 ],
               ),
-              const SizedBox(height: 24),
+              if (isDesktop) const SizedBox(height: 24),
 
               if (!isDesktop) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 8), // Minimized gap
                 Container(
-                  height: 80,
+                  height: 54,
+                  margin: const EdgeInsets.only(
+                    bottom: 16,
+                  ), // Minimal bottom margin
                   decoration: BoxDecoration(
                     color: AppTheme.primaryLight,
                     borderRadius: BorderRadius.circular(20),
@@ -1029,14 +1033,14 @@ class _EventDashboardScreenState extends State<EventDashboardScreen> {
                             const Icon(
                               Icons.qr_code_scanner,
                               color: Colors.white,
-                              size: 28,
+                              size: 24,
                             ),
                             const SizedBox(width: 12),
                             Text(
                               'dashboard.scan_qr'.tr(),
                               style: GoogleFonts.outfit(
                                 color: Colors.white,
-                                fontSize: 20,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.2,
                               ),

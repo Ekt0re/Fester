@@ -38,6 +38,34 @@
         "error": "Errore",
         "error_prefix": "Errore:"
     },
+    "status": {
+        "cancelled": "Cancellato",
+        "left": "Uscito",
+        "outside": "Fuori",
+        "inside": "Dentro",
+        "checked_in": "Check-in",
+        "confirmed": "Confermato",
+        "invited": "Invitato",
+        "present": "Presente",
+        "banned": "Bannato",
+        "cancellato": "Cancellato",
+        "invitato": "Invitato",
+        "confermato": "Confermato",
+        "registrato": "Check-in",
+        "dentro": "Dentro",
+        "fuori": "Fuori"
+    },
+    "roles": {
+        "admin": "Amministratore",
+        "staff": "Staff",
+        "staff1": "Staff Base",
+        "staff2": "Staff Intermedio",
+        "staff3": "Manager",
+        "organizer": "Organizzatore",
+        "guest": "Ospite",
+        "pr": "PR",
+        "vip": "VIP"
+    },
     "common": {
         "error_title": "Errore",
         "technical_details": "Dettagli Tecnici",
@@ -504,8 +532,10 @@
         "placeholder": "Cerca ospite, staff, email...",
         "staff": "Staff",
         "guests": "Ospiti",
-        "all_statuses": "Tutti gli stati",
-        "all_roles": "Tutti i ruoli",
+        "filters": {
+            "all_statuses": "Tutti gli stati",
+            "all_roles": "Tutti i ruoli"
+        },
         "no_people_found": "Nessuna persona trovata",
         "no_results": "Nessun risultato per \"{}\"",
         "load_error": "Errore caricamento dati: ",
@@ -557,8 +587,26 @@
         "qty": "Qty: {}",
         "alcoholic": "Alcolico",
         "confirm_item": "Conferma Item",
-        "select_type": "Seleziona Tipo"
+        "select_type": "Seleziona Tipo",
+        "drink": "Drink",
+        "food": "Cibo",
+        "ticket": "Biglietto",
+        "fine": "Multa",
+        "sanction": "Sanzione",
+        "report": "Segnalazione",
+        "refund": "Rimborso",
+        "fee": "Tassa",
+        "note": "Nota"
     },
+    "drink": "Drink",
+    "food": "Cibo",
+    "ticket": "Biglietto",
+    "fine": "Multa",
+    "sanction": "Sanzione",
+    "report": "Segnalazione",
+    "refund": "Rimborso",
+    "fee": "Tassa",
+    "note": "Nota",
     "notifications": {
         "title": "Notifiche",
         "mark_all_read": "Segna tutte lette",
@@ -602,7 +650,10 @@
         "welcome": "Benvenuto",
         "config_error": "Errore Configurazione",
         "status_not_found": "Stato 'Entrato' non trovato nel sistema",
-        "error": "Errore"
+        "error": "Errore",
+        "camera_error": "Impossibile accedere alla fotocamera. Verifica i permessi.",
+        "camera_not_found": "Nessuna fotocamera trovata su questo dispositivo.",
+        "no_permission": "Permessi fotocamera non concessi"
     },
     "staff": {
         "title": "Staff Evento",
@@ -821,7 +872,9 @@
         "select_date": "Seleziona Data",
         "error_update_role": "Errore aggiornamento ruolo: ",
         "profile_updated": "Profilo aggiornato con successo!",
-        "edit_role": "Modifica Ruolo"
+        "edit_role": "Modifica Ruolo",
+        "send_email": "Invia Email",
+        "call": "Chiama"
     },
     "create_menu": {
         "title": "Crea Menu e Prezario",
@@ -896,25 +949,6 @@
         "address": "Indirizzo:",
         "invited_by": "Invitato da:",
         "subgroup": "Sottogruppo:"
-    },
-    "roles": {
-        "staff": "Staff",
-        "admin": "Admin",
-        "staff1": "Visualizzatore",
-        "staff2": "Staff attivo",
-        "staff3": "Organizzatore",
-        "guest": "Ospite",
-        "vip": "VIP"
-    },
-    "status": {
-        "invited": "Invitato",
-        "confirmed": "Confermato",
-        "checked_in": "Registrato",
-        "inside": "All'interno",
-        "outside": "All'esterno",
-        "left": "Ha lasciato l'evento",
-        "cancelled": "Annullato",
-        "banned": "Bannato"
     },
     "smtp_config": {
         "title": "Configurazione Email",

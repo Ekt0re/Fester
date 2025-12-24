@@ -22,6 +22,7 @@ import 'screens/dashboard/qr_scanner_screen.dart';
 import 'screens/dashboard/communications_screen.dart';
 import 'screens/dashboard/smtp_config_screen.dart';
 import 'screens/dashboard/people_counter_screen.dart';
+import 'screens/dashboard/guests_import_screen.dart';
 import 'screens/invite_bridge_screen.dart';
 import 'services/supabase/deep_link_handler.dart';
 import 'widgets/mobile_layout.dart';
@@ -130,6 +131,14 @@ final GoRouter router = GoRouter(
               builder: (context, state) {
                 final eventId = state.pathParameters['eventId']!;
                 return GuestListScreen(eventId: eventId);
+              },
+            ),
+            GoRoute(
+              path: 'import-guests',
+              name: 'event-import-guests',
+              builder: (context, state) {
+                final eventId = state.pathParameters['eventId']!;
+                return GuestsImportScreen(eventId: eventId);
               },
             ),
             GoRoute(
@@ -356,7 +365,7 @@ class _SplashRedirectState extends State<_SplashRedirect> {
               curve: Curves.easeOutBack,
               builder: (context, value, child) {
                 return Opacity(
-                  opacity: value,
+                  opacity: value.clamp(0.0, 1.0),
                   child: Transform.scale(
                     scale: 0.8 + (value * 0.2),
                     child: Column(
