@@ -38,6 +38,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   // Notification system
   final List<ScanNotification> _notifications = [];
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  final GlobalKey _scannerKey = GlobalKey(debugLabel: 'qr_scanner_key');
 
   bool _isProcessing = false;
   bool _isScannerInitialized = false;
@@ -377,6 +378,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   child: Stack(
                     children: [
                       MobileScanner(
+                        key: _scannerKey,
                         controller: _controller,
                         onDetect: _handleScan,
                         fit: BoxFit.cover,
@@ -452,7 +454,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                           children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: () => _controller.switchCamera(),
+                                onPressed:
+                                    _isScannerInitialized
+                                        ? () => _controller.switchCamera()
+                                        : null,
                                 icon: const Icon(Icons.cameraswitch),
                                 label: Text('qr.switch_camera'.tr()),
                                 style: ElevatedButton.styleFrom(
@@ -470,7 +475,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                                   final isTorchOn =
                                       state.torchState == TorchState.on;
                                   return OutlinedButton.icon(
-                                    onPressed: () => _controller.toggleTorch(),
+                                    onPressed:
+                                        _isScannerInitialized
+                                            ? () => _controller.toggleTorch()
+                                            : null,
                                     icon: Icon(
                                       isTorchOn
                                           ? Icons.flash_on
@@ -608,208 +616,223 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             return Stack(
               children: [
                 MobileScanner(
+                  key: _scannerKey,
                   controller: _controller,
                   onDetect: _handleScan,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, child) {
+                    IconData icon;
+                    String message;
+                    switch (error.errorCode) {
+                      case MobileScannerErrorCode.permissionDenied:
+                        icon = Icons.no_photography;
+                        message = 'qr.camera_error'.tr();
+                        break;
+                      default:
+                        icon = Icons.error_outline;
+                        message = 'qr.camera_not_found'.tr();
+                    }
+                    return Container(
+                      color: Colors.black,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icon, color: Colors.white, size: 64),
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                              ),
+                              child: Text(
+                                message,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.outfit(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
 
-                // Overlay Border
-                Center(
-                  child: Container(
-                    width: 280,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: AppTheme.primaryLight,
-                        width: 4,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
+                // Dark Overlay with Cutout (IgnorePointer to prevent blocking buttons)
+                IgnorePointer(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return CustomPaint(
+                        painter: _ScannerOverlayPainter(
+                          borderColor: AppTheme.primaryLight,
+                          borderRadius: 24,
+                          borderLength: 40,
+                          borderWidth: 4,
+                          cutOutSize: 280,
+                        ),
+                        size: Size(constraints.maxWidth, constraints.maxHeight),
+                      );
+                    },
+                  ),
+                ),
+
+                // Top Bar (Controls)
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Back Button (Top Left)
+                        IconButton.filled(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.black45,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+
+                        // Flash & Camera Switch (Top Right)
+                        Row(
+                          children: [
+                            IconButton.filled(
+                              icon: const Icon(
+                                Icons.cameraswitch_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black45,
+                              ),
+                              onPressed: () {
+                                if (_controller.value.isInitialized) {
+                                  _controller.switchCamera();
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 12),
+                            ValueListenableBuilder(
+                              valueListenable: _controller,
+                              builder: (context, state, child) {
+                                final isTorchOn =
+                                    state.torchState == TorchState.on;
+                                return IconButton.filled(
+                                  icon: Icon(
+                                    isTorchOn
+                                        ? Icons.flash_on
+                                        : Icons.flash_off,
+                                    color:
+                                        isTorchOn
+                                            ? Colors.yellow
+                                            : Colors.white,
+                                    size: 24,
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.black45,
+                                  ),
+                                  onPressed: () {
+                                    if (_controller.value.isInitialized) {
+                                      _controller.toggleTorch();
+                                    }
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
 
-                // Controls Overlay
-                SafeArea(
-                  child: Column(
-                    children: [
-                      // Top Bar
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 30,
-                              ),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.cameraswitch_outlined,
-                                    color: Colors.white,
-                                    size: 30,
-                                  ),
-                                  onPressed: () => _controller.switchCamera(),
-                                ),
-                                IconButton(
-                                  icon: ValueListenableBuilder(
-                                    valueListenable: _controller,
-                                    builder: (context, state, child) {
-                                      return Icon(
-                                        state.torchState == TorchState.on
-                                            ? Icons.flash_on
-                                            : Icons.flash_off,
-                                        color:
-                                            state.torchState == TorchState.on
-                                                ? Colors.yellow
-                                                : Colors.white,
-                                        size: 30,
-                                      );
-                                    },
-                                  ),
-                                  onPressed: () => _controller.toggleTorch(),
+                // Bottom Area (Instructions & Manual Entry)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.8),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Inquadra il codice QR',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              shadows: [
+                                const Shadow(
+                                  blurRadius: 4,
+                                  color: Colors.black,
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-
-                      // Notifications
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: AnimatedList(
-                            key: _listKey,
-                            initialItemCount: _notifications.length,
-                            itemBuilder: (context, index, animation) {
-                              return _buildNotificationItem(
-                                _notifications[index],
-                                animation,
-                              );
-                            },
                           ),
-                        ),
-                      ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Posiziona il codice all\'interno del riquadro',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
 
-                      // Bottom Controls
-                      Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          children: [
-                            // Manual Entry Button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _showManualEntryDialog,
-                                icon: const Icon(Icons.keyboard),
-                                label: Text('qr.manual_entry_button'.tr()),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
+                          // Notifications Overlay (Embedded here or floating)
+                          SizedBox(
+                            height: 60,
+                            child: AnimatedList(
+                              key: _listKey,
+                              initialItemCount: _notifications.length,
+                              itemBuilder: (context, index, animation) {
+                                return _buildNotificationItem(
+                                  _notifications[index],
+                                  animation,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Manual Entry Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _showManualEntryDialog,
+                              icon: const Icon(Icons.keyboard_outlined),
+                              label: Text('qr.manual_entry_button'.tr()),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
-
-                            // Recent Scans Preview (Horizontal)
-                            if (_recentScans.isNotEmpty)
-                              SizedBox(
-                                height: 80,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _recentScans.length,
-                                  itemBuilder: (context, index) {
-                                    final scan = _recentScans[index];
-                                    final person = scan.person;
-                                    final firstName =
-                                        person?['first_name'] as String? ?? '?';
-                                    final lastName =
-                                        person?['last_name'] as String? ?? '';
-                                    final imagePath =
-                                        person?['image_path'] as String?;
-
-                                    return GestureDetector(
-                                      onTap: () => _navigateToProfile(scan),
-                                      child: Container(
-                                        width:
-                                            200, // Increased width to fit name
-                                        margin: const EdgeInsets.only(
-                                          right: 12,
-                                        ),
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.9),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            CircleAvatar(
-                                              backgroundImage:
-                                                  imagePath != null
-                                                      ? NetworkImage(imagePath)
-                                                      : null,
-                                              child:
-                                                  imagePath == null
-                                                      ? Text(firstName[0])
-                                                      : null,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    '$firstName $lastName',
-                                                    style: GoogleFonts.outfit(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black87,
-                                                      fontSize: 14,
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                  Text(
-                                                    '${scan.updatedAt?.hour.toString().padLeft(2, '0')}:${scan.updatedAt?.minute.toString().padLeft(2, '0')}',
-                                                    style: GoogleFonts.outfit(
-                                                      fontSize: 12,
-                                                      color: Colors.black54,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const Icon(
-                                              Icons.check_circle,
-                                              color: Colors.green,
-                                              size: 16,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -906,5 +929,100 @@ class ScanNotification extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ScannerOverlayPainter extends CustomPainter {
+  final Color borderColor;
+  final double borderRadius;
+  final double borderLength;
+  final double borderWidth;
+  final double cutOutSize;
+
+  _ScannerOverlayPainter({
+    required this.borderColor,
+    required this.borderRadius,
+    required this.borderLength,
+    required this.borderWidth,
+    required this.cutOutSize,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final sh = size.height;
+    final sw = size.width;
+
+    final paint =
+        Paint()
+          ..color = borderColor
+          ..strokeWidth = borderWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
+
+    // DARK OVERLAY
+    final backgroundPaint = Paint()..color = Colors.black.withOpacity(0.5);
+    final backgroundPath = Path()..addRect(Rect.fromLTWH(0, 0, sw, sh));
+
+    // CUTOUT
+    final cutoutRect = Rect.fromCenter(
+      center: Offset(sw / 2, sh / 2),
+      width: cutOutSize,
+      height: cutOutSize,
+    );
+    final cutoutRRect = RRect.fromRectAndRadius(
+      cutoutRect,
+      Radius.circular(borderRadius),
+    );
+
+    final finalPath = Path.combine(
+      PathOperation.difference,
+      backgroundPath,
+      Path()..addRRect(cutoutRRect),
+    );
+
+    canvas.drawPath(finalPath, backgroundPaint);
+
+    // BORDER (centered)
+    final borderPath =
+        Path()
+          // Top Left
+          ..moveTo(cutoutRect.left, cutoutRect.top + borderLength)
+          ..lineTo(cutoutRect.left, cutoutRect.top + borderRadius)
+          ..arcToPoint(
+            Offset(cutoutRect.left + borderRadius, cutoutRect.top),
+            radius: Radius.circular(borderRadius),
+          )
+          ..lineTo(cutoutRect.left + borderLength, cutoutRect.top)
+          // Top Right
+          ..moveTo(cutoutRect.right - borderLength, cutoutRect.top)
+          ..lineTo(cutoutRect.right - borderRadius, cutoutRect.top)
+          ..arcToPoint(
+            Offset(cutoutRect.right, cutoutRect.top + borderRadius),
+            radius: Radius.circular(borderRadius),
+          )
+          ..lineTo(cutoutRect.right, cutoutRect.top + borderLength)
+          // Bottom Right
+          ..moveTo(cutoutRect.right, cutoutRect.bottom - borderLength)
+          ..lineTo(cutoutRect.right, cutoutRect.bottom - borderRadius)
+          ..arcToPoint(
+            Offset(cutoutRect.right - borderRadius, cutoutRect.bottom),
+            radius: Radius.circular(borderRadius),
+          )
+          ..lineTo(cutoutRect.right - borderLength, cutoutRect.bottom)
+          // Bottom Left
+          ..moveTo(cutoutRect.left + borderLength, cutoutRect.bottom)
+          ..lineTo(cutoutRect.left + borderRadius, cutoutRect.bottom)
+          ..arcToPoint(
+            Offset(cutoutRect.left, cutoutRect.bottom - borderRadius),
+            radius: Radius.circular(borderRadius),
+          )
+          ..lineTo(cutoutRect.left, cutoutRect.bottom - borderLength);
+
+    canvas.drawPath(borderPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }

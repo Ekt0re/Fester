@@ -32,10 +32,40 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
   final Set<String> _expandedItems = {};
   final Set<String> _confirmedItems = {};
 
+  String? _currentRole;
+
   @override
   void initState() {
     super.initState();
+    _currentRole = widget.currentUserRole;
     _loadData();
+    if (_currentRole == null) {
+      _fetchUserRole();
+    }
+  }
+
+  Future<void> _fetchUserRole() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      final response =
+          await _supabase
+              .from('event_staff')
+              .select('role:role_id(name)')
+              .eq('event_id', widget.eventId)
+              .eq('staff_user_id', user.id)
+              .maybeSingle();
+
+      if (response != null && mounted) {
+        setState(() {
+          final roleData = response['role'] as Map<String, dynamic>?;
+          _currentRole = roleData?['name'] as String?;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching user role: $e');
+    }
   }
 
   @override
@@ -306,23 +336,33 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
       appBar: AppBar(
         title: Text(_menuNameController.text),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed:
-                PermissionService.canAdd(widget.currentUserRole)
-                    ? () {
-                      _addMenuItem();
-                      // Auto-select the new item on desktop
-                      if (MediaQuery.of(context).size.width > 900) {
+          if (MediaQuery.of(context).size.width > 900)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed:
+                  PermissionService.canAdd(_currentRole)
+                      ? () {
+                        _addMenuItem();
+                        // Auto-select the new item on desktop
                         setState(() {
                           _selectedItemIndex = _menuItems.length - 1;
                         });
                       }
-                    }
-                    : null,
-          ),
+                      : null,
+            ),
         ],
       ),
+      floatingActionButton:
+          MediaQuery.of(context).size.width <= 900 &&
+                  PermissionService.canAdd(_currentRole)
+              ? Padding(
+                padding: const EdgeInsets.only(bottom: 80.0), // Above nav bar
+                child: FloatingActionButton(
+                  onPressed: _addMenuItem,
+                  child: const Icon(Icons.add),
+                ),
+              )
+              : null,
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isDesktop = constraints.maxWidth > 900;
@@ -503,24 +543,26 @@ class _MenuManagementScreenState extends State<MenuManagementScreen> {
             // Mobile Layout
             return ListView(
               padding: const EdgeInsets.all(16.0),
-              children:
-                  _menuItems.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final item = entry.value;
-                    final isExpanded = _expandedItems.contains(item.tempId);
-                    final isConfirmed = _confirmedItems.contains(item.tempId);
-                    return _MenuItemCard(
-                      item: item,
-                      index: index,
-                      isExpanded: isExpanded,
-                      isConfirmed: isConfirmed,
-                      transactionTypes: _transactionTypes,
-                      onRemove: () => _removeMenuItem(index),
-                      onChanged: () => setState(() {}),
-                      onConfirm: () => _confirmMenuItem(item.tempId),
-                      onEdit: () => _editMenuItem(item.tempId),
-                    );
-                  }).toList(),
+              children: [
+                ..._menuItems.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isExpanded = _expandedItems.contains(item.tempId);
+                  final isConfirmed = _confirmedItems.contains(item.tempId);
+                  return _MenuItemCard(
+                    item: item,
+                    index: index,
+                    isExpanded: isExpanded,
+                    isConfirmed: isConfirmed,
+                    transactionTypes: _transactionTypes,
+                    onRemove: () => _removeMenuItem(index),
+                    onChanged: () => setState(() {}),
+                    onConfirm: () => _confirmMenuItem(item.tempId),
+                    onEdit: () => _editMenuItem(item.tempId),
+                  );
+                }),
+                const SizedBox(height: 120), // Bottom padding for NavBar
+              ],
             );
           }
         },
@@ -910,6 +952,8 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
             minimumSize: const Size(double.infinity, 44),
           ),
         ),
+        if (MediaQuery.of(context).size.width <= 900)
+          const SizedBox(height: 120), // Bottom padding for mobile navbar
       ],
     );
   }
@@ -952,9 +996,24 @@ class _MenuItemEditorState extends State<_MenuItemEditor> {
               style: theme.textTheme.bodyLarge,
               items:
                   items.map((item) {
+                    final typeName = (item['name'] as String);
+                    final icon = AppTheme.getTransactionTypeIcon(typeName);
                     return DropdownMenuItem<int>(
                       value: item['id'] as int,
-                      child: Text(item['name'] as String),
+                      child: Row(
+                        children: [
+                          Icon(
+                            icon,
+                            color: theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            typeName.tr(), // Assumes keys exist or fallback
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     );
                   }).toList(),
               onChanged: onChanged,
